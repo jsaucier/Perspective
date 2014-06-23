@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Credit-Avatus" APIVersion="8" Name="Perspective" Description="">
+    <Script Name="Libs/GeminiAddon.lua"/>
+    <Script Name="Libs/GeminiLocale.lua"/>
+    <Script Name="Libs/GeminiDB-1.0.lua"/>
+    <Script Name="Libs/GeminiColor/GeminiColor.lua"/>
+    <Form Name="Libs/GeminiColor/GeminiColor.xml"/>
+    <Script Name="Perspective.lua"/>
+    <Form Name="Perspective.xml"/>
+</Addon>

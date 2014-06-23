@@ -1354,6 +1354,8 @@ function Perspective:InitializeOptions()
 
 	-- Initialize the categories
 	for k, v in pairs(self.db.profile.categories) do
+		v = v or self.db.defaults.profile.categories[k]
+		
 		if k ~= "default" then
 			local categoryItem = self.Categories:FindChild("CategoryItem" .. v.header)
 

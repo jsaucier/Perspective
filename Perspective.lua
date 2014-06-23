@@ -246,6 +246,13 @@ local defaults = {
 				lineColor = "ffc759ff",
 				maxLines = 1,
 			},
+			["Bruxen"] = {
+				header = "Crimson Badlands - Thayd Portal",
+				display = "Ship to Thayd",
+				fontColor = "ff00ffff",
+				icon = "IconSprites:Icon_MapNode_Map_Portal",
+				showLines = false,
+			},
 			["Gus Oakby"] = {
 				header = "Thayd - Crimson Badlands Portal",
 				display = "Ship to Crimson Badlands",

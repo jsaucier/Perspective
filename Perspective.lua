@@ -92,9 +92,9 @@ local defaults = {
 			miner = {
 				header = "Harvest - Mine",
 				max = 5,
-				fontColor = "ff5ec6ff",
+				fontColor = "ff0078ce",
 				icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
-				lineColor = "ff5ec6ff",
+				lineColor = "ff0078ce",
 			},
 			relichunter = {
 				header = "Harvest - Relic Hunter",
@@ -191,15 +191,15 @@ local defaults = {
 				maxLines = 1,
 			},
 			scientist = {
-				header = "Path - Scientist Active Scans",
+				header = "Path - Scientist",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
 				showLines = true,
 				maxLines = 1,
 			},
-			scientistActiveScans = {
-				header = "Path - Scientist",
+			scientistMissionScans = {
+				header = "Path - Scientist Mission Scans",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
@@ -390,7 +390,7 @@ function Perspective:OnEnable()
 		SendVarToRover("Perspective", self)
 	end
 
-	
+
 	self:InitializeOptions()
 end
 
@@ -1142,6 +1142,8 @@ function Perspective:UpdateActivation(ui)
 		SettlerActivate = "settler",
 		SoldierActivate = "solider",
 		SoldierKill = "solider",
+		--ScientistScannable = "scientist",
+		ScientistActivate = "scientist"
 	}
 
 	local track, busy = false, false
@@ -1162,6 +1164,20 @@ function Perspective:UpdateActivation(ui)
 				ui.category = "scientist"
 			end			
 			track = true
+		end
+	end
+
+	if not ui.category then
+		if state.Collect and 
+			state.Collect.bUsePlayerPath and 
+			state.Collect.bCanInteract and
+			state.Collect.bIsActive then
+			ui.category = self.path
+		elseif state.Interact and 
+			state.Interact.bUsePlayerPath and 
+			state.Interact.bCanInteract and
+			state.Interact.bIsActive then
+			ui.category = self.path
 		end
 	end
 
@@ -1198,7 +1214,7 @@ function Perspective:GetRewardInfo(ui)
 			elseif type == "Scientist" and 
 				rewardInfo[i].pmMission and
 				not rewardInfo[i].pmMission:IsComplete() then
-				rewards.path = "scientist"
+				rewards.path = "scientistMissionScans"
 			end
 		end
 	end

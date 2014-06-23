@@ -65,8 +65,8 @@ local defaults = {
 				showName = false,
 				showDistance = false,
 				max = 10,
-				iconHeight = 4,
-				iconWidth = 4
+				iconHeight = 8,
+				iconWidth = 8
 			},	
 			questObjective = {
 				header = "Quest - Objective",
@@ -362,17 +362,7 @@ function Perspective:OnInitialize()
 		self.path = "explorer"
 	end
 
-	-- Get the player postion
-	self.player = GameLib:GetPlayerUnit() or self.player
-
-	if self.player then
-		self.position = self.player:GetPosition()
-
-		if self.position then
-			-- Vector of the player's position
-			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
-		end
-	end
+	self:UpdatePlayerPosition()
 	
 	-- Register our addon events				
 	Apollo.RegisterEventHandler("UnitCreated", 						"OnUnitCreated", self)
@@ -424,6 +414,26 @@ function Perspective:OnEnable()
 
 
 	self:InitializeOptions()
+end
+
+function Perspective:UpdatePlayerPosition()
+	-- Get the player postion
+	self.player = GameLib:GetPlayerUnit()
+
+	if self.player then
+		self.position = self.player:GetPosition()
+
+		if self.position then
+			-- Vector of the player's position
+			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
+		else
+			return false
+		end
+	else
+		return false
+	end
+
+	return true
 end
 
 function Perspective:OnRedrawTimerTicked()
@@ -561,54 +571,44 @@ function Perspective:OnRedrawTimerTicked()
 end
 
 function Perspective:OnUpdateTimerTicked()
+
 	-- Get the player postion
-	self.player = GameLib:GetPlayerUnit() or self.player
+	local updated = self:UpdatePlayerPosition()
 
-	if self.player then
-		self.position = self.player:GetPosition()
+	if updated then
+		-- Empty our categorized units
+		self.categorized = {} 
+		
+		-- Units we are not interested in keeping track of
+		local remove = {}
 
-		if self.position then
-			-- Vector of the player's position
-			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
-		else
-			return
-		end
-	else
-		return
-	end
-	
-	-- Empty our categorized units
-	self.categorized = {} 
-	
-	-- Units we are not interested in keeping track of
-	local remove = {}
+		-- Update all the known units
+		for index, ui in pairs(self.units) do
+			if GameLib.GetUnitById(ui.id) then
+				local keep = self:UpdateUnit(ui, index)
 
-	-- Update all the known units
-	for index, ui in pairs(self.units) do
-		if GameLib.GetUnitById(ui.id) then
-			local keep = self:UpdateUnit(ui, index)
-
-			if not keep then
-				-- this seems to keep  losing units
-				--table.insert(remove, index)
-			elseif ui.category then
-				table.insert(self.categorized, ui)
+				if not keep then
+					-- this seems to keep  losing units
+					--table.insert(remove, index)
+				elseif ui.category then
+					table.insert(self.categorized, ui)
+				end
+			else
+				table.insert(remove, index)		
 			end
-		else
-			table.insert(remove, index)		
 		end
-	end
-	
-	if self.markersInitialized then
-		self:MarkersUpdate()
-	else
-		self:MarkersInit()
-	end
-	
-	table.sort(self.categorized, function(a, b) return a.distance < b.distance end)
+		
+		if self.markersInitialized then
+			self:MarkersUpdate()
+		else
+			self:MarkersInit()
+		end
+		
+		table.sort(self.categorized, function(a, b) return a.distance < b.distance end)
 
-	for k, v in pairs(remove) do
-		table.remove(self.units, v)
+		for k, v in pairs(remove) do
+			table.remove(self.units, v)
+		end
 	end
 end
 
@@ -710,27 +710,31 @@ function Perspective:MarkerDestroy(id)
 end
 
 function Perspective:MarkerUpdate(marker)
-	local inArea = false
+	local updated = self:UpdatePlayerPosition()
 
-	if marker.type == "path" and marker.mission:IsInArea() then
-		inArea = true
-	end
+	if updated then
+		local inArea = false
 
-	for index, region in pairs(marker.regions) do
-		-- Get the distance to the marker
-		region.distance = math.ceil((self.vector - region.vector):Length())
-			
-		-- Determine if the player is in the region
-		if marker.type == "quest" then
-			-- No direct call that I can find to determine if the player is
-			-- in the area, so make it anywhere closer than 100m
-			region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
-		elseif marker.type == "path" then
-			region.inArea = inArea
+		if marker.type == "path" and marker.mission:IsInArea() then
+			inArea = true
 		end
-	end
 
-	table.sort(marker.regions, function(a, b) return a.distance < b.distance end)
+		for index, region in pairs(marker.regions) do
+			-- Get the distance to the marker
+			region.distance = math.ceil((self.vector - region.vector):Length())
+				
+			-- Determine if the player is in the region
+			if marker.type == "quest" then
+				-- No direct call that I can find to determine if the player is
+				-- in the area, so make it anywhere closer than 100m
+				region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
+			elseif marker.type == "path" then
+				region.inArea = inArea
+			end
+		end
+
+		table.sort(marker.regions, function(a, b) return a.distance < b.distance end)
+	end
 end
 
 function Perspective:UpdateOptions(ui)
@@ -772,6 +776,8 @@ function Perspective:UpdateUnit(ui,index)
 
 		ui.category = nil				-- reset the category as it might have changed
 
+		local state = {}
+
 		-- Determine if this is a hostile mob
 		if ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
 			not self.db.profile.categories.hostile.disabled then
@@ -779,13 +785,18 @@ function Perspective:UpdateUnit(ui,index)
 			state.track = true
 		end
 
-		local state = self:UpdateActivation(ui)
+		if self.db.profile.categories[name] then
+			ui.category = name
+			state.track = true
+		end
+
+		local track, busy = self:UpdateActivation(ui)
+
+		state.track = state.track or track
+		state.busy = state.busy or busy
 
 		if not state.busy then
-			if self.db.profile.categories[name] then
-				ui.category = name
-				state.track = true
-			end
+			
 
 			--if not ui.category or ui.category == "scientist" then
 				local type = ui.unit:GetType()
@@ -1103,7 +1114,9 @@ function Perspective:UpdateNonPlayer(ui, rewards)
 end
 
 function Perspective:UpdateSimple(ui, rewards)
-	if rewards then
+	local state = ui.unit:GetActivationState()
+
+	if state.Interact and state.Interact.bIsActive and rewards then
 		-- Quest target
 		if	rewards.quest and 
 			not self.db.profile.categories.questObjective.disabled then
@@ -1235,7 +1248,7 @@ function Perspective:UpdateActivation(ui)
 		end
 	end
 
-	return { track = track, busy = busy }
+	return track, busy
 	--[[elseif self.ChkTable["Event"] and GameLib.GetWorldDifficulty() > 0 then
 		if (tActivation.PublicEventTarget and tActivation.PublicEventTarget.bIsActive) or
 		   (tActivation.PublicEventKill and tActivation.PublicEventKill.bIsActive) or

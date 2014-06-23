@@ -1202,7 +1202,7 @@ function Perspective:UpdateActivation(ui)
 			if v == "lore" and 
 				self.path == "scientist" and 
 				string.find(ui.unit:GetName(), "DATACUBE:") then
-				ui.category = "scientist"
+				ui.category = "scientistMissionScans"
 			end			
 			track = true
 		end

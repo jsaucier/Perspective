@@ -276,12 +276,6 @@ local defaults = {
 			},	
 		},
 		blacklist = {},
-		whitelist = {
-			["Gus Oakby"] = true,
-			["Lilly Startaker"] = true,
-			["Transportation Expert Conner"] = true,
-			["Warrant Officer Burke"] = true,
-		},
 	}
 }
 
@@ -305,7 +299,7 @@ function Perspective:OnInitialize()
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
     self.Categories = self.Options:FindChild("Categories")
 
-    self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", nil, self)
+    self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
 
 	self.Overlay = Apollo.LoadForm(self.xmlDoc, "Overlay", "InWorldHudStratum", self)
 	self.Overlay:Show(true)
@@ -357,8 +351,6 @@ function Perspective:OnInitialize()
 	
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
-
-	self:InitializeOptions()
 end
 
 function Perspective:OnConfigure()
@@ -389,6 +381,9 @@ function Perspective:OnEnable()
 	if Apollo.GetAddon("Rover") then
 		SendVarToRover("Perspective", self)
 	end
+
+	
+	self:InitializeOptions()
 end
 
 function Perspective:OnRedrawTimerTicked()
@@ -727,32 +722,34 @@ function Perspective:UpdateUnit(ui,index)
 
 		local state = self:UpdateActivation(ui)
 
-		if not state.busy and not ui.category then
-			local type = ui.unit:GetType()
-			local rewards = self:GetRewardInfo(ui)
-
-			if type == "Player" then
-				self:UpdatePlayer(ui)
-				state.track = true
-			elseif type == "NonPlayer" then
-				self:UpdateNonPlayer(ui, rewards)
-				state.track = true
-			elseif type == "Simple" or type == "SimpleCollidable" then
-				self:UpdateSimple(ui, rewards)
-				state.track = true
-			elseif type == "Collectible" then
-				self:UpdateCollectible(ui,rewards)
-				state.track = true
-			elseif type == "Harvest" then
-				self:UpdateHarvest(ui)
+		if not state.busy then
+			if self.db.profile.categories[name] then
+				ui.category = name
 				state.track = true
 			end
 
-			if self.db.profile.whitelist[name] then
-				ui.category = name
-				state.track = true
-			else
-				state.track = state.track
+			if not ui.category then
+				local type = ui.unit:GetType()
+				local rewards = self:GetRewardInfo(ui)
+
+				if type == "Player" then
+					self:UpdatePlayer(ui)
+					state.track = true
+				elseif type == "NonPlayer" then
+					self:UpdateNonPlayer(ui, rewards)
+					state.track = true
+				elseif type == "Simple" or type == "SimpleCollidable" then
+					self:UpdateSimple(ui, rewards)
+					state.track = true
+				elseif type == "Collectible" then
+					self:UpdateCollectible(ui,rewards)
+					state.track = true
+				elseif type == "Harvest" then
+					self:UpdateHarvest(ui)
+					state.track = true
+				else
+					state.track = state.track
+				end
 			end
 		end
 
@@ -1265,12 +1262,17 @@ function Perspective:InitializeOptions()
 	local default
 
 	-- Add the whitelist items to the categories
-	for name, value in pairs(self.db.profile.whitelist) do
-		self.db.profile.categories[name] = self.db.profile.categories[name] or {
-			header = "Unit Name - " .. name,
-			whitelist = true,
-		}
-	end
+	--[[for name, value in pairs(self.db.profile.whitelist) do
+		if self.db.profile.categories[name] then
+			--self.db.profile.categories[name].header = "Unit Name - " .. name
+			--self.db.profile.categories[name].whitelist = true
+		else
+			self.db.profile.categories[name] = {
+				header = "Unit Name - " .. name,
+				whitelist = true,
+			}
+		end
+	end]]
 
 	-- Initialize the categories
 	for k, v in pairs(self.db.profile.categories) do
@@ -1278,10 +1280,6 @@ function Perspective:InitializeOptions()
 			local categoryItem = self.Categories:FindChild("CategoryItem" .. v.header)
 
 			self:CategoryItem_Init(k, v.header, v.whitelist, categoryItem)
-
-			if k == "default" then
-				default = listItem
-			end
 		end
 	end
 
@@ -1289,8 +1287,7 @@ function Perspective:InitializeOptions()
 	for i, item in pairs(self.Categories:GetChildren()) do
 		local category = item:GetData().category
 
-		if not self.db.profile.categories[category] and
-			not self.db.profile.whitelist[category] then
+		if not self.db.profile.categories[category] then
 			item:Destroy()
 		end
 	end
@@ -1496,14 +1493,13 @@ function Perspective:OnNewCategory_OKClicked(handler, control, button)
 		display = nil
 	end
 
-	self.db.profile.whitelist[name] = true
 	self.db.profile.categories[name] = self.db.profile.categories[name] or {
-			header = "Unit Name - " .. name,
-			whitelist = true,
-			display = display
-		}
+		header = "Unit Name - " .. name,
+		whitelist = true,
+		display = display
+	}
 
-	self:InitializeCategoryItem(name, "Unit Name - " .. name, true, item)
+	self:CategoryItem_Init(name, "Unit Name - " .. name, true)
 
 	self:CategoryItems_Arrange()
 

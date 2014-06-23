@@ -198,7 +198,7 @@ local defaults = {
 				showLines = false,
 				maxLines = 1,
 			},
-			scientistMissionScans = {
+			scientistScans = {
 				header = "Path - Scientist Mission Scans",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
@@ -214,6 +214,13 @@ local defaults = {
 			},
 			settler = {
 				header = "Path - Settler",
+				fontColor = "ffc759ff",
+				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+				lineColor = "ffc759ff",
+				maxLines = 1,
+			},
+			settlerResources = {
+				header = "Path - Settler Resources",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 				lineColor = "ffc759ff",
@@ -1202,7 +1209,7 @@ function Perspective:UpdateActivation(ui)
 			if v == "lore" and 
 				self.path == "scientist" and 
 				string.find(ui.unit:GetName(), "DATACUBE:") then
-				ui.category = "scientistMissionScans"
+				ui.category = "scientistScans"
 			end			
 			track = true
 		end
@@ -1213,12 +1220,18 @@ function Perspective:UpdateActivation(ui)
 			state.Collect.bUsePlayerPath and 
 			state.Collect.bCanInteract and
 			state.Collect.bIsActive then
-			ui.category = self.path
+			if self.path == "settler" then
+				ui.category = "settlerResources"
+			else
+				ui.category = self.path
+			end
+			track = true
 		elseif state.Interact and 
 			state.Interact.bUsePlayerPath and 
 			state.Interact.bCanInteract and
 			state.Interact.bIsActive then
 			ui.category = self.path
+			track = true
 		end
 	end
 
@@ -1255,7 +1268,7 @@ function Perspective:GetRewardInfo(ui)
 			elseif type == "Scientist" and 
 				rewardInfo[i].pmMission and
 				not rewardInfo[i].pmMission:IsComplete() then
-				rewards.path = "scientistMissionScans"
+				rewards.path = "scientistScans"
 			end
 		end
 	end

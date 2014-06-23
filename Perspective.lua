@@ -1545,7 +1545,6 @@ function Perspective:OnCategoryItem_DeleteClicked(handler, control, button)
 	local item = control:GetParent():GetParent():GetParent()
 	local data = item:GetData()
 
-	self.db.profile.whitelist[data.category] = nil
 	self.db.profile.categories[data.category] = nil
 
 	item:Destroy()

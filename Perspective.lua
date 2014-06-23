@@ -54,6 +54,19 @@ local defaults = {
 				lineColor = "ff00ff00",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
 				showLines = false,
+			},
+			hostile = {
+				header = "Hostile NPCs",
+				fontColor = "ffff0000",
+				lineColor = "ffff0000",
+				iconColor = "ffff0000",
+				icon = "PerspectiveSprites:Circle",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 4,
+				iconWidth = 4
 			},	
 			questObjective = {
 				header = "Quest - Objective",
@@ -754,13 +767,20 @@ function Perspective:UpdateUnit(ui,index)
 
 		local state = self:UpdateActivation(ui)
 
+		-- Determine if this is a hostile mob
+		if ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
+			not self.db.profile.categories.hostile.disabled then
+			ui.category = "hostile"
+			state.track = true
+		end
+
 		if not state.busy then
 			if self.db.profile.categories[name] then
 				ui.category = name
 				state.track = true
 			end
 
-			if not ui.category or ui.category == "scientist" then
+			--if not ui.category or ui.category == "scientist" then
 				local type = ui.unit:GetType()
 				local rewards = self:GetRewardInfo(ui)
 
@@ -782,7 +802,7 @@ function Perspective:UpdateUnit(ui,index)
 				else
 					state.track = state.track
 				end
-			end
+			--end
 		end
 
 		if not state.track then
@@ -962,35 +982,8 @@ function Perspective:OnUnitCreated(unit)
 			id = unit:GetId(),
 			unit = unit,
 		}
-			--[[
-		local state = self:UpdateActivation(ui)
-		
-		if not state.busy and not ui.category then
-			local type = unit:GetType()
-			local rewards = self:GetRewardInfo(ui)
-		
-			if type == "Player" then
-				self:UpdatePlayer(ui)
-			elseif type == "NonPlayer" then
-				self:UpdateNonPlayer(ui, rewards)
-			elseif type == "Simple" or type == "SimpleCollidable" then
-				self:UpdateSimple(ui, rewards)
-			elseif type == "Collectible" then
-				self:UpdateCollectible(ui,rewards)
-			elseif type == "Harvest" then
-				self:UpdateHarvest(ui)
-			else
-				state.track = false
-			end
-		end
-		
-		if ui.category then
-			self:UpdateOptions(ui)
-		end]]
 
-		--if state.track then
-			table.insert(self.units, ui)
-		--end
+		table.insert(self.units, ui)
 	end	
 end
 
@@ -1384,7 +1377,6 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 
 		local title 	= item:FindChild("HeaderButton")
 		local check 	= item:FindChild("HeaderCheck")
-		local apply 	= item:FindChild("ApplyButton")
 		local default 	= item:FindChild("DefaultButton")
 		local delete 	= item:FindChild("DeleteButton")
 
@@ -1396,7 +1388,6 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 
 		delete:AddEventHandler("ButtonSignal", 		"OnCategoryItem_DeleteClicked")
 		default:AddEventHandler("ButtonSignal", 	"OnCategoryItem_DefaultClicked")
-		apply:AddEventHandler("ButtonSignal", 		"OnCategoryItem_ApplyClicked")
 
 		if whitelist then
 			delete:Show(true, true)

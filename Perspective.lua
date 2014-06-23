@@ -195,7 +195,7 @@ local defaults = {
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
-				showLines = true,
+				showLines = false,
 				maxLines = 1,
 			},
 			scientistMissionScans = {
@@ -203,7 +203,6 @@ local defaults = {
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
-				showLines = true,
 				maxLines = 1,
 			},
 			solider = {
@@ -211,7 +210,6 @@ local defaults = {
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
 				lineColor = "ffc759ff",
-				showLines = true,
 				maxLines = 1,
 			},
 			settler = {
@@ -219,7 +217,6 @@ local defaults = {
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 				lineColor = "ffc759ff",
-				showLines = true,
 				maxLines = 1,
 			},
 			explorer = {
@@ -227,7 +224,6 @@ local defaults = {
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
 				lineColor = "ffc759ff",
-				showLines = true,
 				maxLines = 1,
 			},
 			["Gus Oakby"] = {
@@ -338,6 +334,18 @@ function Perspective:OnInitialize()
 	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
 		self.path = "explorer"
 	end
+
+	-- Get the player postion
+	self.player = GameLib:GetPlayerUnit() or self.player
+
+	if self.player then
+		self.position = self.player:GetPosition()
+
+		if self.position then
+			-- Vector of the player's position
+			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
+		end
+	end
 	
 	-- Register our addon events				
 	Apollo.RegisterEventHandler("UnitCreated", 						"OnUnitCreated", self)
@@ -356,6 +364,13 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("ChallengeFailTime", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailGeneric", 			"OnChallengeRemoved", self)
 	--Apollo.RegisterEventHandler("ChallengeUpdated", 				"OnChallengeUpdated", self)
+
+	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 		"OnPlayerPathMissionActivate", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionAdvanced", 		"OnPlayerPathMissionAdvanced", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionComplete", 		"OnPlayerPathMissionComplete", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 		"OnPlayerPathMissionDeactivate", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 		"OnPlayerPathMissionUnlocked", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 			"OnPlayerPathMissionUpdate", self)
 	
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
@@ -371,17 +386,7 @@ function Perspective:OnSave(type)
 end
 
 function Perspective:OnEnable()
-	-- Get the player postion
-	self.player = GameLib:GetPlayerUnit() or self.player
 
-	if self.player then
-		self.position = self.player:GetPosition()
-
-		if self.position then
-			-- Vector of the player's position
-			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
-		end
-	end
 
 	redrawTimer = ApolloTimer.Create(self.db.profile.settings.redrawTime, true, "OnRedrawTimerTicked", self)
 	updateTimer = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
@@ -468,7 +473,12 @@ function Perspective:OnRedrawTimerTicked()
 
 	for id, marker in pairs(self.markers) do
 		local marks = 0
-	
+		local icon = self.db.profile.markers.quest.icon
+
+		if marker.type == "path" then
+			icon = self.db.profile.markers.path[self.path .. "Icon"]
+		end
+
 		for index, region in pairs(marker.regions) do
 			-- Get the screen position of the unit by it's vector
 			local uPos = GameLib.WorldLocToScreenPoint(region.vector)
@@ -478,7 +488,7 @@ function Perspective:OnRedrawTimerTicked()
 				uPos.z > 0 and
 				not region.inArea then
 				self.Overlay:AddPixie({
-					strSprite = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
+					strSprite = icon,
 					--cr = ui.iconColor,
 					loc = {
 						fPoints = { 0, 0, 0, 0 },
@@ -591,7 +601,7 @@ function Perspective:MarkersInit()
 
 	if episodes then
 		for _, mission in pairs(episodes:GetMissions()) do
-			--self:MarkerPathUpdate(mission)
+			self:MarkerPathUpdate(mission)
 		end
 	end		
 
@@ -619,24 +629,25 @@ function Perspective:MarkersUpdate()
 end
 
 function Perspective:MarkerPathUpdate(mission)
-	local info = {
-		id = mission:GetId(),
-		type = "path",
-		icon = self.db.profile.markers.path[self.path .. "icon"],
-		iconHeight = self.db.profile.markers.path.iconHeight,
-		iconWidth = self.db.profile.markers.path.iconWidth,
-	}
-	
-	for index, region in pairs(mission:GetMapRegions()) do
-		if mission:IsStarted() and not mission:IsComplete() then
-			info.index = index
-			info.vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
-			info.name = mission:GetName()
-			
-			self:MarkerUpdate(info)
-		else
-			self:MarkerDestroy(markerId)
+	local id = "path" .. mission:GetId()
+
+	if mission:IsStarted() and not mission:IsComplete() then
+		if table.getn(mission:GetMapRegions()) > 0 then
+			self.markers[id] = {
+				name = mission:GetName(),
+				type = "path",
+				regions = {},
+				mission = mission
+			}
+			for index, region in pairs(mission:GetMapRegions()) do
+				self.markers[id].regions[index] = {
+					vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
+				}
+				self:MarkerUpdate(self.markers[id])
+			end
 		end
+	else
+		self.markers[id] = nil
 	end
 end
 
@@ -672,6 +683,12 @@ function Perspective:MarkerDestroy(id)
 end
 
 function Perspective:MarkerUpdate(marker)
+	local inArea = false
+
+	if marker.type == "path" and marker.mission:IsInArea() then
+		inArea = true
+	end
+
 	for index, region in pairs(marker.regions) do
 		-- Get the distance to the marker
 		region.distance = math.ceil((self.vector - region.vector):Length())
@@ -682,7 +699,7 @@ function Perspective:MarkerUpdate(marker)
 			-- in the area, so make it anywhere closer than 100m
 			region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
 		elseif marker.type == "path" then
-			Print("Make sure path in area works")
+			region.inArea = inArea
 		end
 	end
 
@@ -999,6 +1016,30 @@ function Perspective:OnQuestStateChanged(quest)
 	self:MarkerQuestUpdate(quest)
 end
 
+function Perspective:OnPlayerPathMissionActivate(mission)
+	self:MarkerPathUpdate(mission)
+end
+
+function Perspective:OnPlayerPathMissionAdvanced(mission)
+	self:MarkerPathUpdate(mission)
+end
+
+function Perspective:OnPlayerPathMissionComplete(mission)
+	self:MarkerPathUpdate(mission)
+end
+
+function Perspective:OnPlayerPathMissionDeactivate(mission)
+	self:MarkerPathUpdate(mission)
+end
+
+function Perspective:OnPlayerPathMissionUnlocked(mission)
+	self:MarkerPathUpdate(mission)
+end
+
+function Perspective:OnPlayerPathMissionUpdate(mission)
+	self:MarkerPathUpdate(mission)
+end
+
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
 end
@@ -1142,7 +1183,7 @@ function Perspective:UpdateActivation(ui)
 		SettlerActivate = "settler",
 		SoldierActivate = "solider",
 		SoldierKill = "solider",
-		--ScientistScannable = "scientist",
+		ScientistScannable = "scientist",
 		ScientistActivate = "scientist"
 	}
 

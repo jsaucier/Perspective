@@ -1403,29 +1403,30 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 		init = true
 	end
 
-	self:CategoryItem_InitCheckOption(item, "Disable", 				category, "disabled",			init)
-	self:CategoryItem_InitCheckOption(item, "CombatDisable", 		category, "disableInCombat",	init)
-	self:CategoryItem_InitCheckOption(item, "ShowIcon", 			category, "showIcon",			init)
-	self:CategoryItem_InitCheckOption(item, "ShowName", 			category, "showName",			init)
-	self:CategoryItem_InitCheckOption(item, "ShowDistance", 		category, "showDistance",		init)
-	self:CategoryItem_InitCheckOption(item, "ShowLines", 			category, "showLines",			init)
-	self:CategoryItem_InitCheckOption(item, "ShowOutline", 			category, "showLineOutline",	init)
-	self:CategoryItem_InitCheckOption(item, "ShowOffScreenLine", 	category, "showLinesOffscreen",	init)
+	self:CategoryItem_InitCheckOption(item, "Disable", 				category, "disabled",				init)
+	self:CategoryItem_InitCheckOption(item, "CombatDisable", 		category, "disableInCombat",		init)
+	self:CategoryItem_InitCheckOption(item, "ShowIcon", 			category, "showIcon",				init)
+	self:CategoryItem_InitCheckOption(item, "ShowName", 			category, "showName",				init)
+	self:CategoryItem_InitCheckOption(item, "ShowDistance", 		category, "showDistance",			init)
+	self:CategoryItem_InitCheckOption(item, "ShowLines", 			category, "showLines",				init)
+	self:CategoryItem_InitCheckOption(item, "ShowOutline", 			category, "showLineOutline",		init)
+	self:CategoryItem_InitCheckOption(item, "ShowOffScreenLine", 	category, "showLinesOffscreen",		init)
 
-	self:CategoryItem_InitTextOption(item, "Font", 					category, "font", false, 		init)
-	self:CategoryItem_InitTextOption(item, "Icon", 					category, "icon", false,		init)
-	self:CategoryItem_InitTextOption(item, "IconHeight", 			category, "iconHeight", true,	init)
-	self:CategoryItem_InitTextOption(item, "IconWidth", 			category, "iconWidth", true, 	init)
-	self:CategoryItem_InitTextOption(item, "MaxIcons", 				category, "max", true,			init)
-	self:CategoryItem_InitTextOption(item, "MaxLines", 				category, "maxLines", true,		init)
-	self:CategoryItem_InitTextOption(item, "LineWidth", 			category, "lineWidth", true,	init)
-	self:CategoryItem_InitTextOption(item, "LimitBy", 				category, "limitBy", false,		init)
-	self:CategoryItem_InitTextOption(item, "MinDistance", 			category, "minDistance", true,	init)
-	self:CategoryItem_InitTextOption(item, "MaxDistance", 			category, "maxDistance", true,	init)
+	self:CategoryItem_InitTextOption(item, "Font", 					category, "font", 			false,	init)
+	self:CategoryItem_InitTextOption(item, "Icon", 					category, "icon", 			false,	init)
+	self:CategoryItem_InitTextOption(item, "IconHeight", 			category, "iconHeight", 	true,	init)
+	self:CategoryItem_InitTextOption(item, "IconWidth", 			category, "iconWidth", 		true, 	init)
+	self:CategoryItem_InitTextOption(item, "MaxIcons", 				category, "max", 			true,	init)
+	self:CategoryItem_InitTextOption(item, "MaxLines", 				category, "maxLines", 		true,	init)
+	self:CategoryItem_InitTextOption(item, "LineWidth", 			category, "lineWidth", 		true,	init)
+	self:CategoryItem_InitTextOption(item, "LimitBy", 				category, "limitBy", 		false,	init)
+	self:CategoryItem_InitTextOption(item, "MinDistance", 			category, "minDistance", 	true,	init)
+	self:CategoryItem_InitTextOption(item, "MaxDistance", 			category, "maxDistance", 	true,	init)
+	self:CategoryItem_InitTextOption(item, "Display", 				category, "display", 		false,	init)
 
-	self:CategoryItem_InitColorOption(item, "FontColor",			category, "fontColor",			init)
-	self:CategoryItem_InitColorOption(item, "IconColor", 			category, "iconColor",			init)
-	self:CategoryItem_InitColorOption(item, "LineColor", 			category, "lineColor",			init)
+	self:CategoryItem_InitColorOption(item, "FontColor",			category, "fontColor",				init)
+	self:CategoryItem_InitColorOption(item, "IconColor", 			category, "iconColor",				init)
+	self:CategoryItem_InitColorOption(item, "LineColor", 			category, "lineColor",				init)
 
 	self:CategoryItem_Toggle(item)
 
@@ -1455,7 +1456,7 @@ function Perspective:CategoryItem_InitTextOption(item, control, category, value,
 
 	local val = self:GetOptionValue(nil,  value, category)
 
-	control:SetText(val)
+	control:SetText(val or "")
 
 	if init then
 		control:AddEventHandler("EditBoxReturn", 	"CategoryItem_OnReturn")
@@ -1495,7 +1496,7 @@ function Perspective:CategoryItem_Toggle(item)
 	local data = item:GetData()
 
 	if data.expanded then
-		item:SetAnchorOffsets(0, 5, 0, 336)
+		item:SetAnchorOffsets(0, 5, 0, 331)
 		item:FindChild("Content"):Show(true, true)
 	else
 		item:SetAnchorOffsets(0, 5, 0, 53)

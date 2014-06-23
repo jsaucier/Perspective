@@ -760,7 +760,7 @@ function Perspective:UpdateUnit(ui,index)
 				state.track = true
 			end
 
-			if not ui.category then
+			if not ui.category or ui.category == "scientist" then
 				local type = ui.unit:GetType()
 				local rewards = self:GetRewardInfo(ui)
 
@@ -1355,7 +1355,6 @@ function Perspective:InitializeOptions()
 	-- Initialize the categories
 	for k, v in pairs(self.db.profile.categories) do
 		v = v or self.db.defaults.profile.categories[k]
-		
 		if k ~= "default" then
 			local categoryItem = self.Categories:FindChild("CategoryItem" .. v.header)
 

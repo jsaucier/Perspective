@@ -772,14 +772,14 @@ function Perspective:UpdateUnit(ui,index)
 
 		ui.category = nil				-- reset the category as it might have changed
 
-		local state = self:UpdateActivation(ui)
-
 		-- Determine if this is a hostile mob
 		if ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
 			not self.db.profile.categories.hostile.disabled then
 			ui.category = "hostile"
 			state.track = true
 		end
+
+		local state = self:UpdateActivation(ui)
 
 		if not state.busy then
 			if self.db.profile.categories[name] then

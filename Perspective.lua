@@ -191,34 +191,42 @@ local defaults = {
 				maxLines = 1,
 			},
 			scientist = {
-				header = "Path - Scientist",
-				fontColor = "ff8000ff",
+				header = "Path - Scientist Active Scans",
+				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-				lineColor = "ff8000ff",
+				lineColor = "ffc759ff",
+				showLines = true,
+				maxLines = 1,
+			},
+			scientistActiveScans = {
+				header = "Path - Scientist",
+				fontColor = "ffc759ff",
+				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+				lineColor = "ffc759ff",
 				showLines = true,
 				maxLines = 1,
 			},
 			solider = {
 				header = "Path - Soldier",
-				fontColor = "ff8000ff",
+				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
-				lineColor = "ff8000ff",
+				lineColor = "ffc759ff",
 				showLines = true,
 				maxLines = 1,
 			},
 			settler = {
 				header = "Path - Settler",
-				fontColor = "ff8000ff",
+				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-				lineColor = "ff8000ff",
+				lineColor = "ffc759ff",
 				showLines = true,
 				maxLines = 1,
 			},
 			explorer = {
 				header = "Path - Explorer",
-				fontColor = "ff8000ff",
+				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-				lineColor = "ff8000ff",
+				lineColor = "ffc759ff",
 				showLines = true,
 				maxLines = 1,
 			},
@@ -996,13 +1004,13 @@ function Perspective:OnChallengeActivated(challenge)
 end
 
 function Perspective:OnChallengeRemoved(challenge)
-	if typeof(challenge) == "number" then
+	if type(challenge) == "number" then
 		self.challenges[challenge] = nil
-	elseif typeof(challenge) == "userdata" and
+	elseif type(challenge) == "userdata" and
 		challenge:GetId() then
 		self.challenges[challenge:GetId()] = nil
 	else
-		Print("Perspective: Unexpected challenge failure")
+		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
 	end
 end
 

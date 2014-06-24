@@ -322,7 +322,7 @@ local defaults = {
 				maxLines = 1,
 			},
 			scientistScans = {
-				header = "Path - Scientist Mission Scans",
+				header = "Path - Scientist Scans",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
@@ -1602,7 +1602,7 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.Categories, self)
 
 		item:SetName("CategoryItem" .. header)
-
+		
 		local title 	= item:FindChild("HeaderButton")
 		local check 	= item:FindChild("HeaderCheck")
 		local default 	= item:FindChild("DefaultButton")
@@ -1630,6 +1630,14 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 
 		init = true
 	end
+
+	local icon = item:FindChild("HeaderIcon")
+	local sprite = self.db.profile.categories[category].icon or self.db.profile.categories.default.icon
+	local color = self.db.profile.categories[category].iconColor or self.db.profile.categories.default.iconColor
+
+	icon:SetSprite(self.db.profile.categories[category].icon or self.db.profile.categories.default.icon)
+	icon:SetBGColor(color)
+
 
 	self:CategoryItem_InitCheckOption(item, "Disable", 				category, "disabled",				init)
 	self:CategoryItem_InitCheckOption(item, "CombatDisable", 		category, "disableInCombat",		init)
@@ -1724,7 +1732,7 @@ function Perspective:CategoryItem_Toggle(item)
 	local data = item:GetData()
 
 	if data.expanded then
-		item:SetAnchorOffsets(0, 5, 0, 331)
+		item:SetAnchorOffsets(0, 5, 0, 336)
 		item:FindChild("Content"):Show(true, true)
 	else
 		item:SetAnchorOffsets(0, 5, 0, 53)
@@ -1906,6 +1914,13 @@ function Perspective:CategoryItem_OnReturn(handler, control)
 		self:InitializeOptions()
 	else
 		self.db.profile.categories[args.category][args.value] = val	
+
+		if args.value == "icon" then
+			local header = self.db.profile.categories[args.category].header
+			local whitelist = self.db.profile.categories[args.category].whitelist
+
+			self:CategoryItem_Init(args.category, header, whitelist, args.item)
+		end
 	end
 
 	self:UpdateOptions()

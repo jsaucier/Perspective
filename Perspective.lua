@@ -776,10 +776,10 @@ function Perspective:MarkersUpdate()
 	end
 end
 
-function Perspective:MarkerPathUpdate(mission)
+function Perspective:MarkerPathUpdate(mission, deactivated)
 	local id = "path" .. mission:GetId()
 
-	if mission:IsStarted() and not mission:IsComplete() then
+	if mission:IsStarted() and not mission:IsComplete() and not deactivated then
 		if table.getn(mission:GetMapRegions()) > 0 then
 			self.markers[id] = {
 				name = mission:GetName(),
@@ -1242,7 +1242,7 @@ end
 
 function Perspective:OnPlayerPathMissionDeactivate(mission)
 	if self.loaded then
-		self:MarkerPathUpdate(mission)
+		self:MarkerPathUpdate(mission, true)
 	end
 end
 

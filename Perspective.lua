@@ -351,19 +351,6 @@ function Perspective:OnInitialize()
 	self.markers = {}
 	self.markersInitialized = false
 	
-	-- Get the player's path type
-	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
-		self.path = "solider"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
-		self.path = "settler"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
-		self.path = "scientist"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
-		self.path = "explorer"
-	end
-
-	self:UpdatePlayerPosition()
-	
 	-- Register our addon events				
 	Apollo.RegisterEventHandler("UnitCreated", 						"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 					"OnUnitDestroyed", self)
@@ -403,22 +390,36 @@ function Perspective:OnSave(type)
 end
 
 function Perspective:OnEnable()
+	-- Get the player's path type
+	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
+		self.path = "solider"
+	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
+		self.path = "settler"
+	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
+		self.path = "scientist"
+	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
+		self.path = "explorer"
+	end
 
+	self:UpdatePlayerPosition()
+
+	self:InitializeOptions()
 
 	redrawTimer = ApolloTimer.Create(self.db.profile.settings.redrawTime, true, "OnRedrawTimerTicked", self)
 	updateTimer = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
 
+	self:MarkersInit();
+
+	self.loaded = true
+
 	if Apollo.GetAddon("Rover") then
 		SendVarToRover("Perspective", self)
 	end
-
-
-	self:InitializeOptions()
 end
 
 function Perspective:UpdatePlayerPosition()
 	-- Get the player postion
-	self.player = GameLib:GetPlayerUnit()
+	self.player = GameLib.GetPlayerUnit()
 
 	if self.player then
 		self.position = self.player:GetPosition()
@@ -439,7 +440,7 @@ end
 function Perspective:OnRedrawTimerTicked()
 	self.Overlay:DestroyAllPixies()
 
-	local pPos = GameLib.GetUnitScreenPosition(GameLib:GetPlayerUnit())
+	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 
 	if not pPos then return	end
 
@@ -450,18 +451,21 @@ function Perspective:OnRedrawTimerTicked()
 	local pixies = {}
 
 	for index, ui in pairs(self.categorized) do
-		if GameLib.GetUnitById(ui.id) and 
+
+		local unit = GameLib.GetUnitById(ui.id)
+
+		if unit and 
 			not ui.disabled and 
 			table.getn(pixies) < self.db.profile.settings.max then
 
 			-- Update the units position
-			local uPos = GameLib.GetUnitScreenPosition(ui.unit)
+			local uPos = GameLib.GetUnitScreenPosition(unit)
 		
 			if uPos then
 				local showItem = true
 				local showLine = true
 
-				if not ui.inRange or (GameLib:GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
+				if not ui.inRange or (GameLib.GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
 					showItem = false
 					showLine = false
 				else
@@ -489,7 +493,14 @@ function Perspective:OnRedrawTimerTicked()
 				end
 
 				if showItem or showLine then
-					table.insert(pixies, { ui = ui, uPos = uPos, pPos = pPos, showItem = showItem, showLine = showLine })
+					table.insert(pixies, { 
+						ui = ui, 
+						unit = unit, 
+						uPos = uPos, 
+						pPos = pPos, 
+						showItem = showItem, 
+						showLine = showLine 
+					})
 					
 					if ui.limitBy then
 						for i, id in pairs(ui.limitId) do
@@ -563,7 +574,7 @@ function Perspective:OnRedrawTimerTicked()
 
 	for i = #pixies, 1, -1 do
 		pixie = pixies[i]
-		self:DrawPixie(pixie.ui, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
+		self:DrawPixie(pixie.ui, pixie.unit, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
 	end
 end
 
@@ -581,15 +592,18 @@ function Perspective:OnUpdateTimerTicked()
 
 		-- Update all the known units
 		for index, ui in pairs(self.units) do
-			if GameLib.GetUnitById(ui.id) then
-				local keep = self:UpdateUnit(ui, index)
 
-				if not keep then
-					-- this seems to keep  losing units
-					--table.insert(remove, index)
-				elseif ui.category then
+			local unit = GameLib.GetUnitById(ui.id)
+
+			-- Determine if the unit is still valid.
+			if unit then
+				
+				self:UpdateUnit(ui, unit)
+
+				if ui.category then
 					table.insert(self.categorized, ui)
 				end
+
 			else
 				table.insert(remove, index)		
 			end
@@ -735,6 +749,7 @@ function Perspective:MarkerUpdate(marker)
 end
 
 function Perspective:UpdateOptions(ui)
+
 	local function updateOptions(ui)
 		for k, v in pairs(self.db.defaults.profile.categories.default) do
 			ui[k] = self:GetOptionValue(ui, k)
@@ -760,94 +775,124 @@ function Perspective:UpdateOptions(ui)
 	end
 end
 
-function Perspective:UpdateUnit(ui,index)
+-- Updates the unit to determine category, loads its setttings, and calculates its current distance
+-- from the player.
+function Perspective:UpdateUnit(ui, unit)
 	-- Get the unit's position
-	local pos = ui.unit:GetPosition()
-	local name = ui.unit:GetName()
+	local category = ui.category
+	local pos = unit:GetPosition()
+	local name = unit:GetName()
 
-	if pos and 							-- make sure we know the units position
-		not ui.disabled then			-- check to make sure the unit isnt disabled
+	ui.category = nil				-- reset the category as it might have changed
 
-		local category = ui.category
+	-- We only care about units that we can determine a current position on.
+	-- Also make sure the unit has a name, otherwise we might end up with 
+	-- "Hostile Invisible Units for Fields" under settler depots.
+	if pos and
+		ui.name ~= "" then
 
-		ui.category = nil				-- reset the category as it might have changed
-
-		local state = {
-			track = false,
-			busy = false
-		}
+		local busy
 
 		if self.db.profile.categories[name] then
+			-- This is a custom category, it has priority over all other category types.
 			ui.category = name
-			state.track = true
-		else		
-			state = self:UpdateActivation(ui)
+		else
+			-- Updates the activation state for the unit and determines if it is busy, if it is
+			-- busy then we do not care for this unit at this time.
+			busy = self:UpdateActivation(ui, unit)
 		end
 
-		if not state.busy then
-			if not ui.category or ui.category == "scientist" then
-				local type = ui.unit:GetType()
-				local rewards = self:GetRewardInfo(ui)
+		-- We only care about non busy units.
+		if not busy then
 
+			-- Only continue looking for a category if it has not be found by now, unless its a 
+			-- scientist item, then we'll further check the rewards to see if its an active scan
+			-- mission target, it will then be reclassified as such.
+			if not ui.category or 
+				ui.category == "scientist" then
+
+				local type = unit:GetType()
+
+				-- Determines any rewards for for this unit such as quest objects, challenge
+				-- objectives or scientist scan target.
+				local rewards = self:GetRewardInfo(ui, unit)
+
+				-- Attempt to categorize the unit by type.
 				if type == "Player" then
-					self:UpdatePlayer(ui)
-					state.track = true
+					self:UpdatePlayer(ui, unit)
 				elseif type == "NonPlayer" then
-					self:UpdateNonPlayer(ui, rewards)
-					state.track = true
+					self:UpdateNonPlayer(ui, unit, rewards)
 				elseif type == "Simple" or type == "SimpleCollidable" then
-					self:UpdateSimple(ui, rewards)
-					state.track = true
+					self:UpdateSimple(ui, unit, rewards)
 				elseif type == "Collectible" then
-					self:UpdateCollectible(ui,rewards)
-					state.track = true
+					self:UpdateCollectible(ui, unit, rewards)
 				elseif type == "Harvest" then
-					self:UpdateHarvest(ui)
-					state.track = true
-				elseif ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
-					not self.db.profile.categories.hostile.disabled then
-					ui.category = "hostile"
-					state.track = true
-				else
-					state.track = state.track
+					self:UpdateHarvest(ui, unit)
 				end
-			end
-		end
 
-		if not state.track then
-			return false
-		end
-
-		if ui.category then
-			if not ui.loaded or ui.category ~= category then
-				self:UpdateOptions(ui)
 			end
 
-			if ui.limitBy then	
-				if 	   ui.limitBy == "name"			then ui.limitId = { ui.unit:GetName() }
-				elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
-				elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
-				elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
+			-- If a category has still not been found for the unit, then determine if its hostile
+			-- and categorize it as such.
+			if not ui.category and
+				unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0  and
+				not self.db.profile.categories.hostile.disabled then
+
+				ui.category = "hostile"
+
+			end
+
+			-- Finally determine that our category has been successfully set and we can
+			-- update the unit.
+			if ui.category then
+
+				-- Unit has never had its options updated or its category has changed, so
+				-- we need to update the options for it.
+				if not ui.loaded or 
+					ui.category ~= category then 	
+
+					self:UpdateOptions(ui)
+
 				end
+
+				-- Unit is not disabled and we have our options loaded for it, lets categorize it.
+				if not ui.disabled then
+
+					if ui.limitBy then	
+						if 	   ui.limitBy == "name"			then ui.limitId = { name }
+						elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
+						elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
+						elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
+						end
+					end
+
+					-- Get the vector for the unit.
+					ui.vector = Vector3.New(pos.x, pos.y, pos.z)
+
+					-- Get the distance from the player.
+					ui.distance = (self.vector - ui.vector):Length()
+					
+					-- Get the scale size based on distance.
+					ui.scale = math.min(1 / (ui.distance / 100), 1)
+					
+					-- Determine if the unit is in range of display.
+					ui.inRange = (ui.distance > ui.minDistance and 
+								  ui.distance < ui.maxDistance)
+					
+					-- Scale our icon based on the dimensions and scale factor.			  
+					ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
+					ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
+				end
+
 			end
 
-			-- Get the vector for the unit
-			ui.vector = Vector3.New(pos.x, pos.y, pos.z)
-			-- Get the distance from the player
-			ui.distance = (self.vector - ui.vector):Length()
-			-- Get the scale size based on distance
-			ui.scale = math.min(1 / (ui.distance / 100), 1)
-			-- Determine if the unit is in range of display		
-			ui.inRange = (ui.distance > ui.minDistance and 
-						  ui.distance < ui.maxDistance)
-						  
-			ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
-			ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
-		else 
-			ui = { id = ui.id, unit = ui.unit }
 		end
-	else
-		ui = { id = ui.id, unit = ui.unit }
+	end
+
+	-- We were not able to successfully categorize the item, so we'll just strip its data down
+	-- to just the basics.
+	if not ui.category then
+		ui = { id = ui.id }
 	end
 
 	return true
@@ -876,9 +921,9 @@ function Perspective:OnInterfaceMenuClicked()
 	self.Options:Show(not self.Options:IsShown())
 end
 
-function Perspective:DrawPixie(ui, uPos, pPos, showItem, showLine)
+function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 	if showLine then
-		local pos = ui.unit:GetPosition()
+		local pos = unit:GetPosition()
 		local vec = Vector3.New(pos.x, pos.y, pos.z)
 		-- Get the screen position of the unit by it's vector
 		uLinePos = GameLib.WorldLocToScreenPoint(vec)
@@ -940,16 +985,16 @@ function Perspective:DrawPixie(ui, uPos, pPos, showItem, showLine)
 		end		
 		
 		if ui.showName or ui.showDistance then
-			local text
+			local text = ""
 
 			if ui.showName then
-				text = ui.display or ui.unit:GetName()
+				text = ui.display or unit:GetName() or ""
 			end
 
 			text = (ui.showDistance and ui.distance >= 10) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
 			
 			self.Overlay:AddPixie({
-				strText = text, --ui.unit:GetName(),
+				strText = text,
 				strFont = ui.font,
 				bLine = false,
 				crText = ui.fontColor,
@@ -971,28 +1016,28 @@ function Perspective:DrawPixie(ui, uPos, pPos, showItem, showLine)
 	end
 end
 
-function Perspective:GetUnitInfo(unit)
-	for i, v in pairs(self.units) do
-		if v.id == unit:GetId() then
-			return v
-		end
-	end
-	
-	return nil
-end
-
 ---------------------------------------------------------------------------------------------------
 -- Addon Event Functions
 ---------------------------------------------------------------------------------------------------
 
 function Perspective:OnUnitCreated(unit)
-	if not self:GetUnitInfo(unit) then
-		local ui = { 
-			id = unit:GetId(),
-			unit = unit,
-		}
+
+	local tracked = false
+
+	for i, ui in pairs(self.units) do
+
+		if ui.id == unit:GetId() then
+			tracked = true
+		end
+
+	end
+	
+	if not tracked then
+
+		local ui = { id = unit:GetId() }
 
 		table.insert(self.units, ui)
+
 	end	
 end
 
@@ -1006,47 +1051,69 @@ function Perspective:OnUnitDestroyed(unit)
 end
 
 function Perspective:OnWorldChanged()
-	self:MarkersInit()
+	if self.loaded then
+		self:MarkersInit()
+	end
 end
 
 function Perspective:OnQuestInit()
-	self:MarkersInit()
+	if self.loaded then
+		self:MarkersInit()
+	end
 end
 
 function Perspective:OnQuestTrackedChanged(quest)
-	self:MarkerQuestUpdate(quest)
+	if self.loaded then
+		self:MarkerQuestUpdate(quest)
+	end
 end
 
 function Perspective:OnQuestObjectiveUpdated(quest)
-	self:MarkerQuestUpdate(quest)
+	if self.loaded then
+		self:MarkerQuestUpdate(quest)
+	end
 end
 
 function Perspective:OnQuestStateChanged(quest)
-	self:MarkerQuestUpdate(quest)
+	if self.loaded then
+		self:MarkerQuestUpdate(quest)
+	end
 end
 
 function Perspective:OnPlayerPathMissionActivate(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnPlayerPathMissionAdvanced(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnPlayerPathMissionComplete(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnPlayerPathMissionDeactivate(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnPlayerPathMissionUnlocked(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnPlayerPathMissionUpdate(mission)
-	self:MarkerPathUpdate(mission)
+	if self.loaded then
+		self:MarkerPathUpdate(mission)
+	end
 end
 
 function Perspective:OnChallengeActivated(challenge)
@@ -1067,33 +1134,33 @@ end
 
 
 
-function Perspective:UpdatePlayer(ui)
-	local player = GameLib:GetPlayerUnit()
+function Perspective:UpdatePlayer(ui, unit)
+	local player = GameLib.GetPlayerUnit()
 	
 	-- We don't care about ourselves
-	if ui.unit:IsThePlayer() then return end
+	if unit:IsThePlayer() then return end
 	
 	-- Check to see if the unit is in our group
-	if 	ui.unit:IsInYourGroup() and 
+	if 	unit:IsInYourGroup() and 
 		not self.db.profile.categories.group.disabled then
 		ui.category = "group"			
 	-- Check to see if the unit is in our guild
 	elseif 	player and player:GetGuildName() and 
-			ui.unit:GetGuildName() == player:GetGuildName() and
+			unit:GetGuildName() == player:GetGuildName() and
 			not self.db.profile.categories.guild.disabled then
 		ui.category = "guild"
 	end
 end
 
-function Perspective:UpdateNonPlayer(ui, rewards)
+function Perspective:UpdateNonPlayer(ui, unit, rewards)
 	if 	rewards then
 		-- Quest target mob
-		if 	rewards.quest and not ui.unit:IsDead() and
+		if 	rewards.quest and not unit:IsDead() and
 			not self.db.profile.categories.questObjective.disabled then
 			ui.category = "questObjective"
 			ui.quest = rewards.quest
 		-- Challenge target mob
-		elseif rewards.challenge and not ui.unit:IsDead() and
+		elseif rewards.challenge and not unit:IsDead() and
 			not self.db.profile.categories.challenge.disabled then
 			ui.category = "challenge"
 			ui.challenge = rewards.challenge
@@ -1104,8 +1171,8 @@ function Perspective:UpdateNonPlayer(ui, rewards)
 	end	
 end
 
-function Perspective:UpdateSimple(ui, rewards)
-	local state = ui.unit:GetActivationState()
+function Perspective:UpdateSimple(ui, unit, rewards)
+	local state = unit:GetActivationState()
 
 	if state.Interact and state.Interact.bIsActive and rewards then
 		-- Quest target
@@ -1125,7 +1192,7 @@ function Perspective:UpdateSimple(ui, rewards)
 	end
 end
 
-function Perspective:UpdateCollectible(ui, rewards)
+function Perspective:UpdateCollectible(ui, unit, rewards)
 	if rewards then
 		-- Quest collectible
 		if rewards.quest and 
@@ -1144,11 +1211,11 @@ function Perspective:UpdateCollectible(ui, rewards)
 	end
 end
 
-function Perspective:UpdateHarvest(ui)
-	local skill = ui.unit:GetHarvestRequiredTradeskillName()
+function Perspective:UpdateHarvest(ui, unit)
+	local skill = unit:GetHarvestRequiredTradeskillName()
 	local category
 	
-	if not ui.unit:IsDead() then
+	if not unit:IsDead() then
 		if skill == "Farmer" then
 			category = "farmer"
 		elseif skill == "Mining" then
@@ -1165,8 +1232,8 @@ function Perspective:UpdateHarvest(ui)
 	end
 end
 
-function Perspective:UpdateActivation(ui)
-	local state = ui.unit:GetActivationState()
+function Perspective:UpdateActivation(ui, unit)
+	local state = unit:GetActivationState()
 
 	local states = {
 		QuestReward = "questReward",
@@ -1198,48 +1265,58 @@ function Perspective:UpdateActivation(ui)
 		ScientistActivate = "scientist"
 	}
 
-	local track, busy = false, false
+	local busy = false
 	
 	if state.Busy and
 		state.Busy.bIsActive then
+
 		busy = true
+
 	end
 
 	for k, v in pairs(states) do
+
 		if state[k] and 
 			state[k].bIsActive and
 			not self.db.profile.categories[v].disabled then
+
 			ui.category = v
+
 			if v == "lore" and 
 				self.path == "scientist" and 
-				string.find(ui.unit:GetName(), "DATACUBE:") then
+				string.find(unit:GetName(), "DATACUBE:") then
 				ui.category = "scientistScans"
-			end			
-			track = true
+			end	
+
 		end
+
 	end
 
 	if not ui.category then
+
 		if state.Collect and 
 			state.Collect.bUsePlayerPath and 
 			state.Collect.bCanInteract and
 			state.Collect.bIsActive then
+
 			if self.path == "settler" then
 				ui.category = "settlerResources"
 			else
 				ui.category = self.path
 			end
-			track = true
+
 		elseif state.Interact and 
 			state.Interact.bUsePlayerPath and 
 			state.Interact.bCanInteract and
 			state.Interact.bIsActive then
+			
 			ui.category = self.path
-			track = true
+
 		end
+
 	end
 
-	return { track = track, busy = busy }
+	return busy
 	--[[elseif self.ChkTable["Event"] and GameLib.GetWorldDifficulty() > 0 then
 		if (tActivation.PublicEventTarget and tActivation.PublicEventTarget.bIsActive) or
 		   (tActivation.PublicEventKill and tActivation.PublicEventKill.bIsActive) or
@@ -1250,12 +1327,10 @@ function Perspective:UpdateActivation(ui)
 				return "Quest"
 			end
 		end]]
-
-	--return { track = false }
 end
 
-function Perspective:GetRewardInfo(ui)
-	local rewardInfo = ui.unit:GetRewardInfo()
+function Perspective:GetRewardInfo(ui, unit)
+	local rewardInfo = unit:GetRewardInfo()
 	local rewards = {}
 	
 	if rewardInfo and type(rewardInfo) == "table" then

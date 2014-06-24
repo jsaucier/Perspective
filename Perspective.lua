@@ -438,7 +438,7 @@ end
 
 function Perspective:OnRedrawTimerTicked()
 	self.Overlay:DestroyAllPixies()
-	
+
 	local pPos = GameLib.GetUnitScreenPosition(GameLib:GetPlayerUnit())
 
 	if not pPos then return	end
@@ -507,7 +507,6 @@ function Perspective:OnRedrawTimerTicked()
 		end
 	end
 
-
 	for id, marker in pairs(self.markers) do
 		local marks = 0
 		local icon = self.db.profile.markers.quest.icon
@@ -539,7 +538,7 @@ function Perspective:OnRedrawTimerTicked()
 				})
 
 				self.Overlay:AddPixie({
-					strText = marker.name .. " (" .. region.distance .. "m)",
+					strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
 					strFont = "CRB_Pixel_O",
 					crText = "ffffffff",
 					loc = {
@@ -566,8 +565,6 @@ function Perspective:OnRedrawTimerTicked()
 		pixie = pixies[i]
 		self:DrawPixie(pixie.ui, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
 	end
-
-
 end
 
 function Perspective:OnUpdateTimerTicked()

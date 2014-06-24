@@ -765,37 +765,27 @@ function Perspective:UpdateUnit(ui,index)
 	local pos = ui.unit:GetPosition()
 	local name = ui.unit:GetName()
 
-	if  pos and 						-- make sure we know the units position
-		--name ~= "" and 				-- we want to make sure the unit has a name
+	if pos and 							-- make sure we know the units position
 		not ui.disabled then			-- check to make sure the unit isnt disabled
 
 		local category = ui.category
 
 		ui.category = nil				-- reset the category as it might have changed
 
-		local state = {}
-
-		-- Determine if this is a hostile mob
-		if ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
-			not self.db.profile.categories.hostile.disabled then
-			ui.category = "hostile"
-			state.track = true
-		end
+		local state = {
+			track = false,
+			busy = false
+		}
 
 		if self.db.profile.categories[name] then
 			ui.category = name
 			state.track = true
+		else		
+			state = self:UpdateActivation(ui)
 		end
 
-		local track, busy = self:UpdateActivation(ui)
-
-		state.track = state.track or track
-		state.busy = state.busy or busy
-
 		if not state.busy then
-			
-
-			--if not ui.category or ui.category == "scientist" then
+			if not ui.category or ui.category == "scientist" then
 				local type = ui.unit:GetType()
 				local rewards = self:GetRewardInfo(ui)
 
@@ -814,10 +804,14 @@ function Perspective:UpdateUnit(ui,index)
 				elseif type == "Harvest" then
 					self:UpdateHarvest(ui)
 					state.track = true
+				elseif ui.unit:GetDispositionTo(GameLib:GetPlayerUnit())  == 0  and
+					not self.db.profile.categories.hostile.disabled then
+					ui.category = "hostile"
+					state.track = true
 				else
 					state.track = state.track
 				end
-			--end
+			end
 		end
 
 		if not state.track then
@@ -1245,7 +1239,7 @@ function Perspective:UpdateActivation(ui)
 		end
 	end
 
-	return track, busy
+	return { track = track, busy = busy }
 	--[[elseif self.ChkTable["Event"] and GameLib.GetWorldDifficulty() > 0 then
 		if (tActivation.PublicEventTarget and tActivation.PublicEventTarget.bIsActive) or
 		   (tActivation.PublicEventKill and tActivation.PublicEventKill.bIsActive) or

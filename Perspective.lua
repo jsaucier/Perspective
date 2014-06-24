@@ -55,11 +55,12 @@ local defaults = {
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
 				showLines = false,
 			},
-			hostile = {
-				header = "Hostile NPCs",
-				fontColor = "ffff0000",
-				lineColor = "ffff0000",
-				iconColor = "ffff0000",
+			friendly = {
+				header = "NPC - Friendly Normal",
+				disabled = true,
+				fontColor = "ff00ff00",
+				lineColor = "ff00ff00",
+				iconColor = "ff00ff00",
 				icon = "PerspectiveSprites:Circle",
 				showLines = false,
 				showName = false,
@@ -68,6 +69,115 @@ local defaults = {
 				iconHeight = 8,
 				iconWidth = 8
 			},	
+			friendlyPrime = {
+				header = "NPC - Friendly Prime",
+				disabled = true,
+				fontColor = "ff00ff00",
+				lineColor = "ff00ff00",
+				iconColor = "ff00ff00",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 16,
+				iconWidth = 16
+			},	
+			friendlyElite = {
+				header = "NPC - Friendly Elite",
+				disabled = true,
+				fontColor = "ff00ff00",
+				lineColor = "ff00ff00",
+				iconColor = "ff00ff00",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 32,
+				iconWidth = 32
+			},
+			neutral = {
+				header = "NPC - Neutral Normal",
+				disabled = true,
+				fontColor = "ffffff00",
+				lineColor = "ffffff00",
+				iconColor = "ffffff00",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 8,
+				iconWidth = 8
+			},	
+			neutralPrime = {
+				header = "NPC - Neutral Prime",
+				disabled = true,
+				fontColor = "ffffff00",
+				lineColor = "ffffff00",
+				iconColor = "ffffff00",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 16,
+				iconWidth = 16
+			},	
+			neutralElite = {
+				header = "NPC - Neutral Elite",
+				disabled = true,
+				fontColor = "ffffff00",
+				lineColor = "ffffff00",
+				iconColor = "ffffff00",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 32,
+				iconWidth = 32
+			},	
+			hostile = {
+				header = "NPC - Hostile Normal",
+				fontColor = "ffff0000",
+				lineColor = "ffff0000",
+				iconColor = "ffff0000",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 8,
+				iconWidth = 8
+			},
+			hostilePrime = {
+				header = "NPC - Hostile Prime",
+				fontColor = "ffff0000",
+				lineColor = "ffff0000",
+				iconColor = "ffff0000",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 16,
+				iconWidth = 16
+			},
+			hostileElite = {
+				header = "NPC - Hostile Elite",
+				fontColor = "ffff0000",
+				lineColor = "ffff0000",
+				iconColor = "ffff0000",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				max = 10,
+				iconHeight = 32,
+				iconWidth = 32
+			},
 			questObjective = {
 				header = "Quest - Objective",
 				icon = "PerspectiveSprites:QuestObjective",
@@ -615,7 +725,7 @@ function Perspective:OnUpdateTimerTicked()
 			self:MarkersInit()
 		end
 		
-		table.sort(self.categorized, function(a, b) return a.distance < b.distance end)
+		table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 
 		for k, v in pairs(remove) do
 			table.remove(self.units, v)
@@ -813,8 +923,8 @@ function Perspective:UpdateUnit(ui, unit)
 
 				local type = unit:GetType()
 
-				-- Determines any rewards for for this unit such as quest objects, challenge
-				-- objectives or scientist scan target.
+				-- Determines if any rewards for this unit exist, such as quest objectvies, 
+				-- challenge objectives or scientist scan target.
 				local rewards = self:GetRewardInfo(ui, unit)
 
 				-- Attempt to categorize the unit by type.
@@ -832,13 +942,45 @@ function Perspective:UpdateUnit(ui, unit)
 
 			end
 
-			-- If a category has still not been found for the unit, then determine if its hostile
-			-- and categorize it as such.
-			if not ui.category and
-				unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0  and
-				not self.db.profile.categories.hostile.disabled then
+			-- If a category has still not been found for the unit, then determine its disposition
+			-- and difficulty and categorize it as such.
+			if not ui.category and 
+				unit:GetType() == "NonPlayer" and
+				not unit:IsDead() then
 
-				ui.category = "hostile"
+				local disposition = "friendly"
+				local difficulty = ""
+
+				if unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0 then
+					disposition = "hostile"
+				elseif unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 1 then
+					disposition = "neutral"
+				end
+
+				-- Not sure how accurate this is
+				-- Rank 1: 			Minion
+				-- Rank 2:			Grunt
+				-- Rank 3:			Challenger
+				-- Rank 4:			Superior
+				-- Rank 5:			Prime
+				-- Difficulty 1:	Minion, Grunt, Challenger
+				-- Difficulty 3:	Prime
+				-- Difficulty 4:	5 Man? - XT Destroyer (Galeras)
+				-- Difficulty 5:	10 Man?
+				-- Difficulty 6:	20 Man? - Doomthorn the Ancient (Galeras)
+				-- Eliteness 1:		5 Man + (Dungeons?)
+				-- Eliteness 2:		20 Man? - Doomthorn the Ancient (Galeras)
+				if unit:GetDifficulty() == 3 then
+					difficulty = "Prime"
+				elseif unit:GetEliteness() >= 1 then
+					difficulty =  "Elite"
+				end
+
+				local npcType = disposition .. difficulty
+
+				if not self.db.profile.categories[npcType].disabled then
+					ui.category = npcType
+				end
 
 			end
 

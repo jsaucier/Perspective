@@ -16,6 +16,7 @@ local defaults = {
 				order = 0,
 				disabled = false,
 				disableInCombat = false,
+				disableInInstance = false,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
@@ -39,8 +40,27 @@ local defaults = {
 			all = {
 				header = "Set All"
 			},
+			target = {
+				disabled = true,
+				header = "Target",
+				lineColor = "ffff00ff",
+				iconColor = "ffff00ff",
+				icon = "PerspectiveSprites:Circle-Outline",
+				maxIcons = 1,
+				maxLines = 1,
+				iconHeight = 24,
+				iconWidth = 24,
+			},
+			--[[focus = {
+				header = "Target",
+				lineColor = "ffff0080",
+				iconColor = "ffff0080",
+				icon = "PerspectiveSprites:Circle-Outline",
+				maxIcons = 1,
+				maxLines = 1,
+			},]]
 			group = {
-				header = "Group",
+				header = "Player - Party",
 				fontColor = "ff97a9ff",
 				lineColor = "ff97a9ff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
@@ -193,6 +213,7 @@ local defaults = {
 			questTalkTo = {
 				header = "Quest - Talk To",
 				icon = "IconSprites:Icon_MapNode_Map_Chat",
+				iconColor = "ffff8000",
 				lineColor = "ffff8000",
 			},
 			questReward = {
@@ -235,67 +256,67 @@ local defaults = {
 			},
 			flightPath = {
 				header = "Flight Path",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Taxi",
 				showLines = false,
 			},
 			instancePortal = {
 				header = "Instance Portal",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			},
 			bindPoint = {
 				header = "Bind Point",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Gate",
 				showLines = false,
 			},
 			marketplace = {
 				header = "Town - Commodities Exchange",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
 				showLines = false,
 			},
 			auctionHouse = {
 				header = "Town - Auction House",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
 				showLines = false,
 			},
 			mailBox = {
 				header = "Town - Mailbox",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Mailbox",
 				showLines = false,
 			},
 			vendor = {
 				header = "Town - Vendor",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Vendor",
 				showLines = false,
 			},
 			craftingStation = {
 				header = "Town - Crafting Station",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
 				showLines = false,
 			},
 			tradeskillTrainer = {
 				header = "Town - Tradeskill Trainer",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Trainer",
 				showLines = false,
 			},
 			dye = {
 				header = "Town - Appearance Modifier",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
 				showLines = false,
 			},
 			bank = {
 				header = "Town - Bank",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Bank",
 				showLines = false,
 			},
@@ -356,38 +377,54 @@ local defaults = {
 				lineColor = "ffc759ff",
 				maxLines = 1,
 			},
+			publicEvent = {
+				header = "Public Event",
+				icon = "ClientSprites:GroupLootIcon",
+				showLines = false,
+				iconWidth = 32,
+				iconHeight = 32,
+			},
+			subdue = {
+				header = "Subdue - Weapon",
+				lineColor = "ffff8000",
+				iconColor = "ffff8000",
+				icon = "ClientSprites:GroupWarriorIcon",
+				lineWidth = 10,
+				iconHeight = 32,
+				iconWidth = 32
+			},
 			["Bruxen"] = {
 				header = "Crimson Badlands - Thayd Portal",
 				display = "Ship to Thayd",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			},
 			["Gus Oakby"] = {
 				header = "Thayd - Crimson Badlands Portal",
 				display = "Ship to Crimson Badlands",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			},
 			["Lilly Startaker"] = {
 				header = "Thayd - Grimvault Portal",
 				display = "Ship to Grimvault",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			},
 			["Transportation Expert Conner"] = {
 				header = "Thayd - Farside Portal",
 				display = "Ship to Farside",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			},
 			["Warrant Officer Burke"] = {
 				header = "Thayd - Whitevale Portal",
 				display = "Ship to Whitevale",
-				fontColor = "ff00ffff",
+				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
 			}
@@ -413,7 +450,17 @@ local defaults = {
 				iconWidth = 64,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
-				maxPer = 10,
+				maxPer = 1,
+			},
+			event = {
+				header = "Event",
+				icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
+				iconHeight = 64,
+				iconWidth = 64,
+				font = "CRB_Pixel_O",
+				fontColor = "ffffffff",
+				maxPer = 1,
+				inAreaRange = 100,
 			},	
 		},
 		blacklist = {},
@@ -483,6 +530,8 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 		"OnPlayerPathMissionDeactivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 		"OnPlayerPathMissionUnlocked", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 			"OnPlayerPathMissionUpdate", self)
+
+	Apollo.RegisterEventHandler("TargetUnitChanged",				"OnTargetUnitChanged", self)
 	
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
@@ -903,6 +952,7 @@ end
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
 -- from the player.
 function Perspective:UpdateUnit(ui, unit)
+
 	-- Get the unit's position
 	local category = ui.category
 	local pos = unit:GetPosition()
@@ -918,8 +968,12 @@ function Perspective:UpdateUnit(ui, unit)
 
 		local busy
 
-		if self.db.profile.categories[name] then
-			-- This is a custom category, it has priority over all other category types.
+		if unit == GameLib.GetTargetUnit() and
+			not self.db.profile.categories.target.disabled then
+			ui.category = "target"
+		elseif self.db.profile.categories[name] then
+			-- This is a custom category, it has priority over all other category types except
+			-- target and focus.
 			ui.category = name
 		else
 			-- Updates the activation state for the unit and determines if it is busy, if it is
@@ -953,6 +1007,8 @@ function Perspective:UpdateUnit(ui, unit)
 					self:UpdateCollectible(ui, unit, rewards)
 				elseif type == "Harvest" then
 					self:UpdateHarvest(ui, unit)
+				elseif type == "Pickup" then
+					self:UpdatePickup(ui, unit)
 				end
 
 			end
@@ -1053,6 +1109,7 @@ function Perspective:UpdateUnit(ui, unit)
 	end
 
 	return true
+
 end
 
 function Perspective:GetOptionValue(ui, option, category)
@@ -1225,7 +1282,11 @@ function Perspective:OnUnitCreated(unit)
 	for i, ui in pairs(self.units) do
 
 		if ui.id == unit:GetId() then
+			
 			tracked = true
+
+			break
+
 		end
 
 	end
@@ -1237,6 +1298,7 @@ function Perspective:OnUnitCreated(unit)
 		table.insert(self.units, ui)
 
 	end	
+
 end
 
 function Perspective:OnUnitDestroyed(unit)
@@ -1246,6 +1308,16 @@ function Perspective:OnUnitDestroyed(unit)
 			break
 		end
 	end
+
+end
+
+function Perspective:OnTargetUnitChanged(unit)
+	
+	if not self.db.profile.categories.target.disabled then
+		-- Update the units immediately
+		self:OnUpdateTimerTicked()
+	end
+	
 end
 
 function Perspective:OnWorldChanged()
@@ -1430,6 +1502,12 @@ function Perspective:UpdateHarvest(ui, unit)
 	end
 end
 
+function Perspective:UpdatePickup(ui, unit)
+	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) then
+		ui.category = "subdue"
+	end
+end
+
 function Perspective:UpdateActivation(ui, unit)
 	local state = unit:GetActivationState()
 
@@ -1481,8 +1559,8 @@ function Perspective:UpdateActivation(ui, unit)
 
 			ui.category = v.category
 
-			if v == "lore" and 
-				self.path == "scientist" and 
+			if v.state == "Datacube" and 
+				PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist and 
 				string.find(unit:GetName(), "DATACUBE:") then
 				ui.category = "scientistScans"
 			end	
@@ -1664,7 +1742,10 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 		check:AddEventHandler("ButtonCheck", 		"OnCategoryItem_HeaderChecked")
 		check:AddEventHandler("ButtonUncheck", 		"OnCategoryItem_HeaderChecked")
 
+		delete:SetData({ item = item })
 		delete:AddEventHandler("ButtonSignal", 		"OnCategoryItem_DeleteClicked")
+
+		default:SetData({ item = item })
 		default:AddEventHandler("ButtonSignal", 	"OnCategoryItem_DefaultClicked")
 
 		if whitelist then
@@ -1685,7 +1766,7 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	local sprite = self.db.profile.categories[category].icon or self.db.profile.categories.default.icon
 	local color = self.db.profile.categories[category].iconColor or self.db.profile.categories.default.iconColor
 
-	icon:SetSprite(self.db.profile.categories[category].icon or self.db.profile.categories.default.icon)
+	icon:SetSprite(sprite)
 	icon:SetBGColor(color)
 
 
@@ -1927,14 +2008,38 @@ function Perspective:OnCategoryItem_HeaderChecked(handler, control, button)
 end
 
 function Perspective:OnCategoryItem_DeleteClicked(handler, control, button)
-	local item = control:GetParent():GetParent():GetParent()
-	local data = item:GetData()
+
+	local item = control:GetData().item
+	local args = item:GetData()
 
 	self.db.profile.categories[data.category] = nil
 
 	item:Destroy()
 
 	self:CategoryItems_Arrange()
+	
+end
+
+function Perspective:OnCategoryItem_DefaultClicked(handler, control, button)
+
+	local item = control:GetData().item
+	local args = item:GetData()
+
+	if self.db.defaults.profile.categories[args.category] then
+		self.db.profile.categories[args.category] = self.db.defaults.profile.categories[args.category]
+	else
+		self.db.profile.categories[args.category] = self.db.defaults.profile.categories.default
+	end
+
+	if args.whitelist then
+		self.db.profile.categories[args.category].header = "Unit - " .. args.category
+		self.db.profile.categories[args.category].whitelist = true
+	end
+
+	self:CategoryItem_Init(args.category, header, whitelist, item)
+
+	self:UpdateOptions()
+
 end
 
 function Perspective:CategoryItem_OnChecked(handler, control, button)
@@ -1984,21 +2089,16 @@ function Perspective:CategoryItem_OnReturn(handler, control)
 		val = nil 
 	end
 
+	self.db.profile.categories[args.category][args.value] = val	
+
 	if args.category == "all" then
 		for k, v in pairs(self.db.profile.categories) do
 			self.db.profile.categories[k][args.value] = val
 		end
 
 		self:InitializeOptions()
-	else
-		self.db.profile.categories[args.category][args.value] = val	
-
-		if args.value == "icon" then
-			local header = self.db.profile.categories[args.category].header
-			local whitelist = self.db.profile.categories[args.category].whitelist
-
-			self:CategoryItem_Init(args.category, header, whitelist, args.item)
-		end
+	elseif args.value == "icon" then
+		args.item:FindChild("HeaderIcon"):SetSprite(val)	
 	end
 
 	self:UpdateOptions()
@@ -2015,24 +2115,26 @@ end
 function Perspective:CategoryItem_OnColorClick(handler, control, button)
 	local args = control:GetData()
 
-  	GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control, args)
+  	GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control)
 end
 
 function Perspective:CategoryItem_OnColorSet(color, ...)
 	local control = arg[1]
-	local args = arg[2]
+	local args = control:GetData()
 
 	control:SetBGColor(color)
 	self.db.profile.categories[args.category][args.value] = color
 
 	if args.category == "all" then
 		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][args.value] = color
+			v[args.value] = color
 		end
 
 		self:InitializeOptions()
+	elseif args.value == "iconColor" then
+		args.item:FindChild("HeaderIcon"):SetBGColor(color)
 	end
-
+		
 	self:UpdateOptions()
 end
 

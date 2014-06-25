@@ -1492,15 +1492,15 @@ function Perspective:OnChallengeRemoved(challenge)
 end
 
 function Perspective:OnPublicEventUpdate(event)
+	-- Check for the GetName() function, it can cause an error if not found on the event.
 	if self.loaded and event["GetName"] then
-		Print("OnPublicEventUpdate: " .. event:GetName())
 		self:MarkerEventUpdate(event)
 	end
 end
 
 function Perspective:OnPublicEventEnd(event)
+	-- Check for the GetName() function, it can cause an error if not found on the event.
 	if self.loaded and event["GetName"] then
-		Print("OnPublicEventEnd: " .. event:GetName())
 		self.markers["event" .. event:GetName()] = nil
 	end
 end

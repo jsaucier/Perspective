@@ -500,7 +500,7 @@ local defaults = {
 			},
 			event = {
 				header = "Event",
-				icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
+				icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
 				iconHeight = 64,
 				iconWidth = 64,
 				font = "CRB_Pixel_O",
@@ -568,7 +568,6 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("ChallengeFailArea", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailTime", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailGeneric", 			"OnChallengeRemoved", self)
-	--Apollo.RegisterEventHandler("ChallengeUpdated", 				"OnChallengeUpdated", self)
 
 	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 		"OnPlayerPathMissionActivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionAdvanced", 		"OnPlayerPathMissionAdvanced", self)
@@ -581,6 +580,17 @@ function Perspective:OnInitialize()
 	
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
+
+	Apollo.RegisterEventHandler("PublicEventStart", 					"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)
+	
+	Apollo.RegisterEventHandler("PublicEventLocationAdded", 			"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventLocationRemoved", 			"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventObjectiveLocationAdded", 	"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventObjectiveLocationRemoved", 	"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventEnd", self)
+	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventEnd", self)
+	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
 end
 
 function Perspective:OnConfigure()
@@ -730,7 +740,7 @@ function Perspective:OnRedrawTimerTicked()
 
 		for id, marker in pairs(self.markers) do
 			local marks = 0
-			local icon = self.db.profile.markers.quest.icon
+			local icon = self.db.profile.markers[marker.type].icon
 
 			if marker.type == "path" then
 				icon = self.db.profile.markers.path[self.path .. "Icon"]
@@ -872,7 +882,15 @@ function Perspective:MarkersInit()
 			end
 		end
 	end
-	
+
+	local events = PublicEventsLib.GetActivePublicEventList()
+
+	if events then
+		for id, event in pairs(events) do
+			self:MarkerEventUpdate(event, id)
+		end
+	end
+
 	-- Set the markers as having been initialized
 	self.markersInitialized = true
 end
@@ -884,6 +902,30 @@ function Perspective:MarkersUpdate()
 	for _, marker in pairs(self.markers) do
 		self:MarkerUpdate(marker)
 	end
+end
+
+function Perspective:MarkerEventUpdate(event)
+
+	local id = "event" .. event:GetName()
+
+	if event:IsActive() and table.getn(event:GetObjectives()) > 0 then
+		self.markers[id] = {
+			name = event:GetName(),
+			type = "event",
+			regions = {},
+		}
+		for index, objective in pairs(event:GetObjectives()) do
+			for index, region in pairs(objective:GetMapRegions()) do
+				self.markers[id].regions[index] = {
+					vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
+				}
+				self:MarkerUpdate(self.markers[id])
+			end
+		end
+	else
+		self.markers[id] = nil
+	end
+
 end
 
 function Perspective:MarkerPathUpdate(mission, deactivated)
@@ -1447,8 +1489,19 @@ function Perspective:OnChallengeRemoved(challenge)
 	end
 end
 
+function Perspective:OnPublicEventUpdate(event)
+	if self.loaded and event["GetName"] then
+		Print("OnPublicEventUpdate: " .. event:GetName())
+		self:MarkerEventUpdate(event)
+	end
+end
 
-
+function Perspective:OnPublicEventEnd(event)
+	if self.loaded and event["GetName"] then
+		Print("OnPublicEventEnd: " .. event:GetName())
+		self.markers["event" .. event:GetName()] = nil
+	end
+end
 
 function Perspective:UpdatePlayer(ui, unit)
 	local player = GameLib.GetPlayerUnit()
@@ -2063,7 +2116,7 @@ function Perspective:OnCategoryItem_DeleteClicked(handler, control, button)
 	item:Destroy()
 
 	self:CategoryItems_Arrange()
-	
+
 end
 
 function Perspective:OnCategoryItem_DefaultClicked(handler, control, button)

@@ -1434,33 +1434,34 @@ function Perspective:UpdateActivation(ui, unit)
 	local state = unit:GetActivationState()
 
 	local states = {
-		QuestReward = "questReward",
-		QuestNewMain = "questNew",
-		QuestNew = "questNew",
-		QuestNewRepeatable = "questNew",
-		TalkTo = "questTalkTo",
-		FlightPath = "flightPath",
-		InstancePortal = "instancePortal",
-		BindPoint = "bindPoint",
-		CommodityMarketplace = "marketplace",
-		ItemAuctionhouse = "auctionHouse",
-		Mail = "mailBox",
-		TradeskillTrainer = "tradeskillTrainer",
-		Vendor = "vendor",
-		CraftingStation = "craftingStation",
-		Dye = "dye",
-		Bank = "bank",
-		GuildBank = "bank",
-		Dungeon = "dungeon",
-		Datacube = "lore",
-		ExplorerInterest = "explorer",
-		ExplorerActivate = "explorer",
-		ExplorerDoor = "explorer",
-		SettlerActivate = "settler",
-		SoldierActivate = "solider",
-		SoldierKill = "solider",
-		ScientistScannable = "scientist",
-		ScientistActivate = "scientist"
+		{ state = "QuestReward", 			category = "questReward" },
+		{ state = "QuestNewMain", 			category = "questNew" },
+		{ state = "QuestNew", 				category = "questNew" },
+		{ state = "QuestNewRepeatable", 	category = "questNew" },
+		{ state = "QuestGivingTradeskill", 	category = "questNew" },
+		{ state = "TalkTo", 				category = "questTalkTo" },
+		{ state = "Datacube", 				category = "lore" },
+		{ state = "ExplorerInterest", 		category = "explorer" },
+		{ state = "ExplorerActivate", 		category = "explorer" },
+		{ state = "ExplorerDoor", 			category = "explorer" },
+		{ state = "SettlerActivate", 		category = "settler" },
+		{ state = "SoldierActivate", 		category = "solider" },
+		{ state = "SoldierKill", 			category = "solider" },
+		{ state = "ScientistScannable", 	category = "scientist" },
+		{ state = "ScientistActivate", 		category = "scientist" },
+		{ state = "FlightPath", 			category = "flightPath" },
+		{ state = "InstancePortal", 		category = "instancePortal" },
+		{ state = "BindPoint", 				category = "bindPoint" },
+		{ state = "CommodityMarketplace", 	category = "marketplace" },
+		{ state = "ItemAuctionhouse", 		category = "auctionHouse" },
+		{ state = "Mail", 					category = "mailBox" },
+		{ state = "TradeskillTrainer", 		category = "tradeskillTrainer" },
+		{ state = "Vendor", 				category = "vendor" },
+		{ state = "CraftingStation", 		category = "craftingStation" },
+		{ state = "Dye", 					category = "dye" },
+		{ state = "Bank", 					category = "bank" },
+		{ state = "GuildBank", 				category = "bank" },
+		{ state = "Dungeon", 				category = "dungeon" },
 	}
 
 	local busy = false
@@ -1474,17 +1475,19 @@ function Perspective:UpdateActivation(ui, unit)
 
 	for k, v in pairs(states) do
 
-		if state[k] and 
-			state[k].bIsActive and
-			not self.db.profile.categories[v].disabled then
+		if state[v.state] and 
+			state[v.state].bIsActive and
+			not self.db.profile.categories[v.category].disabled then
 
-			ui.category = v
+			ui.category = v.category
 
 			if v == "lore" and 
 				self.path == "scientist" and 
 				string.find(unit:GetName(), "DATACUBE:") then
 				ui.category = "scientistScans"
 			end	
+
+			break
 
 		end
 

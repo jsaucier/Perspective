@@ -49,7 +49,7 @@ local defaults = {
 				maxIcons = 4,
 			},
 			guild = {
-				header = "Guild",
+				header = "Player - Guild",
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
@@ -61,7 +61,7 @@ local defaults = {
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
 				iconColor = "ff00ff00",
-				icon = "PerspectiveSprites:Circle",
+				icon = "PerspectiveSprites:Circle-Outline",
 				showLines = false,
 				showName = false,
 				showDistance = false,
@@ -428,8 +428,6 @@ function Perspective:new(o)
     return o
 end
 
-g_blah = nil
-
 function Perspective:OnInitialize()
 	Apollo.LoadSprites("PerspectiveSprites.xml")
 
@@ -515,8 +513,8 @@ function Perspective:OnEnable()
 
 	self:InitializeOptions()
 
-	redrawTimer = ApolloTimer.Create(self.db.profile.settings.redrawTime, true, "OnRedrawTimerTicked", self)
-	updateTimer = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
+	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
+	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
 
 	self:MarkersInit();
 
@@ -548,147 +546,161 @@ function Perspective:UpdatePlayerPosition()
 end
 
 function Perspective:OnRedrawTimerTicked()
+
+	self.redrawTime:Stop()
+
 	self.Overlay:DestroyAllPixies()
 
 	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 
-	if not pPos then return	end
+	if pPos then
 
-	local items = {	unit = {}, category = {}, quest = {}, challenge = {} }
-	local lines = {	unit = {}, category = {}, quest = {}, challenge = {} }
+		local items = {	unit = {}, category = {}, quest = {}, challenge = {} }
+		local lines = {	unit = {}, category = {}, quest = {}, challenge = {} }
 
-	-- Pixes to draw in reverse so closest are on top
-	local pixies = {}
+		-- Pixes to draw in reverse so closest are on top
+		local pixies = {}
 
-	for index, ui in pairs(self.categorized) do
+		for index, ui in pairs(self.categorized) do
 
-		local unit = GameLib.GetUnitById(ui.id)
+			local unit = GameLib.GetUnitById(ui.id)
 
-		if unit and 
-			not ui.disabled and 
-			table.getn(pixies) < self.db.profile.settings.max then
+			--if table.getn(pixies) >= self.db.profile.settings.max then
+				--break
+			--end
+			
+			if unit and 
+				not ui.disabled and 
+				table.getn(pixies) < self.db.profile.settings.max then
 
-			-- Update the units position
-			local uPos = GameLib.GetUnitScreenPosition(unit)
-		
-			if uPos then
-				local showItem = true
-				local showLine = true
+				-- Update the units position
+				local uPos = GameLib.GetUnitScreenPosition(unit)
+			
+				if uPos then
+					local showItem = true
+					local showLine = true
 
-				if not ui.inRange or (GameLib.GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
-					showItem = false
-					showLine = false
-				else
-					if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
-						showLine = false
-					end
-					if not ui.canShow or not uPos.bOnScreen then
+					if not ui.inRange or (GameLib.GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
 						showItem = false
-					end
-				end
-
-				if ui.limitBy and (showItem or showLine) then
-					for i, id in pairs(ui.limitId) do
-						items[ui.limitBy][id] = items[ui.limitBy][id] or 0
-						lines[ui.limitBy][id] = lines[ui.limitBy][id] or 0
-
-						if (items[ui.limitBy][id] or 0) >= ui.max then
-							showItem = false
-						end
-
-						if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
+						showLine = false
+					else
+						if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
 							showLine = false
 						end
+						if not ui.canShow or not uPos.bOnScreen then
+							showItem = false
+						end
 					end
-				end
 
-				if showItem or showLine then
-					table.insert(pixies, { 
-						ui = ui, 
-						unit = unit, 
-						uPos = uPos, 
-						pPos = pPos, 
-						showItem = showItem, 
-						showLine = showLine 
-					})
-					
-					if ui.limitBy then
+					if ui.limitBy and (showItem or showLine) then
 						for i, id in pairs(ui.limitId) do
-							if showItem then
-								items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+							items[ui.limitBy][id] = items[ui.limitBy][id] or 0
+							lines[ui.limitBy][id] = lines[ui.limitBy][id] or 0
+
+							if (items[ui.limitBy][id] or 0) >= ui.max then
+								showItem = false
 							end
 
-							if showLine then
-								lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
+							if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
+								showLine = false
+							end
+						end
+					end
+
+					if showItem or showLine then
+						table.insert(pixies, { 
+							ui = ui, 
+							unit = unit, 
+							uPos = uPos, 
+							pPos = pPos, 
+							showItem = showItem, 
+							showLine = showLine 
+						})
+						
+						if ui.limitBy then
+							for i, id in pairs(ui.limitId) do
+								if showItem then
+									items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+								end
+
+								if showLine then
+									lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
+								end
 							end
 						end
 					end
 				end
 			end
 		end
-	end
 
-	for id, marker in pairs(self.markers) do
-		local marks = 0
-		local icon = self.db.profile.markers.quest.icon
+		for id, marker in pairs(self.markers) do
+			local marks = 0
+			local icon = self.db.profile.markers.quest.icon
 
-		if marker.type == "path" then
-			icon = self.db.profile.markers.path[self.path .. "Icon"]
-		end
+			if marker.type == "path" then
+				icon = self.db.profile.markers.path[self.path .. "Icon"]
+			end
 
-		for index, region in pairs(marker.regions) do
-			-- Get the screen position of the unit by it's vector
-			local uPos = GameLib.WorldLocToScreenPoint(region.vector)
+			for index, region in pairs(marker.regions) do
+				-- Get the screen position of the unit by it's vector
+				local uPos = GameLib.WorldLocToScreenPoint(region.vector)
 
-			-- Make sure the point is onscreen and in front of us.
-			if marks < self.db.profile.markers[marker.type].maxPer and
-				uPos.z > 0 and
-				not region.inArea then
-				self.Overlay:AddPixie({
-					strSprite = icon,
-					--cr = ui.iconColor,
-					loc = {
-						fPoints = { 0, 0, 0, 0 },
-						nOffsets = {
-							uPos.x - (32), 
-							uPos.y - (32), 
-							uPos.x + (32),
-							uPos.y + (32)
+				-- Make sure the point is onscreen and in front of us.
+				if marks < self.db.profile.markers[marker.type].maxPer and
+					uPos.z > 0 and
+					not region.inArea then
+					self.Overlay:AddPixie({
+						strSprite = icon,
+						--cr = ui.iconColor,
+						loc = {
+							fPoints = { 0, 0, 0, 0 },
+							nOffsets = {
+								uPos.x - (32), 
+								uPos.y - (32), 
+								uPos.x + (32),
+								uPos.y + (32)
+							}
 						}
-					}
-				})
+					})
 
-				self.Overlay:AddPixie({
-					strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
-					strFont = "CRB_Pixel_O",
-					crText = "ffffffff",
-					loc = {
-						fPoints = { 0, 0, 0, 0 },
-						nOffsets = {
-							uPos.x - (64), 
-							uPos.y + (32), 
-							uPos.x + (64),
-							uPos.y + (100)
+					self.Overlay:AddPixie({
+						strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
+						strFont = "CRB_Pixel_O",
+						crText = "ffffffff",
+						loc = {
+							fPoints = { 0, 0, 0, 0 },
+							nOffsets = {
+								uPos.x - (64), 
+								uPos.y + (32), 
+								uPos.x + (64),
+								uPos.y + (100)
+							}
+						},
+						flagsText = {
+							DT_CENTER = true,
+							DT_WORDBREAK = true
 						}
-					},
-					flagsText = {
-						DT_CENTER = true,
-						DT_WORDBREAK = true
-					}
-				})
+					})
 
-				marks = marks + 1
+					marks = marks + 1
+				end
 			end
 		end
+
+		for i = #pixies, 1, -1 do
+			pixie = pixies[i]
+			self:DrawPixie(pixie.ui, pixie.unit, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
+		end
+
 	end
 
-	for i = #pixies, 1, -1 do
-		pixie = pixies[i]
-		self:DrawPixie(pixie.ui, pixie.unit, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
-	end
+	self.redrawTime:Start()
+
 end
 
 function Perspective:OnUpdateTimerTicked()
+
+	self.updateTime:Stop()
 
 	-- Get the player postion
 	local updated = self:UpdatePlayerPosition()
@@ -731,6 +743,9 @@ function Perspective:OnUpdateTimerTicked()
 			table.remove(self.units, v)
 		end
 	end
+
+	self.updateTime:Start()
+
 end
 
 function Perspective:MarkersInit()
@@ -1067,8 +1082,9 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 	if showLine then
 		local pos = unit:GetPosition()
 		local vec = Vector3.New(pos.x, pos.y, pos.z)
+
 		-- Get the screen position of the unit by it's vector
-		uLinePos = GameLib.WorldLocToScreenPoint(vec)
+		local uLinePos = GameLib.WorldLocToScreenPoint(vec)
 
 		-- Background line to give the outline
 		if ui.showLineOutline then
@@ -1090,20 +1106,60 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 			})
 		end
 
+		-- Actual line to the unit's vector
 		self.Overlay:AddPixie({
 			bLine = true,
-			fWidth = ui.lineWidth + 0,
+			fWidth = ui.lineWidth,
 			cr = ui.lineColor,
 			loc = {
 				fPoints = {0,0,0,0},
 				nOffsets = {
-					uLinePos.x, 
-					uLinePos.y, 
 					pPos.nX, 
-					pPos.nY
+					pPos.nY,
+					uLinePos.x, 
+					uLinePos.y, 					
 				}
 			}
 		})
+
+		--[[if uLinePos.x > Apollo.GetScreenSize() / 2 then
+			self.Overlay:AddPixie({
+				bLine = true,
+				fWidth = 14,
+				cr = "00ffffff",
+				strText = unit:GetName(),
+				strFont = ui.font,
+				loc = {
+					fPoints = {0,0,0,0},
+					nOffsets = {
+						pPos.nX, 
+						pPos.nY,
+						uLinePos.x, 
+						uLinePos.y, 					
+					}
+				}
+			})
+		else
+			self.Overlay:AddPixie({
+				bLine = true,
+				fWidth = 14,
+				cr = "00ffffff",
+				strText = unit:GetName(),
+				strFont = ui.font,
+				loc = {
+					fPoints = {0,0,0,0},
+					nOffsets = {
+						uLinePos.x, 
+						uLinePos.y,
+						pPos.nX, 
+						pPos.nY,					 					
+					}
+				},
+				flagsText = {
+					DT_RIGHT = true,
+				}
+			})
+		end]]
 	end
 
 	if showItem then
@@ -1560,19 +1616,6 @@ function Perspective:InitializeOptions()
 
 	local default
 
-	-- Add the whitelist items to the categories
-	--[[for name, value in pairs(self.db.profile.whitelist) do
-		if self.db.profile.categories[name] then
-			--self.db.profile.categories[name].header = "Unit Name - " .. name
-			--self.db.profile.categories[name].whitelist = true
-		else
-			self.db.profile.categories[name] = {
-				header = "Unit Name - " .. name,
-				whitelist = true,
-			}
-		end
-	end]]
-
 	-- Initialize the categories
 	for k, v in pairs(self.db.profile.categories) do
 		v = v or self.db.defaults.profile.categories[k]
@@ -1591,6 +1634,10 @@ function Perspective:InitializeOptions()
 			item:Destroy()
 		end
 	end
+
+	-- Initialize the settings 
+	self:SettingsTimer_Init("Redraw", "redrawTime", 0, "ms", 1000,  "OnRedrawTimerTicked")
+	self:SettingsTimer_Init("Update", "updateTime", 1, "secs", 1, "OnUpdateTimerTicked")
 
 	self:CategoryItems_Arrange()
 end
@@ -1712,6 +1759,34 @@ function Perspective:CategoryItem_InitColorOption(item, control, category, value
 	if init then
 		control:AddEventHandler("ButtonSignal", "CategoryItem_OnColorClick")
 	end
+end
+
+function Perspective:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
+
+	local slider = self.Options:FindChild(control .. "Slider")
+	local text = self.Options:FindChild(control .. "Text")
+
+	local val = round(self.db.profile.settings[value], numDecimal)
+
+	-- Associate the text control with the slider.
+	slider:SetData({ 
+		text = text, 
+		value = value, 
+		numDecimal = numDecimal, 
+		unit = unit,
+		divBy = divBy,
+		tickFunc = tickFunc 
+	})
+
+	-- Set the slider value.
+	slider:SetValue(val)
+
+	-- Set the text value.
+	text:SetText(val .. " " .. unit)
+
+	-- Set the event handler
+	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
+
 end
 
 function Perspective:CategoryItems_Arrange()
@@ -1934,7 +2009,7 @@ function Perspective:CategoryItem_OnEscape(handler, control)
 	control:SetText(val)
 end
 
-function Perspective:CategoryItem_OnColorClick(window, control, button)
+function Perspective:CategoryItem_OnColorClick(handler, control, button)
 	local args = control:GetData()
 
   	GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control, args)
@@ -1956,4 +2031,42 @@ function Perspective:CategoryItem_OnColorSet(color, ...)
 	end
 
 	self:UpdateOptions()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Settings Events
+---------------------------------------------------------------------------------------------------
+
+function Perspective:SettingsTimer_OnChanged(handler, control, button)
+
+	local args = control:GetData()
+
+	local val = round(control:GetValue(), args.numDecimal)
+
+	args.text:SetText(val .. " " .. args.unit)
+
+	self.db.profile.settings[args.value] = val
+
+	self[args.value]:Set(val / args.divBy, true, args.tickFunc, self)
+
+end
+
+
+
+
+
+
+
+function round(num, idp)
+
+	if idp and idp > 0 then
+
+		local mult = 10 ^ idp
+
+		return math.floor(num * mult + 0.5) / mult
+
+	end
+
+	return math.floor(num + 0.5)
+
 end

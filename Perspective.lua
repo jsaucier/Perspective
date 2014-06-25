@@ -377,8 +377,8 @@ local defaults = {
 				lineColor = "ffc759ff",
 				maxLines = 1,
 			},
-			publicEvent = {
-				header = "Public Event",
+			questLoot = {
+				header = "Quest Loot",
 				icon = "ClientSprites:GroupLootIcon",
 				showLines = false,
 				iconWidth = 32,
@@ -1097,6 +1097,8 @@ function Perspective:UpdateUnit(ui, unit)
 					self:UpdateHarvest(ui, unit)
 				elseif type == "Pickup" then
 					self:UpdatePickup(ui, unit)
+				elseif unit:GetLoot() then
+					self:UpdateLoot(ui, unit)
 				end
 
 			end
@@ -1602,9 +1604,23 @@ function Perspective:UpdateHarvest(ui, unit)
 end
 
 function Perspective:UpdatePickup(ui, unit)
-	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) then
+	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
+		not self.db.profile.categories.subdue.disabled then
 		ui.category = "subdue"
 	end
+end
+
+function Perspective:UpdateLoot(ui, unit)
+
+	local loot = unit:GetLoot()
+
+	if loot and 
+		loot.eLootItemType and 
+		loot.eLootItemType == 6 and
+		not self.db.profile.categories.questLoot.disabled then
+		category = "questLoot"
+	end
+
 end
 
 function Perspective:UpdateActivation(ui, unit)
@@ -1626,6 +1642,7 @@ function Perspective:UpdateActivation(ui, unit)
 		{ state = "SoldierKill", 			category = "solider" },
 		{ state = "ScientistScannable", 	category = "scientist" },
 		{ state = "ScientistActivate", 		category = "scientist" },
+		{ state = "Public Event",			category = "questLoot" },
 		{ state = "FlightPath", 			category = "flightPath" },
 		{ state = "InstancePortal", 		category = "instancePortal" },
 		{ state = "BindPoint", 				category = "bindPoint" },

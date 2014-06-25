@@ -427,7 +427,53 @@ local defaults = {
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
 				showLines = false,
-			}
+			},
+			["Empirius"] = {
+				header = "War of the Wilds - Empirius",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			},
+			["Sagittaurus"] = {
+				header = "War of the Wilds - Sagittaurus",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			}, 
+			["Lectro"] = {
+				header = "War of the Wilds - Lectro",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			},
+			["Krule"] = {
+				header = "War of the Wilds - Krule",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			},
+			["Zappo"] = {
+				header = "War of the Wilds - Zappo",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			},
+			["Ignacio"] = {
+				header = "War of the Wilds - Ignacio",
+				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+				showLines = false,
+			},
+			["Energy Node"] = {
+				header = "War of the Wilds - Energy Node",
+				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
+				showLines = false,
+			},
+			["Moodie Totem"] = {
+				header = "War of the Wilds - Moodie Totem",
+				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
+				iconColor = "ffff3300",
+				showLines = false,
+			},
+			["Skeech Totem"] = {
+				header = "War of the Wilds - Skeech Totem",
+				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
+				showLines = false,
+			},
 		},
 		markers = {
 			quest = {

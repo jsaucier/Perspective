@@ -12,7 +12,7 @@ local defaults = {
 			drawTimer = 30,
 			slowTimer = 1,
 			fastTimer = 100,
-			skillRange = 15,
+			--skillRange = 15,
 		},
 		categories = {
 			default = {
@@ -42,7 +42,8 @@ local defaults = {
 				rangeColor = "ffffffff",
 				rangeIcon = false,
 				rangeFont = false,
-				rangeLine = false
+				rangeLine = false,
+				rangeLimit = 15,
 			},
 			all = {
 				header = "Set All"
@@ -663,16 +664,16 @@ function Perspective:UpdateDistance(ui, unit)
 				  zDistance <= ui.zDistance)
 
 	-- Determine if the unit is in skill range.
-	ui.inSkillRange = (ui.distance <= self.db.profile.settings.skillRange)
+	ui.inRangeLimit = (ui.distance <= ui.rangeLimit)
 
 	-- Scale our icon based on the dimensions and scale factor.			  
 	ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
 	ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
 
 	-- Calculate colors
-	ui.cLineColor = (ui.inSkillRange and ui.rangeLine) and ui.rangeColor or ui.lineColor
-	ui.cFontColor = (ui.inSkillRange and ui.rangeFont) and ui.rangeColor or ui.fontColor
-	ui.cIconColor = (ui.inSkillRange and ui.rangeIcon) and ui.rangeColor or ui.iconColor
+	ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor
+	ui.cFontColor = (ui.inRangeLimit and ui.rangeFont) and ui.rangeColor or ui.fontColor
+	ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
 end
 
 function Perspective:Start()
@@ -729,7 +730,7 @@ function Perspective:OnTimerTicked_Draw()
 					local showLine = true
 
 					-- If the unit is close to the skill range then calculate it immediately
-					if (ui.distance or 9999) <= self.db.profile.settings.skillRange * 2 then
+					if (ui.distance or 9999) <= ui.rangeLimit * 2 then
 						self:UpdateDistance(ui, unit)
 					end
 
@@ -1398,7 +1399,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 				text = ui.display or unit:GetName() or ""
 			end
 
-			text = (ui.showDistance and ui.distance >= self.db.profile.settings.skillRange) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
+			text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
 			
 			self.Overlay:AddPixie({
 				strText = text,
@@ -1902,8 +1903,7 @@ function Perspective:InitializeOptions()
 	-- Initialize the settings 
 	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
 	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
-	
+	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")	
 
 	self:CategoryItems_Arrange()
 end
@@ -1979,6 +1979,7 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	self:CategoryItem_InitTextOption(item, "MinDistance", 			category, "minDistance", 	true,	init)
 	self:CategoryItem_InitTextOption(item, "MaxDistance", 			category, "maxDistance", 	true,	init)
 	self:CategoryItem_InitTextOption(item, "Display", 				category, "display", 		false,	init)
+	self:CategoryItem_InitTextOption(item, "RangeLimit",			category, "rangeLimit",		true,	init)
 
 	self:CategoryItem_InitColorOption(item, "FontColor",			category, "fontColor",				init)
 	self:CategoryItem_InitColorOption(item, "IconColor", 			category, "iconColor",				init)

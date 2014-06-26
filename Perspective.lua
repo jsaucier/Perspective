@@ -1037,30 +1037,36 @@ function Perspective:MarkerDestroy(id)
 end
 
 function Perspective:MarkerUpdate(marker)
-	local updated = self:UpdatePlayerPosition()
+	local player = GameLib.GetPlayerUnit()
+	
+	if player then
+		local pos = player:GetPosition()
+	
+		if pos then
+			local vector = Vector3.New(pos.x, pos.y, pos.z)
 
-	if updated then
-		local inArea = false
+			local inArea = false
 
-		if marker.type == "path" and marker.mission:IsInArea() then
-			inArea = true
-		end
-
-		for index, region in pairs(marker.regions) do
-			-- Get the distance to the marker
-			region.distance = math.ceil((self.vector - region.vector):Length())
-				
-			-- Determine if the player is in the region
-			if marker.type == "quest" then
-				-- No direct call that I can find to determine if the player is
-				-- in the area, so make it anywhere closer than 100m
-				region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
-			elseif marker.type == "path" then
-				region.inArea = inArea
+			if marker.type == "path" and marker.mission:IsInArea() then
+				inArea = true
 			end
-		end
 
-		table.sort(marker.regions, function(a, b) return a.distance < b.distance end)
+			for index, region in pairs(marker.regions) do
+				-- Get the distance to the marker
+				region.distance = math.ceil((vector - region.vector):Length())
+					
+				-- Determine if the player is in the region
+				if marker.type == "quest" then
+					-- No direct call that I can find to determine if the player is
+					-- in the area, so make it anywhere closer than 100m
+					region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
+				elseif marker.type == "path" then
+					region.inArea = inArea
+				end
+			end
+
+			table.sort(marker.regions, function(a, b) return a.distance < b.distance end)
+		end
 	end
 end
 
@@ -1674,10 +1680,12 @@ function Perspective:UpdateActivation(ui, unit)
 
 	local states = {
 		{ state = "QuestReward", 			category = "questReward" },
+		{ state = "QuestReceivingTradekill",category = "questReward" },
 		{ state = "QuestNewMain", 			category = "questNew" },
 		{ state = "QuestNew", 				category = "questNew" },
 		{ state = "QuestNewRepeatable", 	category = "questNew" },
 		{ state = "QuestGivingTradeskill", 	category = "questNew" },
+		{ state = "QuestNewTradeskill",		category = "questNew" },
 		{ state = "TalkTo", 				category = "questTalkTo" },
 		{ state = "Datacube", 				category = "lore" },
 		{ state = "ExplorerInterest", 		category = "explorer" },

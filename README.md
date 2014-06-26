@@ -10,10 +10,10 @@ This is a work in progress, some settings such as the markers and blacklist have
 ##Screenshots
 
 ###Game View
-![Game View](http://jsaucier.github.io/Perspective/images/screenshot.jpg)
+![Game View](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/screenshot.jpg)
 
 ###Settings
-![Settings](http://jsaucier.github.io/Perspective/images/settings.jpg)
+![Settings](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/settings.jpg)
 
 ###Configuration
-![Configuration](http://jsaucier.github.io/Perspective/images/config.jpg)
+![Configuration](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/config.jpg)

@@ -617,7 +617,10 @@ function Perspective:OnInitialize()
 end
 
 function Perspective:OnEnable()
-	-- Get the player's path type
+	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
+	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
+
+		-- Get the player's path type
 	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
 		self.path = "solider"
 	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
@@ -627,11 +630,6 @@ function Perspective:OnEnable()
 	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
 		self.path = "explorer"
 	end
-
-	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
-	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
-
-	self:MarkersInit();
 
 	self.loaded = true
 
@@ -729,7 +727,7 @@ function Perspective:OnRedrawTimerTicked()
 					local showLine = true
 
 					-- If the unit is close to the skill range then calculate it immediately
-					if ui.distance <= self.db.profile.settings.skillRange + 15 then
+					if (ui.distance or 9999) <= self.db.profile.settings.skillRange + 15 then
 						self:UpdateDistance(ui, unit)
 					end
 
@@ -788,11 +786,6 @@ function Perspective:OnRedrawTimerTicked()
 
 		for id, marker in pairs(self.markers) do
 			local marks = 0
-			local icon = self.db.profile.markers[marker.type].icon
-
-			if marker.type == "path" then
-				icon = self.db.profile.markers.path[self.path .. "Icon"]
-			end
 
 			for index, region in pairs(marker.regions) do
 				-- Get the screen position of the unit by it's vector
@@ -803,7 +796,7 @@ function Perspective:OnRedrawTimerTicked()
 					uPos.z > 0 and
 					not region.inArea then
 					self.Overlay:AddPixie({
-						strSprite = icon,
+						strSprite = marker.icon,
 						--cr = ui.iconColor,
 						loc = {
 							fPoints = { 0, 0, 0, 0 },
@@ -969,6 +962,7 @@ function Perspective:MarkerEventUpdate(event)
 			name = event:GetName(),
 			type = "event",
 			regions = {},
+			icon = self.db.profile.markers.event.icon
 		}
 		for index, objective in pairs(event:GetObjectives()) do
 			for index, region in pairs(objective:GetMapRegions()) do
@@ -992,7 +986,8 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 				name = mission:GetName(),
 				type = "path",
 				regions = {},
-				mission = mission
+				mission = mission,
+				icon = self.db.profile.markers.path[self.path .. "Icon"]
 			}
 			for index, region in pairs(mission:GetMapRegions()) do
 				self.markers[id].regions[index] = {
@@ -1018,7 +1013,8 @@ function Perspective:MarkerQuestUpdate(quest)
 		  	self.markers[id] = {
 		  		name = quest:GetTitle(),
 		  		type = "quest",
-		  		regions = {}
+		  		regions = {},
+		  		icon = self.db.profile.markers.quest.icon
 		  	}
 			-- Create a marker for every quest region
 			for index, region in pairs(quest:GetMapRegions()) do

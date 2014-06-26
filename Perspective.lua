@@ -708,22 +708,17 @@ function Perspective:OnRedrawTimerTicked()
 
 	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 
+	local pixies = {}
+
 	if pPos then
 
 		local items = {	unit = {}, category = {}, quest = {}, challenge = {} }
 		local lines = {	unit = {}, category = {}, quest = {}, challenge = {} }
 
-		-- Pixes to draw in reverse so closest are on top
-		local pixies = {}
-
 		for index, ui in pairs(self.categorized) do
 
 			local unit = GameLib.GetUnitById(ui.id)
 
-			--if table.getn(pixies) >= self.db.profile.settings.max then
-				--break
-			--end
-			
 			if unit and 
 				not ui.disabled and 
 				table.getn(pixies) < self.db.profile.settings.max then
@@ -866,41 +861,51 @@ function Perspective:OnUpdateTimerTicked()
 		return
 	end
 
-	-- Empty our categorized units
-	self.categorized = {} 
+	local player = GameLib.GetPlayerUnit()
+
+	if player then
+		local pos = player:GetPosition()
 	
-	-- Units we are not interested in keeping track of
-	local remove = {}
+		if pos then
+			local vector = Vector3.New(pos.x, pos.y, pos.z)
 
-	-- Update all the known units
-	for index, ui in pairs(self.units) do
-
-		local unit = GameLib.GetUnitById(ui.id)
-
-		-- Determine if the unit is still valid.
-		if unit then
+			-- Empty our categorized units
+			self.categorized = {} 
 			
-			self:UpdateUnit(ui, unit)
+			-- Units we are not interested in keeping track of
+			local remove = {}
 
-			if ui.category then
-				table.insert(self.categorized, ui)
+			-- Update all the known units
+			for index, ui in pairs(self.units) do
+
+				local unit = GameLib.GetUnitById(ui.id)
+
+				-- Determine if the unit is still valid.
+				if unit then
+					
+					self:UpdateUnit(ui, unit)
+
+					if ui.category then
+						table.insert(self.categorized, ui)
+					end
+
+				else
+					table.insert(remove, index)		
+				end
 			end
+			
+			if self.markersInitialized then
+				self:MarkersUpdate(vector)
+			else
+				self:MarkersInit()
+			end
+			
+			table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 
-		else
-			table.insert(remove, index)		
+			for k, v in pairs(remove) do
+				table.remove(self.units, v)
+			end
 		end
-	end
-	
-	if self.markersInitialized then
-		self:MarkersUpdate()
-	else
-		self:MarkersInit()
-	end
-	
-	table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
-
-	for k, v in pairs(remove) do
-		table.remove(self.units, v)
 	end
 
 	self.updateTime:Start()
@@ -949,12 +954,12 @@ function Perspective:MarkersInit()
 	self.markersInitialized = true
 end
 
-function Perspective:MarkersUpdate()
-	local _, __
-	
+function Perspective:MarkersUpdate(vector)
+	local _
+
 	-- Update all the episode markers
 	for _, marker in pairs(self.markers) do
-		self:MarkerUpdate(marker)
+		self:MarkerUpdate(marker, vector)
 	end
 end
 
@@ -1036,36 +1041,41 @@ function Perspective:MarkerDestroy(id)
 	self.markers[id] = nil
 end
 
-function Perspective:MarkerUpdate(marker)
-	local player = GameLib.GetPlayerUnit()
-	
-	if player then
-		local pos = player:GetPosition()
-	
-		if pos then
-			local vector = Vector3.New(pos.x, pos.y, pos.z)
+-- Updates the marker information
+-- vector is the players current position vector.
+function Perspective:MarkerUpdate(marker, vector)
+	if not vector then
 
-			local inArea = false
+		local player = GameLib.GetPlayerUnit()
 
-			if marker.type == "path" and marker.mission:IsInArea() then
-				inArea = true
-			end
+		if player then
+			local pos = player:GetPosition()
+		
+			if pos then
+				local vector = Vector3.New(pos.x, pos.y, pos.z)
 
-			for index, region in pairs(marker.regions) do
-				-- Get the distance to the marker
-				region.distance = math.ceil((vector - region.vector):Length())
-					
-				-- Determine if the player is in the region
-				if marker.type == "quest" then
-					-- No direct call that I can find to determine if the player is
-					-- in the area, so make it anywhere closer than 100m
-					region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
-				elseif marker.type == "path" then
-					region.inArea = inArea
+				local inArea = false
+
+				if marker.type == "path" and marker.mission:IsInArea() then
+					inArea = true
 				end
-			end
 
-			table.sort(marker.regions, function(a, b) return a.distance < b.distance end)
+				for index, region in pairs(marker.regions) do
+					-- Get the distance to the marker
+					region.distance = math.ceil((vector - region.vector):Length())
+						
+					-- Determine if the player is in the region
+					if marker.type == "quest" then
+						-- No direct call that I can find to determine if the player is
+						-- in the area, so make it anywhere closer than 100m
+						region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
+					elseif marker.type == "path" then
+						region.inArea = inArea
+					end
+				end
+
+				table.sort(marker.regions, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+			end
 		end
 	end
 end

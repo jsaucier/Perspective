@@ -7,16 +7,17 @@ local Perspective = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("Per
 local defaults = {
 	profile = {
 		settings = { 
+			disabled = false,
 			max = 10,
-			redrawTime = 0.01,
+			redrawTime = 30,
 			updateTime = 1.00,
+			skillRange = 15,
 		},
 		categories = {
 			default = {
 				order = 0,
 				disabled = false,
 				disableInCombat = false,
-				disableInInstance = false,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
@@ -29,13 +30,18 @@ local defaults = {
 				max = 2,
 				maxLines = 1,
 				minDistance = 0,
-				maxDistance = 99999,
+				maxDistance = 9999,
+				zDistance = 9999,
 				showDistance = true,
 				showIcon = true,
 				showName = true,
 				showLineOutline = true,
 				showLines = true,
 				showLinesOffscreen = true,
+				rangeColor = "ffffffff",
+				rangeIcon = false,
+				rangeFont = false,
+				rangeLine = false
 			},
 			all = {
 				header = "Set All"
@@ -50,6 +56,9 @@ local defaults = {
 				maxLines = 1,
 				iconHeight = 24,
 				iconWidth = 24,
+				rangeColor = "ffffccff",
+				rangeLine = true,
+				rangeIcon = true,
 			},
 			--[[focus = {
 				header = "Target",
@@ -61,12 +70,18 @@ local defaults = {
 			},]]
 			group = {
 				header = "Player - Party",
-				fontColor = "ff97a9ff",
-				lineColor = "ff97a9ff",
+				fontColor = "ff7482c1",
+				lineColor = "ff7482c1",
+				iconColor = "ff7482c1",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
 				showLines = false,
 				maxLines = 4,
-				maxIcons = 4,
+				max = 4,
+				useRange = true,
+				rangeColor = "ff00ff00",
+				rangeIcon = true,
+				rangeLine = true,
+				rangeFont = true,
 			},
 			guild = {
 				header = "Player - Guild",
@@ -170,7 +185,9 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 8,
-				iconWidth = 8
+				iconWidth = 8,
+				rangeIcon = true,
+				rangeColor = "ffff00ff"
 			},
 			hostilePrime = {
 				header = "NPC - Hostile Prime",
@@ -183,7 +200,9 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 16,
-				iconWidth = 16
+				iconWidth = 16,
+				rangeIcon = true,
+				rangeColor = "ffff00ff"
 			},
 			hostileElite = {
 				header = "NPC - Hostile Elite",
@@ -196,7 +215,9 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 32,
-				iconWidth = 32
+				iconWidth = 32,
+				rangeIcon = true,
+				rangeColor = "ffff00ff"
 			},
 			questObjective = {
 				header = "Quest - Objective",
@@ -534,7 +555,7 @@ function Perspective:OnInitialize()
     self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
 
 	self.Overlay = Apollo.LoadForm(self.xmlDoc, "Overlay", "InWorldHudStratum", self)
-	self.Overlay:Show(true)
+	self.Overlay:Show(true, true)
 					
 	-- Register the slash command	
 	Apollo.RegisterSlashCommand("perspective", "OnShowOptions", self)
@@ -591,15 +612,8 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
-end
 
-function Perspective:OnConfigure()
-end
-
-function Perspective:OnRestore(type, savedData)
-end
-
-function Perspective:OnSave(type)
+	self:InitializeOptions()
 end
 
 function Perspective:OnEnable()
@@ -614,9 +628,7 @@ function Perspective:OnEnable()
 		self.path = "explorer"
 	end
 
-	self:UpdatePlayerPosition()
-
-	self:InitializeOptions()
+	--self:InitializeOptions()
 
 	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
 	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
@@ -630,24 +642,58 @@ function Perspective:OnEnable()
 	end
 end
 
-function Perspective:UpdatePlayerPosition()
-	-- Get the player postion
-	self.player = GameLib.GetPlayerUnit()
+function Perspective:UpdateDistance(ui, unit)
+	local pPos = GameLib:GetPlayerUnit():GetPosition()
+	local pVec = Vector3.New(pPos.x, pPos.y, pPos.z)
 
-	if self.player then
-		self.position = self.player:GetPosition()
+	local uPos = unit:GetPosition()
+	ui.vector = Vector3.New(uPos.x, uPos.y, uPos.z)
 
-		if self.position then
-			-- Vector of the player's position
-			self.vector = Vector3.New(self.position.x, self.position.y, self.position.z)
-		else
-			return false
-		end
-	else
-		return false
-	end
+	-- Calculate z axis (really y axis) distance
+	local zVec = Vector3.New(pPos.x, uPos.y, pPos.z)
+	local zDistance = (pVec - zVec):Length()
 
-	return true
+	-- Get the distance from the player.
+	ui.distance = (pVec - ui.vector):Length()
+	
+	-- Get the scale size based on distance.
+	ui.scale = math.min(1 / (ui.distance / 100), 1)
+	
+	-- Determine if the unit is in range of display.
+	ui.inRange = (ui.distance > ui.minDistance and 
+				  ui.distance < ui.maxDistance and 
+				  zDistance <= ui.zDistance)
+
+	-- Determine if the unit is in skill range.
+	ui.inSkillRange = (ui.distance <= self.db.profile.settings.skillRange)
+
+	-- Scale our icon based on the dimensions and scale factor.			  
+	ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
+	ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
+
+	-- Calculate colors
+	ui.cLineColor = (ui.inSkillRange and ui.rangeLine) and ui.rangeColor or ui.lineColor
+	ui.cFontColor = (ui.inSkillRange and ui.rangeFont) and ui.rangeColor or ui.fontColor
+	ui.cIconColor = (ui.inSkillRange and ui.rangeIcon) and ui.rangeColor or ui.iconColor
+end
+
+function Perspective:Start()
+
+	self.db.profile.settings.disabled = false
+
+	self.redrawTime:Start()
+	self.updateTime:Start()
+		
+	self:MarkersInit();
+end
+
+function Perspective:Stop()
+	
+	self.db.profile.settings.disabled = true
+
+	self.categorized = {}
+	self.markers = {}
+
 end
 
 function Perspective:OnRedrawTimerTicked()
@@ -655,6 +701,10 @@ function Perspective:OnRedrawTimerTicked()
 	self.redrawTime:Stop()
 
 	self.Overlay:DestroyAllPixies()
+
+	if self.db.profile.settings.disabled then 
+		return
+	end
 
 	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 
@@ -685,6 +735,11 @@ function Perspective:OnRedrawTimerTicked()
 					local showItem = true
 					local showLine = true
 
+					-- If the unit is close to the skill range then calculate it immediately
+					if ui.distance <= self.db.profile.settings.skillRange + 15 then
+						self:UpdateDistance(ui, unit)
+					end
+
 					if not ui.inRange or (GameLib.GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
 						showItem = false
 						showLine = false
@@ -697,7 +752,7 @@ function Perspective:OnRedrawTimerTicked()
 						end
 					end
 
-					if ui.limitBy and (showItem or showLine) then
+					if ui.limitBy and ui.limitId and (showItem or showLine) then
 						for i, id in pairs(ui.limitId) do
 							items[ui.limitBy][id] = items[ui.limitBy][id] or 0
 							lines[ui.limitBy][id] = lines[ui.limitBy][id] or 0
@@ -722,7 +777,7 @@ function Perspective:OnRedrawTimerTicked()
 							showLine = showLine 
 						})
 						
-						if ui.limitBy then
+						if ui.limitBy and ui.limitId then
 							for i, id in pairs(ui.limitId) do
 								if showItem then
 									items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
@@ -807,46 +862,45 @@ function Perspective:OnUpdateTimerTicked()
 
 	self.updateTime:Stop()
 
-	-- Get the player postion
-	local updated = self:UpdatePlayerPosition()
+	if self.db.profile.settings.disabled then 
+		return
+	end
 
-	if updated then
-		-- Empty our categorized units
-		self.categorized = {} 
-		
-		-- Units we are not interested in keeping track of
-		local remove = {}
+	-- Empty our categorized units
+	self.categorized = {} 
+	
+	-- Units we are not interested in keeping track of
+	local remove = {}
 
-		-- Update all the known units
-		for index, ui in pairs(self.units) do
+	-- Update all the known units
+	for index, ui in pairs(self.units) do
 
-			local unit = GameLib.GetUnitById(ui.id)
+		local unit = GameLib.GetUnitById(ui.id)
 
-			-- Determine if the unit is still valid.
-			if unit then
-				
-				self:UpdateUnit(ui, unit)
+		-- Determine if the unit is still valid.
+		if unit then
+			
+			self:UpdateUnit(ui, unit)
 
-				if ui.category then
-					table.insert(self.categorized, ui)
-				end
-
-			else
-				table.insert(remove, index)		
+			if ui.category then
+				table.insert(self.categorized, ui)
 			end
-		end
-		
-		if self.markersInitialized then
-			self:MarkersUpdate()
-		else
-			self:MarkersInit()
-		end
-		
-		table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 
-		for k, v in pairs(remove) do
-			table.remove(self.units, v)
+		else
+			table.insert(remove, index)		
 		end
+	end
+	
+	if self.markersInitialized then
+		self:MarkersUpdate()
+	else
+		self:MarkersInit()
+	end
+	
+	table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+
+	for k, v in pairs(remove) do
+		table.remove(self.units, v)
 	end
 
 	self.updateTime:Start()
@@ -1161,30 +1215,18 @@ function Perspective:UpdateUnit(ui, unit)
 				-- Unit is not disabled and we have our options loaded for it, lets categorize it.
 				if not ui.disabled then
 
-					if ui.limitBy then	
+					if ui.limitBy and ui.limitBy ~= "none" then	
 						if 	   ui.limitBy == "name"			then ui.limitId = { name }
 						elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
 						elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
 						elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
 						end
+					else
+						ui.limitId = nil
 					end
-
-					-- Get the vector for the unit.
-					ui.vector = Vector3.New(pos.x, pos.y, pos.z)
-
-					-- Get the distance from the player.
-					ui.distance = (self.vector - ui.vector):Length()
 					
-					-- Get the scale size based on distance.
-					ui.scale = math.min(1 / (ui.distance / 100), 1)
+					self:UpdateDistance(ui, unit)
 					
-					-- Determine if the unit is in range of display.
-					ui.inRange = (ui.distance > ui.minDistance and 
-								  ui.distance < ui.maxDistance)
-					
-					-- Scale our icon based on the dimensions and scale factor.			  
-					ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
-					ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
 				end
 
 			end
@@ -1222,11 +1264,13 @@ function Perspective:OnInterfaceMenuListHasLoaded()
 end
 
 function Perspective:OnInterfaceMenuClicked()
-	self.Options:Show(not self.Options:IsShown())
+	self.Options:Show(not self.Options:IsShown(), true)
 end
 
 function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
+
 	if showLine then
+
 		local pos = unit:GetPosition()
 		local vec = Vector3.New(pos.x, pos.y, pos.z)
 
@@ -1257,7 +1301,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 		self.Overlay:AddPixie({
 			bLine = true,
 			fWidth = ui.lineWidth,
-			cr = ui.lineColor,
+			cr = ui.cLineColor,
 			loc = {
 				fPoints = {0,0,0,0},
 				nOffsets = {
@@ -1316,7 +1360,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 				strFont = nil,
 				bLine = false,
 				strSprite = ui.icon,
-				cr = ui.iconColor,
+				cr = ui.cIconColor,
 				loc = {
 					fPoints = { 0, 0, 0, 0 },
 					nOffsets = {
@@ -1336,13 +1380,13 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 				text = ui.display or unit:GetName() or ""
 			end
 
-			text = (ui.showDistance and ui.distance >= 10) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
+			text = (ui.showDistance and ui.distance >= self.db.profile.settings.skillRange) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
 			
 			self.Overlay:AddPixie({
 				strText = text,
 				strFont = ui.font,
 				bLine = false,
-				crText = ui.fontColor,
+				cr = ui.cFontColor,
 				loc = {
 					fPoints = {0,0,0,0},
 					nOffsets = {
@@ -1383,7 +1427,9 @@ function Perspective:OnUnitCreated(unit)
 	
 	if not tracked then
 
-		local ui = { id = unit:GetId() }
+		local ui = { 
+			id = unit:GetId(),
+			GetUnit = function() return unit end }
 
 		table.insert(self.units, ui)
 
@@ -1756,15 +1802,15 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Perspective:OnConfigure()
-	self.Options:Show(true)
+	self.Options:Show(true, true)
 end
 
 function Perspective:OnShowOptions()
-	self.Options:Show(true)
+	self.Options:Show(true, true)
 end
 
 function Perspective:OnCloseButton()
-	self.Options:Show(false)
+	self.Options:Show(false, true)
 end
 
 function Perspective:InitializeOptions()
@@ -1885,6 +1931,7 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	icon:SetSprite(sprite)
 	icon:SetBGColor(color)
 
+	self:CategoryItem_InitDropDownMenu(item, "LimitBy",				category, "limitBy",				init)
 
 	self:CategoryItem_InitCheckOption(item, "Disable", 				category, "disabled",				init)
 	self:CategoryItem_InitCheckOption(item, "CombatDisable", 		category, "disableInCombat",		init)
@@ -1894,6 +1941,9 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	self:CategoryItem_InitCheckOption(item, "ShowLines", 			category, "showLines",				init)
 	self:CategoryItem_InitCheckOption(item, "ShowOutline", 			category, "showLineOutline",		init)
 	self:CategoryItem_InitCheckOption(item, "ShowOffScreenLine", 	category, "showLinesOffscreen",		init)
+	self:CategoryItem_InitCheckOption(item, "RangeFont", 			category, "rangeFont",				init)
+	self:CategoryItem_InitCheckOption(item, "RangeIcon", 			category, "rangeIcon",				init)
+	self:CategoryItem_InitCheckOption(item, "RangeLine", 			category, "rangeLine",				init)
 
 	self:CategoryItem_InitTextOption(item, "Font", 					category, "font", 			false,	init)
 	self:CategoryItem_InitTextOption(item, "Icon", 					category, "icon", 			false,	init)
@@ -1902,7 +1952,7 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	self:CategoryItem_InitTextOption(item, "MaxIcons", 				category, "max", 			true,	init)
 	self:CategoryItem_InitTextOption(item, "MaxLines", 				category, "maxLines", 		true,	init)
 	self:CategoryItem_InitTextOption(item, "LineWidth", 			category, "lineWidth", 		true,	init)
-	self:CategoryItem_InitTextOption(item, "LimitBy", 				category, "limitBy", 		false,	init)
+	self:CategoryItem_InitTextOption(item, "ZDistance",				category, "zDistance", 		true,	init)
 	self:CategoryItem_InitTextOption(item, "MinDistance", 			category, "minDistance", 	true,	init)
 	self:CategoryItem_InitTextOption(item, "MaxDistance", 			category, "maxDistance", 	true,	init)
 	self:CategoryItem_InitTextOption(item, "Display", 				category, "display", 		false,	init)
@@ -1910,12 +1960,36 @@ function Perspective:CategoryItem_Init(category, header, whitelist, item)
 	self:CategoryItem_InitColorOption(item, "FontColor",			category, "fontColor",				init)
 	self:CategoryItem_InitColorOption(item, "IconColor", 			category, "iconColor",				init)
 	self:CategoryItem_InitColorOption(item, "LineColor", 			category, "lineColor",				init)
+	self:CategoryItem_InitColorOption(item, "RangeColor", 			category, "rangeColor",				init)
 
 	self:CategoryItem_Toggle(item)
 
 	return item
 end
 
+function Perspective:CategoryItem_InitDropDownMenu(item, control, category, value, init)
+	-- Get the menu associated with the dropdownmenu
+	local menu = item:FindChild(control .. "DropDownMenu")
+
+	control = item:FindChild(control .. "DropDownButton")
+	
+	menu:SetData({ button = control })
+
+	local val = self:GetOptionValue(nil, value, category)
+
+	control:SetText(val)
+
+	control:SetData({ item = item, category = category, value = value, menu = menu })
+
+	if init then
+		control:AddEventHandler("ButtonSignal", "OnCategoryItem_DropDownButtonClicked")
+
+		for k, v in pairs(menu:GetChildren()) do
+			v:AddEventHandler("ButtonCheck", 	"OnCategoryItem_DropDownItemButtonChecked")
+			v:AddEventHandler("ButtonUncheck", 	"OnCategoryItem_DropDownItemButtonChecked")
+		end
+	end
+end
 
 function Perspective:CategoryItem_InitCheckOption(item, control, category, value, init)
 	control = item:FindChild(control .. "Check")
@@ -2007,7 +2081,7 @@ function Perspective:CategoryItem_Toggle(item)
 	local data = item:GetData()
 
 	if data.expanded then
-		item:SetAnchorOffsets(0, 5, 0, 336)
+		item:SetAnchorOffsets(0, 5, 0, 365)
 		item:FindChild("Content"):Show(true, true)
 	else
 		item:SetAnchorOffsets(0, 5, 0, 53)
@@ -2035,7 +2109,7 @@ end
 function Perspective:OnOptions_NewClicked(handler, control, button)
 	self.NewCategory:FindChild("NameText"):SetText("")
 	self.NewCategory:FindChild("DisplayText"):SetText("")
-	self.NewCategory:Show(true)
+	self.NewCategory:Show(true, true)
 end
 
 function Perspective:OnOptions_DefaultClicked(handler, control, button)
@@ -2085,11 +2159,11 @@ function Perspective:OnNewCategory_OKClicked(handler, control, button)
 
 	self:CategoryItems_Arrange()
 
-	self.NewCategory:Show(false)
+	self.NewCategory:Show(false, true)
 end
 
 function Perspective:OnNewCategory_CancelClicked(handler, control, button)
-	self.NewCategory:Show(false)
+	self.NewCategory:Show(false, true)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -2154,6 +2228,59 @@ function Perspective:OnCategoryItem_DefaultClicked(handler, control, button)
 
 	self:CategoryItem_Init(args.category, header, whitelist, item)
 
+	self:UpdateOptions()
+
+end
+
+function Perspective:OnCategoryItem_DropDownButtonClicked(handler, control, button)
+
+	local args = control:GetData()
+
+	for k, v in pairs(args.menu:GetChildren()) do
+		if v:GetText() == control:GetText() then
+			v:SetCheck(true)
+		else
+			v:SetCheck(false)
+		end
+	end
+
+	args.menu:Show(true, true)
+	self.Options:BringChildToTop(args.menu)
+
+end
+
+function Perspective:OnCategoryItem_DropDownItemButtonChecked(handler, control, button)
+
+	-- Get the args for the dropdownmenu
+	local args = control:GetParent():GetData()
+
+	-- Get the button that called the menu
+	local button = args.button
+
+	-- Get the args for the button
+	args = button:GetData()
+
+	-- Get the text of the selected dropdownmenu button
+	local val = control:GetText()
+
+	-- Update the button text for the caller button
+	button:SetText(val)
+
+	-- Hide the dropdownmenu immediately
+	control:GetParent():Show(false, true)
+Print(args.category .. "," .. args.value .. "," .. val)
+	-- Update the settings.
+	if args.category == "all" then
+		for k, v in pairs(self.db.profile.categories) do
+			self.db.profile.categories[k][args.value] = val
+		end
+
+		self:InitializeOptions()
+	else
+		self.db.profile.categories[args.category][args.value] = val
+	end
+
+	-- Update all the ui options.
 	self:UpdateOptions()
 
 end

@@ -628,8 +628,6 @@ function Perspective:OnEnable()
 		self.path = "explorer"
 	end
 
-	--self:InitializeOptions()
-
 	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
 	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
 
@@ -747,7 +745,7 @@ function Perspective:OnRedrawTimerTicked()
 						end
 					end
 
-					if ui.limitBy and ui.limitId and (showItem or showLine) then
+					if (showItem or showLine) and ui.limitBy and ui.limitId then
 						for i, id in pairs(ui.limitId) do
 							items[ui.limitBy][id] = items[ui.limitBy][id] or 0
 							lines[ui.limitBy][id] = lines[ui.limitBy][id] or 0
@@ -964,7 +962,6 @@ function Perspective:MarkersUpdate(vector)
 end
 
 function Perspective:MarkerEventUpdate(event)
-
 	local id = "event" .. event:GetName()
 
 	if event:IsActive() and table.getn(event:GetObjectives()) > 0 then
@@ -984,7 +981,6 @@ function Perspective:MarkerEventUpdate(event)
 	else
 		self.markers[id] = nil
 	end
-
 end
 
 function Perspective:MarkerPathUpdate(mission, deactivated)
@@ -1044,39 +1040,44 @@ end
 -- Updates the marker information
 -- vector is the players current position vector.
 function Perspective:MarkerUpdate(marker, vector)
+	local player
+	local pos
+
 	if not vector then
 
 		local player = GameLib.GetPlayerUnit()
 
 		if player then
 			local pos = player:GetPosition()
-		
+
 			if pos then
-				local vector = Vector3.New(pos.x, pos.y, pos.z)
-
-				local inArea = false
-
-				if marker.type == "path" and marker.mission:IsInArea() then
-					inArea = true
-				end
-
-				for index, region in pairs(marker.regions) do
-					-- Get the distance to the marker
-					region.distance = math.ceil((vector - region.vector):Length())
-						
-					-- Determine if the player is in the region
-					if marker.type == "quest" then
-						-- No direct call that I can find to determine if the player is
-						-- in the area, so make it anywhere closer than 100m
-						region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
-					elseif marker.type == "path" then
-						region.inArea = inArea
-					end
-				end
-
-				table.sort(marker.regions, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+				vector = Vector3.New(pos.x, pos.y, pos.z)
 			end
 		end
+	end
+
+	if vector then
+		local inArea = false
+
+		if marker.type == "path" and marker.mission:IsInArea() then
+			inArea = true
+		end
+
+		for index, region in pairs(marker.regions) do
+			-- Get the distance to the marker
+			region.distance = math.ceil((vector - region.vector):Length())
+				
+			-- Determine if the player is in the region
+			if marker.type == "quest" then
+				-- No direct call that I can find to determine if the player is
+				-- in the area, so make it anywhere closer than 100m
+				region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
+			elseif marker.type == "path" then
+				region.inArea = inArea
+			end
+		end
+
+		table.sort(marker.regions, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 	end
 end
 
@@ -1690,11 +1691,11 @@ function Perspective:UpdateActivation(ui, unit)
 
 	local states = {
 		{ state = "QuestReward", 			category = "questReward" },
-		{ state = "QuestReceivingTradekill",category = "questReward" },
+		--{ state = "QuestReceivingTradekill",category = "questReward" },
 		{ state = "QuestNewMain", 			category = "questNew" },
 		{ state = "QuestNew", 				category = "questNew" },
 		{ state = "QuestNewRepeatable", 	category = "questNew" },
-		{ state = "QuestGivingTradeskill", 	category = "questNew" },
+		--{ state = "QuestGivingTradeskill", 	category = "questNew" },
 		{ state = "QuestNewTradeskill",		category = "questNew" },
 		{ state = "TalkTo", 				category = "questTalkTo" },
 		{ state = "Datacube", 				category = "lore" },

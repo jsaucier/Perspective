@@ -1469,7 +1469,8 @@ function Perspective:OnTargetUnitChanged(unit)
 	
 	if not self.db.profile.categories.target.disabled then
 		-- Update the units immediately
-		self:OnUpdateTimerTicked()
+		self:OnTimerTicked_Slow()
+		self:OnTimerTicked_Fast()
 	end
 	
 end

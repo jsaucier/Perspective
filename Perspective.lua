@@ -730,7 +730,7 @@ function Perspective:OnTimerTicked_Draw()
 					local showLine = true
 
 					-- If the unit is close to the skill range then calculate it immediately
-					if (ui.distance or 9999) <= ui.rangeLimit * 2 then
+					if (ui.distance or 9999) <= (ui.rangeLimit or 0) * 2 then
 						self:UpdateDistance(ui, unit)
 					end
 

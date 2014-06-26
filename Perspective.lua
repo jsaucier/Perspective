@@ -9,8 +9,9 @@ local defaults = {
 		settings = { 
 			disabled = false,
 			max = 10,
-			redrawTime = 30,
-			updateTime = 1.00,
+			drawTimer = 30,
+			slowTimer = 1,
+			fastTimer = 100,
 			skillRange = 15,
 		},
 		categories = {
@@ -617,8 +618,9 @@ function Perspective:OnInitialize()
 end
 
 function Perspective:OnEnable()
-	self.redrawTime = ApolloTimer.Create(self.db.profile.settings.redrawTime / 1000, true, "OnRedrawTimerTicked", self)
-	self.updateTime = ApolloTimer.Create(self.db.profile.settings.updateTime, true, "OnUpdateTimerTicked", self)
+	self.fastTimer = ApolloTimer.Create(self.db.profile.settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
+	self.slowTimer = ApolloTimer.Create(self.db.profile.settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
+	self.drawTimer = ApolloTimer.Create(self.db.profile.settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
 
 		-- Get the player's path type
 	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
@@ -677,8 +679,9 @@ function Perspective:Start()
 
 	self.db.profile.settings.disabled = false
 
-	self.redrawTime:Start()
-	self.updateTime:Start()
+	self.drawTimer:Start()
+	self.slowTimer:Start()
+	self.fastTimer:Start()
 		
 	self:MarkersInit();
 end
@@ -692,9 +695,8 @@ function Perspective:Stop()
 
 end
 
-function Perspective:OnRedrawTimerTicked()
-
-	self.redrawTime:Stop()
+function Perspective:OnTimerTicked_Draw()
+	self.drawTimer:Stop()
 
 	self.Overlay:DestroyAllPixies()
 
@@ -727,7 +729,7 @@ function Perspective:OnRedrawTimerTicked()
 					local showLine = true
 
 					-- If the unit is close to the skill range then calculate it immediately
-					if (ui.distance or 9999) <= self.db.profile.settings.skillRange + 15 then
+					if (ui.distance or 9999) <= self.db.profile.settings.skillRange * 2 then
 						self:UpdateDistance(ui, unit)
 					end
 
@@ -840,13 +842,11 @@ function Perspective:OnRedrawTimerTicked()
 
 	end
 
-	self.redrawTime:Start()
-
+	self.drawTimer:Start()
 end
 
-function Perspective:OnUpdateTimerTicked()
-
-	self.updateTime:Stop()
+function Perspective:OnTimerTicked_Slow()
+	self.slowTimer:Stop()
 
 	if self.db.profile.settings.disabled then 
 		return
@@ -899,8 +899,13 @@ function Perspective:OnUpdateTimerTicked()
 		end
 	end
 
-	self.updateTime:Start()
+	self.slowTimer:Start()
+end
 
+function Perspective:OnTimerTicked_Fast()
+	self.fastTimer:Stop()
+
+	self.fastTimer:Start()
 end
 
 function Perspective:MarkersInit()
@@ -1894,8 +1899,10 @@ function Perspective:InitializeOptions()
 	end
 
 	-- Initialize the settings 
-	self:SettingsTimer_Init("Redraw", "redrawTime", 0, "ms", 1000,  "OnRedrawTimerTicked")
-	self:SettingsTimer_Init("Update", "updateTime", 1, "secs", 1, "OnUpdateTimerTicked")
+	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
+	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
+	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
+	
 
 	self:CategoryItems_Arrange()
 end
@@ -2051,7 +2058,6 @@ function Perspective:CategoryItem_InitColorOption(item, control, category, value
 end
 
 function Perspective:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
-
 	local slider = self.Options:FindChild(control .. "Slider")
 	local text = self.Options:FindChild(control .. "Text")
 
@@ -2075,7 +2081,6 @@ function Perspective:SettingsTimer_Init(control, value, numDecimal, unit, divBy,
 
 	-- Set the event handler
 	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
-
 end
 
 function Perspective:CategoryItems_Arrange()
@@ -2401,7 +2406,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Perspective:SettingsTimer_OnChanged(handler, control, button)
-
 	local args = control:GetData()
 
 	local val = round(control:GetValue(), args.numDecimal)
@@ -2411,7 +2415,6 @@ function Perspective:SettingsTimer_OnChanged(handler, control, button)
 	self.db.profile.settings[args.value] = val
 
 	self[args.value]:Set(val / args.divBy, true, args.tickFunc, self)
-
 end
 
 

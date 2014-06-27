@@ -2308,7 +2308,7 @@ function Perspective:OnCategoryItem_DeleteClicked(handler, control, button)
 	local item = control:GetData().item
 	local args = item:GetData()
 
-	self.db.profile.categories[data.category] = nil
+	self.db.profile.categories[args.category] = nil
 
 	item:Destroy()
 

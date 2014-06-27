@@ -497,6 +497,22 @@ local defaults = {
 				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
 				showLines = false,
 			},
+			["Police Patrolman"] = {
+				header = "Crimelords of Whitevale - Police Patrolman",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				iconColor = "ff00ff00"
+			},
+			["Police Constable"] = {
+				header = "Crimelords of Whitevale - Police Patrolman",
+				icon = "PerspectiveSprites:Circle-Outline",
+				showLines = false,
+				showName = false,
+				showDistance = false,
+				iconColor = "ff00ff00"
+			},
 		},
 		markers = {
 			quest = {

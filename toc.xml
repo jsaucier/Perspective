@@ -5,6 +5,7 @@
     <Script Name="Libs/GeminiDB-1.0.lua"/>
     <Script Name="Libs/GeminiColor/GeminiColor.lua"/>
     <Form Name="Libs/GeminiColor/GeminiColor.xml"/>
+    <Script Name="Options.lua"/>
     <Script Name="Perspective.lua"/>
     <Form Name="Perspective.xml"/>
 </Addon>

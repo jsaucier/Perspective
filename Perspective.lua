@@ -830,12 +830,11 @@ function Perspective:OnTimerTicked_Draw()
 				end
 
 				text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
-				
+
 				self.Overlay:AddPixie({
 					strText = text,
 					strFont = ui.font,
-					bLine = false,
-					cr = ui.cFontColor,
+					crText = ui.cFontColor,
 					loc = {
 						fPoints = {0,0,0,0},
 						nOffsets = {

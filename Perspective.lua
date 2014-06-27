@@ -19,7 +19,6 @@ local defaults = {
 				order = 0,
 				disabled = false,
 				disableInCombat = false,
-				display = nil,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
@@ -1241,6 +1240,8 @@ function Perspective:UpdateOptions(ui)
 		for k, v in pairs(self.db.defaults.profile.categories.default) do
 			ui[k] = self:GetOptionValue(ui, k)
 		end
+
+		ui.display = self:GetOptionValue(ui, "display")
 		
 		ui.loaded = true
 	end

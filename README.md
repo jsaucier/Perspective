@@ -12,6 +12,10 @@ This is a work in progress, some settings such as the markers and blacklist have
 ###Game View
 ![Game View](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/screenshot.jpg)
 
+###Healing Setup
+With party range limit set to 15, you can easily see at a glance which party members are in range and which are not.
+![Healing Setup](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/healing.jpg)
+
 ###Settings
 ![Settings](https://raw.githubusercontent.com/jsaucier/Perspective/gh-pages/images/settings.jpg)
 

@@ -765,8 +765,6 @@ function Perspective:OnTimerTicked_Draw()
 			-- Draw the background line to give the outline if required
 			if ui.showLineOutline then
 				self.Overlay:AddPixie({
-					strText = nil,
-					strFont = nil,
 					bLine = true,
 					fWidth = ui.lineWidth + 2,
 					cr = "ff000000",
@@ -804,9 +802,6 @@ function Perspective:OnTimerTicked_Draw()
 			-- Draw the icon first
 			if ui.showIcon then
 				self.Overlay:AddPixie({
-					strText = nil,
-					strFont = nil,
-					bLine = false,
 					strSprite = ui.icon,
 					cr = ui.cIconColor,
 					loc = {
@@ -879,7 +874,7 @@ function Perspective:OnTimerTicked_Draw()
 
 		-- Check our prioritized units first, they are the closest to our player
 		for index, ui in pairs(self.prioritized) do
-			addPixies(ui, pPos, pixies, items, lines)			
+			addPixies(ui, pPos, pixies, items, lines)
 		end
 
 		-- Finally check our categorized units.
@@ -1158,7 +1153,7 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 			not ui.inRange or
 			ui.disabled or
 			(inCombat and ui.disableInCombat) or
-			(not ui.showName and not ui.showDistance and not ui.showLines) then
+			(not ui.showIcon and not ui.showName and not ui.showDistance and not ui.showLines) then
 
 			ui = { id = ui.id }
 

@@ -1255,7 +1255,17 @@ function Perspective:UpdateOptions(ui)
 		-- Update only the specific unit information
 		updateOptions(ui)
 	else	
-		-- Update all the unit informations
+		-- Update all the prioritized units
+		for i, ui in pairs(self.prioritized) do
+			updateOptions(ui)
+		end
+
+		-- Update all the categorized units
+		for i, ui in pairs(self.categorized) do
+			updateOptions(ui)
+		end
+
+		-- Update the remaining units
 		for i, ui in pairs(self.units) do
 			updateOptions(ui)
 		end

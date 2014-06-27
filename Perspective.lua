@@ -916,9 +916,13 @@ function Perspective:OnTimerTicked_Draw()
 	self.drawTimer:Start()
 end
 
+-- Updates all the units we know about as well as loading options if its needed.
+-- Categorizes and prioritizes our units.
 function Perspective:OnTimerTicked_Slow()
+	-- Stop the timer while we process the units.
 	self.slowTimer:Stop()
 
+	-- Check to make sure the addon isn't disabled.
 	if self.db.profile.settings.disabled then 
 		return
 	end
@@ -929,233 +933,275 @@ function Perspective:OnTimerTicked_Slow()
 		local pos = player:GetPosition()
 	
 		if pos then
-
+			-- Get the player's current vector from position.
 			local vector = Vector3.New(pos.x, pos.y, pos.z)
-
-			-- Empty our prioritized units
-			self.prioritized = {}
-
-			-- Empty our categorized units
-			self.categorized = {} 
 			
-			-- Units we are not interested in keeping track of
-			local remove = {}
-
+			-- Determine if we are currently in combat.
 			local inCombat = GameLib.GetPlayerUnit():IsInCombat()
 
-			-- Update all the known units
+			-- Update all the uncategorized and unprioritized units.
 			for index, ui in pairs(self.units) do
-
-				local unit = GameLib.GetUnitById(ui.id)
-
-				-- Determine if the unit is still valid.
-				if unit then
-					
-					local updated = self:UpdateUnit(ui, unit, inCombat)
-
-					if updated then
-						if ui.distance <= ui.rangeLimit * 2 then
-							table.insert(self.prioritized, ui)
-						else
-							table.insert(self.categorized, ui)
-						end
-					end
-
-				else
-					table.insert(remove, index)		
-				end
+				self:UpdateUnit(ui,  inCombat, "units", index)
 			end
+
+			-- Update the categorized units.
+			for index, ui in pairs(self.categorized) do
+				self:UpdateUnit(ui, inCombat, "categorized", index)
+			end
+
+			table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 			
 			if self.markersInitialized then
 				self:MarkersUpdate(vector)
 			else
 				self:MarkersInit()
 			end
-			
-			table.sort(self.categorized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 
-			for k, v in pairs(remove) do
-				table.remove(self.units, v)
-			end
 		end
 	end
 
+	-- Restart our timer now that we are finished processing
 	self.slowTimer:Start()
 end
 
+-- Updates our prioritized (close) units faster than the farther ones.
+-- We'll keep this as light weight as possible, only updating the distance and relevant info.
 function Perspective:OnTimerTicked_Fast()
+	-- Stop the timer while we process the units.
 	self.fastTimer:Stop()
 
-	for index, ui in pairs(self.prioritized) do
-		self:UpdateDistance(ui, GameLib.GetUnitById(ui.id))
+	-- Check to make sure the addon isn't disabled.
+	if self.db.profile.settings.disabled then 
+		return
 	end
 
-	table.sort(self.prioritized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+	local player = GameLib.GetPlayerUnit()
 
+	if player then
+		local pos = player:GetPosition()
+	
+		if pos then
+			-- Get the player's current vector from position.
+			local vector = Vector3.New(pos.x, pos.y, pos.z)
+
+			-- Determine if we are currently in combat.
+			local inCombat = GameLib.GetPlayerUnit():IsInCombat()
+
+			-- Update the prioritized units.
+			for index, ui in pairs(self.prioritized) do
+				self:UpdateUnit(ui, inCombat, "prioritized", index)
+			end
+
+			-- Sort the units by distance.
+			table.sort(self.prioritized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+		end
+	end
+
+	-- Restart our timer now that we are finished processing
 	self.fastTimer:Start()
 end
 
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
 -- from the player.
-function Perspective:UpdateUnit(ui, unit, inCombat)
+function Perspective:UpdateUnit(ui, inCombat, list, index)
 
-	-- Get the unit's position
-	local category = ui.category
-	local pos = unit:GetPosition()
-	local name = unit:GetName()
+	-- List of containing information on uis that need to be shifted to a different list.
+	local shift ={}
 
-	ui.category = nil				-- reset the category as it might have changed
+	local unit = GameLib.GetUnitById(ui.id)
 
-	-- We only care about units that we can determine a current position on.
-	-- Also make sure the unit has a name, otherwise we might end up with 
-	-- "Hostile Invisible Units for Fields" under settler depots.
-	if pos and
-		ui.name ~= "" then
+	if unit then
+		-- Get the unit's position
+		local category = ui.category
+		local pos = unit:GetPosition()
+		local name = unit:GetName()
 
-		local busy
+		-- reset the category as it might have changed
+		ui.category = nil				
 
-		if unit == GameLib.GetTargetUnit() and
-			not self.db.profile.categories.target.disabled then
-			ui.category = "target"
-		elseif self.db.profile.categories[name] then
-			-- This is a custom category, it has priority over all other category types except
-			-- target and focus.
-			ui.category = name
-		else
-			-- Updates the activation state for the unit and determines if it is busy, if it is
-			-- busy then we do not care for this unit at this time.
-			busy = self:UpdateActivation(ui, unit)
-		end
+		-- We only care about units that we can determine a current position on.
+		-- Also make sure the unit has a name, otherwise we might end up with 
+		-- "Hostile Invisible Units for Fields" under settler depots.
+		if pos and
+			ui.name ~= "" then
 
-		-- We only care about non busy units.
-		if not busy then
+			local busy
 
-			-- Only continue looking for a category if it has not be found by now, unless its a 
-			-- scientist item, then we'll further check the rewards to see if its an active scan
-			-- mission target, it will then be reclassified as such.
-			if not ui.category or 
-				ui.category == "scientist" then
-
-				local type = unit:GetType()
-
-				-- Determines if any rewards for this unit exist, such as quest objectvies, 
-				-- challenge objectives or scientist scan target.
-				local rewards = self:GetRewardInfo(ui, unit)
-
-				-- Attempt to categorize the unit by type.
-				if type == "Player" then
-					self:UpdatePlayer(ui, unit)
-				elseif type == "NonPlayer" then
-					self:UpdateNonPlayer(ui, unit, rewards)
-				elseif type == "Simple" or type == "SimpleCollidable" then
-					self:UpdateSimple(ui, unit, rewards)
-				elseif type == "Collectible" then
-					self:UpdateCollectible(ui, unit, rewards)
-				elseif type == "Harvest" then
-					self:UpdateHarvest(ui, unit)
-				elseif type == "Pickup" then
-					self:UpdatePickup(ui, unit)
-				elseif unit:GetLoot() then
-					self:UpdateLoot(ui, unit)
-				end
-
+			if unit == GameLib.GetTargetUnit() and
+				not self.db.profile.categories.target.disabled then
+				ui.category = "target"
+			elseif self.db.profile.categories[name] then
+				-- This is a custom category, it has priority over all other category types except
+				-- target and focus.
+				ui.category = name
+			else
+				-- Updates the activation state for the unit and determines if it is busy, if it is
+				-- busy then we do not care for this unit at this time.
+				busy = self:UpdateActivation(ui, unit)
 			end
 
-			-- If a category has still not been found for the unit, then determine its disposition
-			-- and difficulty and categorize it as such.
-			if not ui.category and 
-				unit:GetType() == "NonPlayer" and
-				not unit:IsDead() then
+			-- We only care about non busy units.
+			if not busy then
 
-				local disposition = "friendly"
-				local difficulty = ""
+				-- Only continue looking for a category if it has not be found by now, unless its a 
+				-- scientist item, then we'll further check the rewards to see if its an active scan
+				-- mission target, it will then be reclassified as such.
+				if not ui.category or 
+					ui.category == "scientist" then
 
-				if unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0 then
-					disposition = "hostile"
-				elseif unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 1 then
-					disposition = "neutral"
-				end
+					local type = unit:GetType()
 
-				-- Not sure how accurate this is
-				-- Rank 1: 			Minion
-				-- Rank 2:			Grunt
-				-- Rank 3:			Challenger
-				-- Rank 4:			Superior
-				-- Rank 5:			Prime
-				-- Difficulty 1:	Minion, Grunt, Challenger
-				-- Difficulty 3:	Prime
-				-- Difficulty 4:	5 Man? - XT Destroyer (Galeras)
-				-- Difficulty 5:	10 Man?
-				-- Difficulty 6:	20 Man? - Doomthorn the Ancient (Galeras)
-				-- Eliteness 1:		5 Man + (Dungeons?)
-				-- Eliteness 2:		20 Man? - Doomthorn the Ancient (Galeras)
-				if unit:GetDifficulty() == 3 then
-					difficulty = "Prime"
-				elseif unit:GetEliteness() >= 1 then
-					difficulty =  "Elite"
-				end
+					-- Determines if any rewards for this unit exist, such as quest objectvies, 
+					-- challenge objectives or scientist scan target.
+					local rewards = self:GetRewardInfo(ui, unit)
 
-				local npcType = disposition .. difficulty
-
-				if not self.db.profile.categories[npcType].disabled then
-					ui.category = npcType
-				end
-
-			end
-
-			-- Finally determine that our category has been successfully set and we can
-			-- update the unit.
-			if ui.category then
-
-				-- Unit has never had its options updated or its category has changed, so
-				-- we need to update the options for it.
-				if not ui.loaded or 
-					ui.category ~= category then 	
-
-					self:UpdateOptions(ui)
-
-				end
-
-				-- Unit is not disabled and we have our options loaded for it, lets categorize it.
-				if not ui.disabled then
-
-					if ui.limitBy and ui.limitBy ~= "none" then	
-						if 	   ui.limitBy == "name"			then ui.limitId = { name }
-						elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
-						elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
-						elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
-						end
-					else
-						ui.limitId = nil
+					-- Attempt to categorize the unit by type.
+					if type == "Player" then
+						self:UpdatePlayer(ui, unit)
+					elseif type == "NonPlayer" then
+						self:UpdateNonPlayer(ui, unit, rewards)
+					elseif type == "Simple" or type == "SimpleCollidable" then
+						self:UpdateSimple(ui, unit, rewards)
+					elseif type == "Collectible" then
+						self:UpdateCollectible(ui, unit, rewards)
+					elseif type == "Harvest" then
+						self:UpdateHarvest(ui, unit)
+					elseif type == "Pickup" then
+						self:UpdatePickup(ui, unit)
+					elseif unit:GetLoot() then
+						self:UpdateLoot(ui, unit)
 					end
-					
-					self:UpdateDistance(ui, unit)
-					
+
+				end
+
+				-- If a category has still not been found for the unit, then determine its disposition
+				-- and difficulty and categorize it as such.
+				if not ui.category and 
+					unit:GetType() == "NonPlayer" and
+					not unit:IsDead() then
+
+					local disposition = "friendly"
+					local difficulty = ""
+
+					if unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0 then
+						disposition = "hostile"
+					elseif unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 1 then
+						disposition = "neutral"
+					end
+
+					-- Not sure how accurate this is
+					-- Rank 1: 			Minion
+					-- Rank 2:			Grunt
+					-- Rank 3:			Challenger
+					-- Rank 4:			Superior
+					-- Rank 5:			Prime
+					-- Difficulty 1:	Minion, Grunt, Challenger
+					-- Difficulty 3:	Prime
+					-- Difficulty 4:	5 Man? - XT Destroyer (Galeras)
+					-- Difficulty 5:	10 Man?
+					-- Difficulty 6:	20 Man? - Doomthorn the Ancient (Galeras)
+					-- Eliteness 1:		5 Man + (Dungeons?)
+					-- Eliteness 2:		20 Man? - Doomthorn the Ancient (Galeras)
+					if unit:GetDifficulty() == 3 then
+						difficulty = "Prime"
+					elseif unit:GetEliteness() >= 1 then
+						difficulty =  "Elite"
+					end
+
+					local npcType = disposition .. difficulty
+
+					if not self.db.profile.categories[npcType].disabled then
+						ui.category = npcType
+					end
+
+				end
+
+				-- Finally determine that our category has been successfully set and we can
+				-- update the unit.
+				if ui.category then
+
+					-- Unit has never had its options updated or its category has changed, so
+					-- we need to update the options for it.
+					if not ui.loaded or ui.category ~= category then 	
+						self:UpdateOptions(ui)
+					end
+
+					-- Unit is not disabled and we have our options loaded for it, lets categorize it.
+					if not ui.disabled then
+
+						if ui.limitBy and ui.limitBy ~= "none" then	
+							if 	   ui.limitBy == "name"			then ui.limitId = { name }
+							elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
+							elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
+							elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
+							end
+						else
+							ui.limitId = nil
+						end
+						
+						self:UpdateDistance(ui, unit)
+						
+					end
+
 				end
 
 			end
-
 		end
-	end
 
-	-- We'll just strip its data down to just the basics because:
-	-- The unit could not be categorized
-	-- The unit was out of range
-	-- The unit is disabled in combat.
-	-- The unit is disabled.
-	-- The unit name, distance, and lines are all not shown.
-	if not ui.category or 
-		not ui.inRange or
-		ui.disabled or
-		(inCombat and ui.disableInCombat) or
-		(not ui.showName and not ui.showDistance and not ui.showLines) then
+		-- We'll just strip its data down to just the basics because:
+		-- The unit could not be categorized
+		-- The unit was out of range
+		-- The unit is disabled in combat.
+		-- The unit is disabled.
+		-- The unit name, distance, and lines are all not shown.
+		-- The unit wasn't loaded for some reason.
+		if not ui.category or 
+			not ui.inRange or
+			ui.disabled or
+			(inCombat and ui.disableInCombat) or
+			(not ui.showName and not ui.showDistance and not ui.showLines) then
 
-		ui = { id = ui.id }
+			ui = { id = ui.id }
 
-		return false
+			-- We have no need to know about this unit right now, strip it down and move it
+			-- back to the units list if its not already there.
+			if list ~= "units" then
+				table.insert(shift, { index = index, new = "units", old = list })
+			end
+		else
+			local newList = "units"
+
+			-- Move the unit to the prioritized or categorized list depending on its needs.
+			if ui.distance <= ui.rangeLimit + 20 then
+				newList = "prioritized"
+			elseif ui.category then
+				newList = "categorized"
+			end
+
+			if newList ~= list then
+				table.insert(shift, { index = index, new = newList, old = list })
+			end
+		end
 	else
-		return true
+		-- This is an invalid unit, so add it to the shift list to be removed.
+		table.insert(shift, { index = index, new = "none", old = list })
 	end
+
+	for k, v in pairs(shift) do
+		if v.new == "none" then
+			-- Remove the ui from the list.
+			table.remove(self[v.old], v.index)
+		else
+			-- Get the ui to be shifted.
+			local u = self[v.old][v.index]
+
+			-- Shift it to the new list.
+			table.insert(self[v.new], u)
+
+			-- Remove it from the old list.
+			table.remove(self[v.old], v.index)
+		end
+	end			
 end
 
 function Perspective:UpdateDistance(ui, unit)
@@ -1462,13 +1508,6 @@ function Perspective:OnInterfaceMenuListHasLoaded()
 end
 
 function Perspective:OnInterfaceMenuClicked(arg1, arg2, arg3)
-	Print("1")
-	Print(arg1)
-	Print("2")
-	Print(arg2)
-	Print("3")
-	Print(arg3)
-	Print("4")
 	self.Options:Show(not self.Options:IsShown(), true)
 end
 
@@ -1830,16 +1869,6 @@ function Perspective:UpdateActivation(ui, unit)
 	end
 
 	return busy
-	--[[elseif self.ChkTable["Event"] and GameLib.GetWorldDifficulty() > 0 then
-		if (tActivation.PublicEventTarget and tActivation.PublicEventTarget.bIsActive) or
-		   (tActivation.PublicEventKill and tActivation.PublicEventKill.bIsActive) or
-		   (tActivation["Public Event"] and tActivation["Public Event"].bIsActive) then		
-			if unit:GetDispositionTo(self.playerUnit) > 1 then
-				return "QuestSimple"
-			else
-				return "Quest"
-			end
-		end]]
 end
 
 function Perspective:GetRewardInfo(ui, unit)
@@ -2340,7 +2369,7 @@ function Perspective:OnCategoryItem_DropDownItemButtonChecked(handler, control, 
 
 	-- Hide the dropdownmenu immediately
 	control:GetParent():Show(false, true)
-Print(args.category .. "," .. args.value .. "," .. val)
+
 	-- Update the settings.
 	if args.category == "all" then
 		for k, v in pairs(self.db.profile.categories) do

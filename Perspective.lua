@@ -507,7 +507,7 @@ local defaults = {
 				iconColor = "ff00ff00"
 			},
 			["Police Constable"] = {
-				header = "Crimelords of Whitevale - Police Patrolman",
+				header = "Crimelords of Whitevale - Police Constable",
 				icon = "PerspectiveSprites:Circle-Outline",
 				showLines = false,
 				showName = false,

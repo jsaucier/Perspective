@@ -19,6 +19,7 @@ local defaults = {
 				order = 0,
 				disabled = false,
 				disableInCombat = false,
+				display = nil,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
@@ -582,6 +583,10 @@ function Perspective:OnInitialize()
 	
 	-- Table containing every unit we currently are aware of
 	self.units = {}
+
+	-- Track our prioritized units, the closest to the player.
+	self.prioritized = {}
+
 	-- Track our categorized units
 	self.categorized = {}
 	
@@ -657,43 +662,7 @@ function Perspective:OnEnable()
 	end
 end
 
-function Perspective:UpdateDistance(ui, unit)
-	local pPos = GameLib:GetPlayerUnit():GetPosition()
-	local pVec = Vector3.New(pPos.x, pPos.y, pPos.z)
-
-	local uPos = unit:GetPosition()
-	ui.vector = Vector3.New(uPos.x, uPos.y, uPos.z)
-
-	-- Calculate z axis (really y axis) distance
-	local zVec = Vector3.New(pPos.x, uPos.y, pPos.z)
-	local zDistance = (pVec - zVec):Length()
-
-	-- Get the distance from the player.
-	ui.distance = (pVec - ui.vector):Length()
-	
-	-- Get the scale size based on distance.
-	ui.scale = math.min(1 / (ui.distance / 100), 1)
-	
-	-- Determine if the unit is in range of display.
-	ui.inRange = (ui.distance > ui.minDistance and 
-				  ui.distance < ui.maxDistance and 
-				  zDistance <= ui.zDistance)
-
-	-- Determine if the unit is in skill range.
-	ui.inRangeLimit = (ui.distance <= ui.rangeLimit)
-
-	-- Scale our icon based on the dimensions and scale factor.			  
-	ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
-	ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
-
-	-- Calculate colors
-	ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor
-	ui.cFontColor = (ui.inRangeLimit and ui.rangeFont) and ui.rangeColor or ui.fontColor
-	ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
-end
-
 function Perspective:Start()
-
 	self.db.profile.settings.disabled = false
 
 	self.drawTimer:Start()
@@ -704,157 +673,242 @@ function Perspective:Start()
 end
 
 function Perspective:Stop()
-	
 	self.db.profile.settings.disabled = true
 
 	self.categorized = {}
 	self.markers = {}
-
 end
 
 function Perspective:OnTimerTicked_Draw()
+
+	-- Determines if we are allowed to draw the unit
+	local function addPixies(ui, pPos, pixies, items, lines)
+		local unit = GameLib.GetUnitById(ui.id)
+
+		if unit and table.getn(pixies) < self.db.profile.settings.max then
+
+			-- Update the units position
+			local uPos = GameLib.GetUnitScreenPosition(unit)
+		
+			if uPos then
+				local showItem = true
+				local showLine = true
+
+				-- Determine if we can show the line
+				if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
+					showLine = false
+				end
+
+				-- Determine if we can show the icon
+				if not uPos.bOnScreen then
+					showItem = false
+				end
+
+				-- We've determined either the lines or icons can be show, now
+				-- we need to see if we hit our display limit.
+				if (showItem or showLine) and ui.limitBy and ui.limitId then
+					for i, id in pairs(ui.limitId) do
+						-- Determine if our item is within limit.
+						if (items[ui.limitBy][id] or 0) >= ui.max then
+							showItem = false
+						end
+
+						-- Determine if our line is within limit.
+						if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
+							showLine = false
+						end
+					end
+				end
+
+				-- Either the item or line are able to be shown.
+				if showItem or showLine then
+					-- Add the unit to the draw list.
+					table.insert(pixies, { 
+						ui = ui, 
+						unit = unit, 
+						uPos = uPos, 
+						pPos = pPos, 
+						showItem = showItem, 
+						showLine = showLine 
+					})
+					
+					-- Increase our limits.
+					if ui.limitBy and ui.limitId then
+						for i, id in pairs(ui.limitId) do
+							-- Increase the item limit count
+							if showItem then
+								items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+							end
+
+							-- Increase the line limit count
+							if showLine then
+								lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Draw the pixie on screen
+	local function drawPixie(ui, unit, uPos, pPos, showItem, showLine)
+		-- Draw the line first, if it needs to be drawn
+		if showLine then
+			-- Get the unit's position and vector
+			local pos = unit:GetPosition()
+			local vec = Vector3.New(pos.x, pos.y, pos.z)
+
+			-- Get the screen position of the unit by it's vector
+			local lPos = GameLib.WorldLocToScreenPoint(vec)
+
+			-- Draw the background line to give the outline if required
+			if ui.showLineOutline then
+				self.Overlay:AddPixie({
+					strText = nil,
+					strFont = nil,
+					bLine = true,
+					fWidth = ui.lineWidth + 2,
+					cr = "ff000000",
+					loc = {
+						fPoints = {0, 0, 0, 0},
+						nOffsets = {
+							lPos.x, 
+							lPos.y, 
+							pPos.nX, 
+							pPos.nY
+						}
+					}
+				})
+			end
+
+			-- Draw the actual line to the unit's vector
+			self.Overlay:AddPixie({
+				bLine = true,
+				fWidth = ui.lineWidth,
+				cr = ui.cLineColor,
+				loc = {
+					fPoints = {0, 0, 0, 0},
+					nOffsets = {
+						pPos.nX, 
+						pPos.nY,
+						lPos.x, 
+						lPos.y, 					
+					}
+				}
+			})
+		end
+
+		-- Draw the icon and text if it needs to be drawn.
+		if showItem then
+			-- Draw the icon first
+			if ui.showIcon then
+				self.Overlay:AddPixie({
+					strText = nil,
+					strFont = nil,
+					bLine = false,
+					strSprite = ui.icon,
+					cr = ui.cIconColor,
+					loc = {
+						fPoints = { 0, 0, 0, 0 },
+						nOffsets = {
+							uPos.nX - (ui.scaledWidth / 2), 
+							uPos.nY - (ui.scaledHeight / 2), 
+							uPos.nX + (ui.scaledWidth / 2),
+							uPos.nY + (ui.scaledHeight / 2)
+						}
+					}
+				})
+			end		
+			
+			-- Draw the text
+			if ui.showName or ui.showDistance then
+				local text = ""
+
+				if ui.showName then
+					text = ui.display or unit:GetName() or ""
+				end
+
+				text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
+				
+				self.Overlay:AddPixie({
+					strText = text,
+					strFont = ui.font,
+					bLine = false,
+					cr = ui.cFontColor,
+					loc = {
+						fPoints = {0,0,0,0},
+						nOffsets = {
+							uPos.nX - 50, 
+							uPos.nY + (ui.scaledHeight / 2) + 0, 
+							uPos.nX + 50, 
+							uPos.nY + (ui.scaledHeight / 2) + 100 
+						}
+					},
+					flagsText = {
+						DT_CENTER = true,
+						DT_WORDBREAK = true
+					}
+				})
+			end
+		end
+	end
+
+	-- Stop our draw timer
 	self.drawTimer:Stop()
 
+	-- Destroy all our pixies
 	self.Overlay:DestroyAllPixies()
 
+	-- Check to see if the addon was disabled.
 	if self.db.profile.settings.disabled then 
 		return
 	end
 
-	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
-
+	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
+	-- Get the player's current screen position
+	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
+
+	-- We want to make sure we can get the unit's screen position	
 	if pPos then
 
+		-- The limits tables
 		local items = {	unit = {}, category = {}, quest = {}, challenge = {} }
 		local lines = {	unit = {}, category = {}, quest = {}, challenge = {} }
 
+		-- Check our prioritized units first, they are the closest to our player
+		for index, ui in pairs(self.prioritized) do
+			addPixies(ui, pPos, pixies, items, lines)			
+		end
+
+		-- Finally check our categorized units.
 		for index, ui in pairs(self.categorized) do
-
-			local unit = GameLib.GetUnitById(ui.id)
-
-			if unit and 
-				not ui.disabled and 
-				table.getn(pixies) < self.db.profile.settings.max then
-
-				-- Update the units position
-				local uPos = GameLib.GetUnitScreenPosition(unit)
-			
-				if uPos then
-					local showItem = true
-					local showLine = true
-
-					-- If the unit is close to the skill range then calculate it immediately
-					if (ui.distance or 9999) <= (ui.rangeLimit or 0) * 2 then
-						self:UpdateDistance(ui, unit)
-					end
-
-					if not ui.inRange or (GameLib.GetPlayerUnit():IsInCombat() and ui.disableInCombat) then
-						showItem = false
-						showLine = false
-					else
-						if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
-							showLine = false
-						end
-						if not ui.canShow or not uPos.bOnScreen then
-							showItem = false
-						end
-					end
-
-					if (showItem or showLine) and ui.limitBy and ui.limitId then
-						for i, id in pairs(ui.limitId) do
-							items[ui.limitBy][id] = items[ui.limitBy][id] or 0
-							lines[ui.limitBy][id] = lines[ui.limitBy][id] or 0
-
-							if (items[ui.limitBy][id] or 0) >= ui.max then
-								showItem = false
-							end
-
-							if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
-								showLine = false
-							end
-						end
-					end
-
-					if showItem or showLine then
-						table.insert(pixies, { 
-							ui = ui, 
-							unit = unit, 
-							uPos = uPos, 
-							pPos = pPos, 
-							showItem = showItem, 
-							showLine = showLine 
-						})
-						
-						if ui.limitBy and ui.limitId then
-							for i, id in pairs(ui.limitId) do
-								if showItem then
-									items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
-								end
-
-								if showLine then
-									lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
-								end
-							end
-						end
-					end
-				end
-			end
+			addPixies(ui, pPos, pixies, items, lines)			
 		end
 
-		for id, marker in pairs(self.markers) do
-			local marks = 0
+		-- Finally, lets draw some pixies!
 
-			for index, region in pairs(marker.regions) do
-				-- Get the screen position of the unit by it's vector
-				local uPos = GameLib.WorldLocToScreenPoint(region.vector)
+		-- Draw the markers, they are most likely going to be the farthest pixies from the player
+		-- so we want them "behind" our other units.
+		self:MarkersDraw()
 
-				-- Make sure the point is onscreen and in front of us.
-				if marks < self.db.profile.markers[marker.type].maxPer and
-					uPos.z > 0 and
-					not region.inArea then
-					self.Overlay:AddPixie({
-						strSprite = marker.icon,
-						--cr = ui.iconColor,
-						loc = {
-							fPoints = { 0, 0, 0, 0 },
-							nOffsets = {
-								uPos.x - (32), 
-								uPos.y - (32), 
-								uPos.x + (32),
-								uPos.y + (32)
-							}
-						}
-					})
-
-					self.Overlay:AddPixie({
-						strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
-						strFont = "CRB_Pixel_O",
-						crText = "ffffffff",
-						loc = {
-							fPoints = { 0, 0, 0, 0 },
-							nOffsets = {
-								uPos.x - (64), 
-								uPos.y + (32), 
-								uPos.x + (64),
-								uPos.y + (100)
-							}
-						},
-						flagsText = {
-							DT_CENTER = true,
-							DT_WORDBREAK = true
-						}
-					})
-
-					marks = marks + 1
-				end
-			end
-		end
-
+		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
+		-- distance, closest to farthest.  This will ensure our farthers are drawn first and 
+		-- "behind" our closer pixies.
 		for i = #pixies, 1, -1 do
+			-- Get our next pixie
 			pixie = pixies[i]
-			self:DrawPixie(pixie.ui, pixie.unit, pixie.uPos, pixie.pPos, pixie.showItem, pixie.showLine)
+
+			-- Drw the pixie
+			drawPixie(
+				pixie.ui, 
+				pixie.unit, 
+				pixie.uPos, 
+				pixie.pPos, 
+				pixie.showItem, 
+				pixie.showLine)
 		end
 
 	end
@@ -875,13 +929,19 @@ function Perspective:OnTimerTicked_Slow()
 		local pos = player:GetPosition()
 	
 		if pos then
+
 			local vector = Vector3.New(pos.x, pos.y, pos.z)
+
+			-- Empty our prioritized units
+			self.prioritized = {}
 
 			-- Empty our categorized units
 			self.categorized = {} 
 			
 			-- Units we are not interested in keeping track of
 			local remove = {}
+
+			local inCombat = GameLib.GetPlayerUnit():IsInCombat()
 
 			-- Update all the known units
 			for index, ui in pairs(self.units) do
@@ -891,10 +951,14 @@ function Perspective:OnTimerTicked_Slow()
 				-- Determine if the unit is still valid.
 				if unit then
 					
-					self:UpdateUnit(ui, unit)
+					local updated = self:UpdateUnit(ui, unit, inCombat)
 
-					if ui.category then
-						table.insert(self.categorized, ui)
+					if updated then
+						if ui.distance <= ui.rangeLimit * 2 then
+							table.insert(self.prioritized, ui)
+						else
+							table.insert(self.categorized, ui)
+						end
 					end
 
 				else
@@ -922,7 +986,285 @@ end
 function Perspective:OnTimerTicked_Fast()
 	self.fastTimer:Stop()
 
+	for index, ui in pairs(self.prioritized) do
+		self:UpdateDistance(ui, GameLib.GetUnitById(ui.id))
+	end
+
+	table.sort(self.prioritized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
+
 	self.fastTimer:Start()
+end
+
+-- Updates the unit to determine category, loads its setttings, and calculates its current distance
+-- from the player.
+function Perspective:UpdateUnit(ui, unit, inCombat)
+
+	-- Get the unit's position
+	local category = ui.category
+	local pos = unit:GetPosition()
+	local name = unit:GetName()
+
+	ui.category = nil				-- reset the category as it might have changed
+
+	-- We only care about units that we can determine a current position on.
+	-- Also make sure the unit has a name, otherwise we might end up with 
+	-- "Hostile Invisible Units for Fields" under settler depots.
+	if pos and
+		ui.name ~= "" then
+
+		local busy
+
+		if unit == GameLib.GetTargetUnit() and
+			not self.db.profile.categories.target.disabled then
+			ui.category = "target"
+		elseif self.db.profile.categories[name] then
+			-- This is a custom category, it has priority over all other category types except
+			-- target and focus.
+			ui.category = name
+		else
+			-- Updates the activation state for the unit and determines if it is busy, if it is
+			-- busy then we do not care for this unit at this time.
+			busy = self:UpdateActivation(ui, unit)
+		end
+
+		-- We only care about non busy units.
+		if not busy then
+
+			-- Only continue looking for a category if it has not be found by now, unless its a 
+			-- scientist item, then we'll further check the rewards to see if its an active scan
+			-- mission target, it will then be reclassified as such.
+			if not ui.category or 
+				ui.category == "scientist" then
+
+				local type = unit:GetType()
+
+				-- Determines if any rewards for this unit exist, such as quest objectvies, 
+				-- challenge objectives or scientist scan target.
+				local rewards = self:GetRewardInfo(ui, unit)
+
+				-- Attempt to categorize the unit by type.
+				if type == "Player" then
+					self:UpdatePlayer(ui, unit)
+				elseif type == "NonPlayer" then
+					self:UpdateNonPlayer(ui, unit, rewards)
+				elseif type == "Simple" or type == "SimpleCollidable" then
+					self:UpdateSimple(ui, unit, rewards)
+				elseif type == "Collectible" then
+					self:UpdateCollectible(ui, unit, rewards)
+				elseif type == "Harvest" then
+					self:UpdateHarvest(ui, unit)
+				elseif type == "Pickup" then
+					self:UpdatePickup(ui, unit)
+				elseif unit:GetLoot() then
+					self:UpdateLoot(ui, unit)
+				end
+
+			end
+
+			-- If a category has still not been found for the unit, then determine its disposition
+			-- and difficulty and categorize it as such.
+			if not ui.category and 
+				unit:GetType() == "NonPlayer" and
+				not unit:IsDead() then
+
+				local disposition = "friendly"
+				local difficulty = ""
+
+				if unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0 then
+					disposition = "hostile"
+				elseif unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 1 then
+					disposition = "neutral"
+				end
+
+				-- Not sure how accurate this is
+				-- Rank 1: 			Minion
+				-- Rank 2:			Grunt
+				-- Rank 3:			Challenger
+				-- Rank 4:			Superior
+				-- Rank 5:			Prime
+				-- Difficulty 1:	Minion, Grunt, Challenger
+				-- Difficulty 3:	Prime
+				-- Difficulty 4:	5 Man? - XT Destroyer (Galeras)
+				-- Difficulty 5:	10 Man?
+				-- Difficulty 6:	20 Man? - Doomthorn the Ancient (Galeras)
+				-- Eliteness 1:		5 Man + (Dungeons?)
+				-- Eliteness 2:		20 Man? - Doomthorn the Ancient (Galeras)
+				if unit:GetDifficulty() == 3 then
+					difficulty = "Prime"
+				elseif unit:GetEliteness() >= 1 then
+					difficulty =  "Elite"
+				end
+
+				local npcType = disposition .. difficulty
+
+				if not self.db.profile.categories[npcType].disabled then
+					ui.category = npcType
+				end
+
+			end
+
+			-- Finally determine that our category has been successfully set and we can
+			-- update the unit.
+			if ui.category then
+
+				-- Unit has never had its options updated or its category has changed, so
+				-- we need to update the options for it.
+				if not ui.loaded or 
+					ui.category ~= category then 	
+
+					self:UpdateOptions(ui)
+
+				end
+
+				-- Unit is not disabled and we have our options loaded for it, lets categorize it.
+				if not ui.disabled then
+
+					if ui.limitBy and ui.limitBy ~= "none" then	
+						if 	   ui.limitBy == "name"			then ui.limitId = { name }
+						elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
+						elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
+						elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
+						end
+					else
+						ui.limitId = nil
+					end
+					
+					self:UpdateDistance(ui, unit)
+					
+				end
+
+			end
+
+		end
+	end
+
+	-- We'll just strip its data down to just the basics because:
+	-- The unit could not be categorized
+	-- The unit was out of range
+	-- The unit is disabled in combat.
+	-- The unit is disabled.
+	-- The unit name, distance, and lines are all not shown.
+	if not ui.category or 
+		not ui.inRange or
+		ui.disabled or
+		(inCombat and ui.disableInCombat) or
+		(not ui.showName and not ui.showDistance and not ui.showLines) then
+
+		ui = { id = ui.id }
+
+		return false
+	else
+		return true
+	end
+end
+
+function Perspective:UpdateDistance(ui, unit)
+	-- Update the players position and vector
+	local pPos = GameLib.GetPlayerUnit():GetPosition()
+	local pVec = Vector3.New(pPos.x, pPos.y, pPos.z)
+
+	-- Update the units position and vector
+	local uPos = unit:GetPosition()
+	ui.vector = Vector3.New(uPos.x, uPos.y, uPos.z)
+
+	-- Calculate z axis (really y axis) distance
+	local zVec = Vector3.New(pPos.x, uPos.y, pPos.z)
+	local zDistance = (pVec - zVec):Length()
+
+	-- Get the distance from the player.
+	ui.distance = (pVec - ui.vector):Length()
+	
+	-- Get the scale size based on distance.
+	ui.scale = math.min(1 / (ui.distance / 100), 1)
+	
+	-- Determine if the unit is in range of display.
+	ui.inRange = (ui.distance > ui.minDistance and 
+				  ui.distance < ui.maxDistance and 
+				  zDistance <= ui.zDistance)
+
+	-- Determine if the unit is in skill range.
+	ui.inRangeLimit = (ui.distance <= ui.rangeLimit)
+
+	-- Scale our icon based on the dimensions and scale factor.			  
+	ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
+	ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
+
+	-- Calculate colors based on range
+	ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor
+	ui.cFontColor = (ui.inRangeLimit and ui.rangeFont) and ui.rangeColor or ui.fontColor
+	ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
+end
+
+function Perspective:UpdateOptions(ui)
+
+	local function updateOptions(ui)
+		for k, v in pairs(self.db.defaults.profile.categories.default) do
+			ui[k] = self:GetOptionValue(ui, k)
+		end
+		
+		ui.loaded = true
+	end
+	
+	if ui then
+		-- Update only the specific unit information
+		updateOptions(ui)
+	else	
+		-- Update all the unit informations
+		for i, ui in pairs(self.units) do
+			updateOptions(ui)
+		end
+	end
+end
+
+function Perspective:MarkersDraw()
+	for id, marker in pairs(self.markers) do
+		local marks = 0
+
+		for index, region in pairs(marker.regions) do
+			-- Get the screen position of the unit by it's vector
+			local uPos = GameLib.WorldLocToScreenPoint(region.vector)
+
+			-- Make sure the point is onscreen and in front of us.
+			if marks < self.db.profile.markers[marker.type].maxPer and
+				uPos.z > 0 and
+				not region.inArea then
+				self.Overlay:AddPixie({
+					strSprite = marker.icon,
+					--cr = ui.iconColor,
+					loc = {
+						fPoints = { 0, 0, 0, 0 },
+						nOffsets = {
+							uPos.x - (32), 
+							uPos.y - (32), 
+							uPos.x + (32),
+							uPos.y + (32)
+						}
+					}
+				})
+
+				self.Overlay:AddPixie({
+					strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
+					strFont = "CRB_Pixel_O",
+					crText = "ffffffff",
+					loc = {
+						fPoints = { 0, 0, 0, 0 },
+						nOffsets = {
+							uPos.x - (64), 
+							uPos.y + (32), 
+							uPos.x + (64),
+							uPos.y + (100)
+						}
+					},
+					flagsText = {
+						DT_CENTER = true,
+						DT_WORDBREAK = true
+					}
+				})
+
+				marks = marks + 1
+			end
+		end
+	end
 end
 
 function Perspective:MarkersInit()
@@ -1099,185 +1441,6 @@ function Perspective:MarkerUpdate(marker, vector)
 	end
 end
 
-function Perspective:UpdateOptions(ui)
-
-	local function updateOptions(ui)
-		for k, v in pairs(self.db.defaults.profile.categories.default) do
-			ui[k] = self:GetOptionValue(ui, k)
-		end
-
-		if ui.showName or ui.showDistance or ui.showIcon then
-			ui.canShow = true
-		end
-
-		ui.display = self:GetOptionValue(ui, "display")
-		
-		ui.loaded = true
-	end
-	
-	if ui then
-		-- Update only the specific unit information
-		updateOptions(ui)
-	else	
-		-- Update all the unit informations
-		for i, ui in pairs(self.units) do
-			updateOptions(ui)
-		end
-	end
-end
-
--- Updates the unit to determine category, loads its setttings, and calculates its current distance
--- from the player.
-function Perspective:UpdateUnit(ui, unit)
-
-	-- Get the unit's position
-	local category = ui.category
-	local pos = unit:GetPosition()
-	local name = unit:GetName()
-
-	ui.category = nil				-- reset the category as it might have changed
-
-	-- We only care about units that we can determine a current position on.
-	-- Also make sure the unit has a name, otherwise we might end up with 
-	-- "Hostile Invisible Units for Fields" under settler depots.
-	if pos and
-		ui.name ~= "" then
-
-		local busy
-
-		if unit == GameLib.GetTargetUnit() and
-			not self.db.profile.categories.target.disabled then
-			ui.category = "target"
-		elseif self.db.profile.categories[name] then
-			-- This is a custom category, it has priority over all other category types except
-			-- target and focus.
-			ui.category = name
-		else
-			-- Updates the activation state for the unit and determines if it is busy, if it is
-			-- busy then we do not care for this unit at this time.
-			busy = self:UpdateActivation(ui, unit)
-		end
-
-		-- We only care about non busy units.
-		if not busy then
-
-			-- Only continue looking for a category if it has not be found by now, unless its a 
-			-- scientist item, then we'll further check the rewards to see if its an active scan
-			-- mission target, it will then be reclassified as such.
-			if not ui.category or 
-				ui.category == "scientist" then
-
-				local type = unit:GetType()
-
-				-- Determines if any rewards for this unit exist, such as quest objectvies, 
-				-- challenge objectives or scientist scan target.
-				local rewards = self:GetRewardInfo(ui, unit)
-
-				-- Attempt to categorize the unit by type.
-				if type == "Player" then
-					self:UpdatePlayer(ui, unit)
-				elseif type == "NonPlayer" then
-					self:UpdateNonPlayer(ui, unit, rewards)
-				elseif type == "Simple" or type == "SimpleCollidable" then
-					self:UpdateSimple(ui, unit, rewards)
-				elseif type == "Collectible" then
-					self:UpdateCollectible(ui, unit, rewards)
-				elseif type == "Harvest" then
-					self:UpdateHarvest(ui, unit)
-				elseif type == "Pickup" then
-					self:UpdatePickup(ui, unit)
-				elseif unit:GetLoot() then
-					self:UpdateLoot(ui, unit)
-				end
-
-			end
-
-			-- If a category has still not been found for the unit, then determine its disposition
-			-- and difficulty and categorize it as such.
-			if not ui.category and 
-				unit:GetType() == "NonPlayer" and
-				not unit:IsDead() then
-
-				local disposition = "friendly"
-				local difficulty = ""
-
-				if unit:GetDispositionTo(GameLib.GetPlayerUnit())  == 0 then
-					disposition = "hostile"
-				elseif unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 1 then
-					disposition = "neutral"
-				end
-
-				-- Not sure how accurate this is
-				-- Rank 1: 			Minion
-				-- Rank 2:			Grunt
-				-- Rank 3:			Challenger
-				-- Rank 4:			Superior
-				-- Rank 5:			Prime
-				-- Difficulty 1:	Minion, Grunt, Challenger
-				-- Difficulty 3:	Prime
-				-- Difficulty 4:	5 Man? - XT Destroyer (Galeras)
-				-- Difficulty 5:	10 Man?
-				-- Difficulty 6:	20 Man? - Doomthorn the Ancient (Galeras)
-				-- Eliteness 1:		5 Man + (Dungeons?)
-				-- Eliteness 2:		20 Man? - Doomthorn the Ancient (Galeras)
-				if unit:GetDifficulty() == 3 then
-					difficulty = "Prime"
-				elseif unit:GetEliteness() >= 1 then
-					difficulty =  "Elite"
-				end
-
-				local npcType = disposition .. difficulty
-
-				if not self.db.profile.categories[npcType].disabled then
-					ui.category = npcType
-				end
-
-			end
-
-			-- Finally determine that our category has been successfully set and we can
-			-- update the unit.
-			if ui.category then
-
-				-- Unit has never had its options updated or its category has changed, so
-				-- we need to update the options for it.
-				if not ui.loaded or 
-					ui.category ~= category then 	
-
-					self:UpdateOptions(ui)
-
-				end
-
-				-- Unit is not disabled and we have our options loaded for it, lets categorize it.
-				if not ui.disabled then
-
-					if ui.limitBy and ui.limitBy ~= "none" then	
-						if 	   ui.limitBy == "name"			then ui.limitId = { name }
-						elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
-						elseif ui.limitBy == "quest" 		then ui.limitId = ui.quest
-						elseif ui.limitBy == "challenge"	then ui.limitId = ui.challenge
-						end
-					else
-						ui.limitId = nil
-					end
-					
-					self:UpdateDistance(ui, unit)
-					
-				end
-
-			end
-
-		end
-	end
-
-	-- We were not able to successfully categorize the item, so we'll just strip its data down
-	-- to just the basics.
-	if not ui.category then
-		ui = { id = ui.id }
-	end
-
-	return true
-
-end
 
 function Perspective:GetOptionValue(ui, option, category)
 	local category = category or ui.category or "default"
@@ -1298,147 +1461,18 @@ function Perspective:OnInterfaceMenuListHasLoaded()
 	Event_FireGenericEvent("InterfaceMenuList_NewAddOn", "Perspective", {"InterfaceMenuClicked", "", ""})
 end
 
-function Perspective:OnInterfaceMenuClicked()
+function Perspective:OnInterfaceMenuClicked(arg1, arg2, arg3)
+	Print("1")
+	Print(arg1)
+	Print("2")
+	Print(arg2)
+	Print("3")
+	Print(arg3)
+	Print("4")
 	self.Options:Show(not self.Options:IsShown(), true)
 end
 
-function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 
-	if showLine then
-
-		local pos = unit:GetPosition()
-		local vec = Vector3.New(pos.x, pos.y, pos.z)
-
-		-- Get the screen position of the unit by it's vector
-		local uLinePos = GameLib.WorldLocToScreenPoint(vec)
-
-		-- Background line to give the outline
-		if ui.showLineOutline then
-			self.Overlay:AddPixie({
-				strText = nil,
-				strFont = nil,
-				bLine = true,
-				fWidth = ui.lineWidth + 2,
-				cr = "ff000000",
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						uLinePos.x, 
-						uLinePos.y, 
-						pPos.nX, 
-						pPos.nY
-					}
-				}
-			})
-		end
-
-		-- Actual line to the unit's vector
-		self.Overlay:AddPixie({
-			bLine = true,
-			fWidth = ui.lineWidth,
-			cr = ui.cLineColor,
-			loc = {
-				fPoints = {0,0,0,0},
-				nOffsets = {
-					pPos.nX, 
-					pPos.nY,
-					uLinePos.x, 
-					uLinePos.y, 					
-				}
-			}
-		})
-
-		--[[if uLinePos.x > Apollo.GetScreenSize() / 2 then
-			self.Overlay:AddPixie({
-				bLine = true,
-				fWidth = 14,
-				cr = "00ffffff",
-				strText = unit:GetName(),
-				strFont = ui.font,
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						pPos.nX, 
-						pPos.nY,
-						uLinePos.x, 
-						uLinePos.y, 					
-					}
-				}
-			})
-		else
-			self.Overlay:AddPixie({
-				bLine = true,
-				fWidth = 14,
-				cr = "00ffffff",
-				strText = unit:GetName(),
-				strFont = ui.font,
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						uLinePos.x, 
-						uLinePos.y,
-						pPos.nX, 
-						pPos.nY,					 					
-					}
-				},
-				flagsText = {
-					DT_RIGHT = true,
-				}
-			})
-		end]]
-	end
-
-	if showItem then
-		if ui.showIcon then
-			self.Overlay:AddPixie({
-				strText = nil,
-				strFont = nil,
-				bLine = false,
-				strSprite = ui.icon,
-				cr = ui.cIconColor,
-				loc = {
-					fPoints = { 0, 0, 0, 0 },
-					nOffsets = {
-						uPos.nX - (ui.scaledWidth / 2), 
-						uPos.nY - (ui.scaledHeight / 2), 
-						uPos.nX + (ui.scaledWidth / 2),
-						uPos.nY + (ui.scaledHeight / 2)
-					}
-				}
-			})
-		end		
-		
-		if ui.showName or ui.showDistance then
-			local text = ""
-
-			if ui.showName then
-				text = ui.display or unit:GetName() or ""
-			end
-
-			text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
-			
-			self.Overlay:AddPixie({
-				strText = text,
-				strFont = ui.font,
-				bLine = false,
-				cr = ui.cFontColor,
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						uPos.nX - 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 0, 
-						uPos.nX + 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 100 
-					}
-				},
-				flagsText = {
-					DT_CENTER = true,
-					DT_WORDBREAK = true
-				}
-			})
-		end
-	end
-end
 
 ---------------------------------------------------------------------------------------------------
 -- Addon Event Functions

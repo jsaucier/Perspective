@@ -1519,14 +1519,12 @@ function Perspective:GetOptionValue(ui, option, category)
 end
 
 function Perspective:OnInterfaceMenuListHasLoaded()
-	Event_FireGenericEvent("InterfaceMenuList_NewAddOn", "Perspective", {"InterfaceMenuClicked", "", ""})
+	Event_FireGenericEvent("InterfaceMenuList_NewAddOn", "Perspective", {"InterfaceMenuClicked", "", "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map"})
 end
 
 function Perspective:OnInterfaceMenuClicked(arg1, arg2, arg3)
 	self.Options:Show(not self.Options:IsShown(), true)
 end
-
-
 
 ---------------------------------------------------------------------------------------------------
 -- Addon Event Functions

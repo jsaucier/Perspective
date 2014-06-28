@@ -19,6 +19,8 @@ local defaults = {
 				order = 0,
 				disabled = false,
 				disableInCombat = false,
+				disableOccluded = false,
+				display = false,
 				font = "CRB_Pixel_O",
 				fontColor = "ffffffff",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
@@ -62,14 +64,6 @@ local defaults = {
 				rangeLine = true,
 				rangeIcon = true,
 			},
-			--[[focus = {
-				header = "Target",
-				lineColor = "ffff0080",
-				iconColor = "ffff0080",
-				icon = "PerspectiveSprites:Circle-Outline",
-				maxIcons = 1,
-				maxLines = 1,
-			},]]
 			group = {
 				header = "Player - Party",
 				fontColor = "ff7482c1",
@@ -89,6 +83,7 @@ local defaults = {
 				header = "Player - Guild",
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
+				iconColor = "ff00ff00",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
 				showLines = false,
 			},
@@ -225,7 +220,7 @@ local defaults = {
 				header = "Quest - Objective",
 				icon = "PerspectiveSprites:QuestObjective",
 				max = 3,
-				limitBy = "quest",
+				limitBy = "category",
 				lineColor = "ffff8000",
 			},
 			questNew = {
@@ -246,8 +241,9 @@ local defaults = {
 			},			
 			challenge = {
 				header = "Challenge Objective",
-				icon = "PerspectiveSprites:ChallengeObjective",
+				icon = "PerspectiveSprites:QuestObjective",
 				lineColor = "ffff0000",
+				iconColor = "ffff0000",
 			},
 			farmer = {
 				header = "Harvest - Farmer",
@@ -401,7 +397,7 @@ local defaults = {
 				maxLines = 1,
 			},
 			questLoot = {
-				header = "Quest Loot",
+				header = "Quest - Loot",
 				icon = "ClientSprites:GroupLootIcon",
 				showLines = false,
 				iconWidth = 32,
@@ -683,65 +679,71 @@ function Perspective:OnTimerTicked_Draw()
 	-- Determines if we are allowed to draw the unit
 	local function addPixies(ui, pPos, pixies, items, lines)
 		local unit = GameLib.GetUnitById(ui.id)
-
-		if unit and table.getn(pixies) < self.db.profile.settings.max then
-
-			-- Update the units position
-			local uPos = GameLib.GetUnitScreenPosition(unit)
 		
-			if uPos then
-				local showItem = true
-				local showLine = true
+		if unit then
+				
+			local isOccluded = unit:IsOccluded()
 
-				-- Determine if we can show the line
-				if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
-					showLine = false
-				end
+			if table.getn(pixies) < self.db.profile.settings.max
+				and (not isOccluded or (isOccluded and not ui.disableOccluded)) then
 
-				-- Determine if we can show the icon
-				if not uPos.bOnScreen then
-					showItem = false
-				end
+				-- Update the units position
+				local uPos = GameLib.GetUnitScreenPosition(unit)
+			
+				if uPos then
+					local showItem = true
+					local showLine = true
 
-				-- We've determined either the lines or icons can be show, now
-				-- we need to see if we hit our display limit.
-				if (showItem or showLine) and ui.limitBy and ui.limitId then
-					for i, id in pairs(ui.limitId) do
-						-- Determine if our item is within limit.
-						if (items[ui.limitBy][id] or 0) >= ui.max then
-							showItem = false
-						end
-
-						-- Determine if our line is within limit.
-						if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
-							showLine = false
-						end
+					-- Determine if we can show the line
+					if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
+						showLine = false
 					end
-				end
 
-				-- Either the item or line are able to be shown.
-				if showItem or showLine then
-					-- Add the unit to the draw list.
-					table.insert(pixies, { 
-						ui = ui, 
-						unit = unit, 
-						uPos = uPos, 
-						pPos = pPos, 
-						showItem = showItem, 
-						showLine = showLine 
-					})
-					
-					-- Increase our limits.
-					if ui.limitBy and ui.limitId then
+					-- Determine if we can show the icon
+					if not uPos.bOnScreen then
+						showItem = false
+					end
+
+					-- We've determined either the lines or icons can be show, now
+					-- we need to see if we hit our display limit.
+					if (showItem or showLine) and ui.limitBy and ui.limitId then
 						for i, id in pairs(ui.limitId) do
-							-- Increase the item limit count
-							if showItem then
-								items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+							-- Determine if our item is within limit.
+							if (items[ui.limitBy][id] or 0) >= ui.max then
+								showItem = false
 							end
 
-							-- Increase the line limit count
-							if showLine then
-								lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
+							-- Determine if our line is within limit.
+							if (lines[ui.limitBy][id] or 0) >= ui.maxLines then
+								showLine = false
+							end
+						end
+					end
+
+					-- Either the item or line are able to be shown.
+					if showItem or showLine then
+						-- Add the unit to the draw list.
+						table.insert(pixies, { 
+							ui = ui, 
+							unit = unit, 
+							uPos = uPos, 
+							pPos = pPos, 
+							showItem = showItem, 
+							showLine = showLine 
+						})
+						
+						-- Increase our limits.
+						if ui.limitBy and ui.limitId then
+							for i, id in pairs(ui.limitId) do
+								-- Increase the item limit count
+								if showItem then
+									items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+								end
+
+								-- Increase the line limit count
+								if showLine then
+									lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
+								end
 							end
 						end
 					end
@@ -850,11 +852,11 @@ function Perspective:OnTimerTicked_Draw()
 	-- Stop our draw timer
 	self.drawTimer:Stop()
 
-	-- Destroy all our pixies
-	self.Overlay:DestroyAllPixies()
-
 	-- Check to see if the addon was disabled.
 	if self.db.profile.settings.disabled then 
+		-- Destroy all our pixies
+		self.Overlay:DestroyAllPixies()
+
 		return
 	end
 
@@ -880,6 +882,9 @@ function Perspective:OnTimerTicked_Draw()
 		for index, ui in pairs(self.categorized) do
 			addPixies(ui, pPos, pixies, items, lines)			
 		end
+
+		-- Destroy all our pixies
+		self.Overlay:DestroyAllPixies()
 
 		-- Finally, lets draw some pixies!
 
@@ -1241,7 +1246,7 @@ function Perspective:UpdateOptions(ui)
 			ui[k] = self:GetOptionValue(ui, k)
 		end
 
-		ui.display = self:GetOptionValue(ui, "display")
+		--ui.display = self:GetOptionValue(ui, "display")
 		
 		ui.loaded = true
 	end

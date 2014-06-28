@@ -571,7 +571,7 @@ function Perspective:OnInitialize()
 
 	self.Overlay = Apollo.LoadForm(self.xmlDoc, "Overlay", "InWorldHudStratum", self)
 	self.Overlay:Show(true, true)
-					
+
 	-- Register the slash command	
 	Apollo.RegisterSlashCommand("perspective", "OnShowOptions", self)
 	
@@ -1013,6 +1013,8 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 		local pos = unit:GetPosition()
 		local name = unit:GetName()
 
+		local track = false
+
 		-- reset the category as it might have changed
 		ui.category = nil				
 
@@ -1027,19 +1029,20 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 			if unit == GameLib.GetTargetUnit() and
 				not self.db.profile.categories.target.disabled then
 				ui.category = "target"
+				track = true
 			elseif self.db.profile.categories[name] then
 				-- This is a custom category, it has priority over all other category types except
 				-- target and focus.
 				ui.category = name
+				track = true
 			else
 				-- Updates the activation state for the unit and determines if it is busy, if it is
 				-- busy then we do not care for this unit at this time.
-				busy = self:UpdateActivation(ui, unit)
+				busy, track = self:UpdateActivation(ui, unit)
 			end
 
 			-- We only care about non busy units.
 			if not busy then
-
 				-- Only continue looking for a category if it has not be found by now, unless its a 
 				-- scientist item, then we'll further check the rewards to see if its an active scan
 				-- mission target, it will then be reclassified as such.
@@ -1055,18 +1058,25 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 					-- Attempt to categorize the unit by type.
 					if type == "Player" then
 						self:UpdatePlayer(ui, unit)
+						track = true
 					elseif type == "NonPlayer" then
 						self:UpdateNonPlayer(ui, unit, rewards)
+						track = true
 					elseif type == "Simple" or type == "SimpleCollidable" then
 						self:UpdateSimple(ui, unit, rewards)
+						track = true
 					elseif type == "Collectible" then
 						self:UpdateCollectible(ui, unit, rewards)
+						track = true
 					elseif type == "Harvest" then
 						self:UpdateHarvest(ui, unit)
+						track = true
 					elseif type == "Pickup" then
 						self:UpdatePickup(ui, unit)
+						track = true
 					elseif unit:GetLoot() then
 						self:UpdateLoot(ui, unit)
+						track = true
 					end
 
 				end
@@ -1110,7 +1120,6 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 					if not self.db.profile.categories[npcType].disabled then
 						ui.category = npcType
 					end
-
 				end
 
 				-- Finally determine that our category has been successfully set and we can
@@ -1125,7 +1134,6 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 
 					-- Unit is not disabled and we have our options loaded for it, lets categorize it.
 					if not ui.disabled then
-
 						if ui.limitBy and ui.limitBy ~= "none" then	
 							if 	   ui.limitBy == "name"			then ui.limitId = { name }
 							elseif ui.limitBy == "category" 	then ui.limitId = { ui.category }
@@ -1137,58 +1145,57 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 						end
 						
 						self:UpdateDistance(ui, unit)
-						
 					end
+
+					track = true
 
 				end
 
 			end
 		end
 
-		-- We'll just strip its data down to just the basics because:
-		-- The unit could not be categorized
-		-- The unit was out of range
-		-- The unit is disabled in combat.
-		-- The unit is disabled.
-		-- The unit name, distance, and lines are all not shown.
-		-- The unit wasn't loaded for some reason.
-		if not ui.category or 
-			not ui.inRange or
-			ui.disabled or
-			(inCombat and ui.disableInCombat) or
-			(not ui.showIcon and not ui.showName and not ui.showDistance and not ui.showLines) then
+		if track then
+			-- We'll just strip its data down to just the basics because:
+			-- The unit could not be categorized
+			-- The unit was out of range
+			-- The unit is disabled in combat.
+			-- The unit is disabled.
+			-- The unit name, distance, and lines are all not shown.
+			-- The unit wasn't loaded for some reason.
+			if not ui.category or 
+				not ui.inRange or
+				ui.disabled or
+				(inCombat and ui.disableInCombat) or
+				(not ui.showIcon and not ui.showName and not ui.showDistance and not ui.showLines) then
 
-			ui = { id = ui.id, invalid = ui.invalid }
+				ui = { id = ui.id, invalid = ui.invalid }
 
-			-- We have no need to know about this unit right now, strip it down and move it
-			-- back to the units list if its not already there.
-			if list ~= "units" then
-				table.insert(shift, { index = index, new = "units", old = list })
+				-- We have no need to know about this unit right now, strip it down and move it
+				-- back to the units list if its not already there.
+				if list ~= "units" then
+					table.insert(shift, { index = index, new = "units", old = list })
+				end
+			else
+				local newList = "units"
+
+				-- Move the unit to the prioritized or categorized list depending on its needs.
+				if ui.distance <= ui.rangeLimit + 20 then
+					newList = "prioritized"
+				elseif ui.category then
+					newList = "categorized"
+				end
+
+				if newList ~= list then
+					table.insert(shift, { index = index, new = newList, old = list })
+				end
 			end
 		else
-			local newList = "units"
-
-			-- Move the unit to the prioritized or categorized list depending on its needs.
-			if ui.distance <= ui.rangeLimit + 20 then
-				newList = "prioritized"
-			elseif ui.category then
-				newList = "categorized"
-			end
-
-			if newList ~= list then
-				table.insert(shift, { index = index, new = newList, old = list })
-			end
+			-- We don't need to track this unit, remove the ui.
+			table.insert(shift, { index = index, new = "none", old = list })
 		end
 	else
 		-- This is an invalid unit, so add it to the shift list to be removed.
-		if ui.invalid and ui.invalid >= 10 then
-			--Print("Removing invalid unit after " .. ui.invalid .. " times")
-			--table.insert(shift, { index = index, new = "none", old = list })
-		end
-
-		--ui.invalid = (ui.invalid or 0) + 1
-		--Print("Ignoring invalid unit: " .. ui.invalid .. " times")
-
+		--table.insert(shift, { index = index, new = "none", old = list })
 	end
 
 	for k, v in pairs(shift) do
@@ -1532,31 +1539,18 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Perspective:OnUnitCreated(unit)
-
 	local tracked = false
 
 	for i, ui in pairs(self.units) do
-
 		if ui.id == unit:GetId() then
-			
 			tracked = true
-
 			break
-
 		end
-
 	end
 	
 	if not tracked then
-
-		local ui = { 
-			id = unit:GetId(),
-			GetUnit = function() return unit end }
-
-		table.insert(self.units, ui)
-
+		table.insert(self.units, { id = unit:GetId() })
 	end	
-
 end
 
 function Perspective:OnUnitDestroyed(unit)
@@ -1829,7 +1823,7 @@ function Perspective:UpdateActivation(ui, unit)
 		{ state = "Dungeon", 				category = "dungeon" },
 	}
 
-	local busy = false
+	local busy, track = false, false
 	
 	if state.Busy and
 		state.Busy.bIsActive then
@@ -1839,6 +1833,10 @@ function Perspective:UpdateActivation(ui, unit)
 	end
 
 	for k, v in pairs(states) do
+
+		if not track then
+			track = state[v.state] ~= nil
+		end
 
 		if state[v.state] and 
 			state[v.state].bIsActive and
@@ -1882,7 +1880,7 @@ function Perspective:UpdateActivation(ui, unit)
 
 	end
 
-	return busy
+	return busy, track
 end
 
 function Perspective:GetRewardInfo(ui, unit)

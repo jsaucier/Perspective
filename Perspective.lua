@@ -1157,7 +1157,7 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 			(inCombat and ui.disableInCombat) or
 			(not ui.showIcon and not ui.showName and not ui.showDistance and not ui.showLines) then
 
-			ui = { id = ui.id }
+			ui = { id = ui.id, invalid = ui.invalid }
 
 			-- We have no need to know about this unit right now, strip it down and move it
 			-- back to the units list if its not already there.
@@ -1180,7 +1180,14 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 		end
 	else
 		-- This is an invalid unit, so add it to the shift list to be removed.
-		table.insert(shift, { index = index, new = "none", old = list })
+		if ui.invalid and ui.invalid >= 10 then
+			--Print("Removing invalid unit after " .. ui.invalid .. " times")
+			--table.insert(shift, { index = index, new = "none", old = list })
+		end
+
+		--ui.invalid = (ui.invalid or 0) + 1
+		--Print("Ignoring invalid unit: " .. ui.invalid .. " times")
+
 	end
 
 	for k, v in pairs(shift) do

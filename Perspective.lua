@@ -564,7 +564,8 @@ function Perspective:OnInitialize()
 	self.xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
 
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
-    self.Categories = self.Options:FindChild("Categories")
+    self.CategoryList = self.Options:FindChild("CategoryList")
+    self.CategoryEditor = self.Options:FindChild("CategoryEditor")
 
     self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
 
@@ -628,11 +629,11 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
-
-	self:InitializeOptions()
 end
 
 function Perspective:OnEnable()
+	self:InitializeOptions()
+
 	self.fastTimer = ApolloTimer.Create(self.db.profile.settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
 	self.slowTimer = ApolloTimer.Create(self.db.profile.settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
 	self.drawTimer = ApolloTimer.Create(self.db.profile.settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
@@ -1259,7 +1260,7 @@ function Perspective:UpdateOptions(ui)
 	if ui then
 		-- Update only the specific unit information
 		updateOptions(ui)
-	else	
+	else
 		-- Update all the prioritized units
 		for i, ui in pairs(self.prioritized) do
 			updateOptions(ui)
@@ -1927,6 +1928,29 @@ function Perspective:OnCloseButton()
 	self.Options:Show(false, true)
 end
 
+function Perspective:CColorToString(color)
+	return string.format("FF%02X%02X%02X", 
+		math.floor(color.r * 255 + 0.5), 
+		math.floor(color.g * 255 + 0.5), 
+		math.floor(color.b * 255 + 0.5))
+end
+
+function Perspective:StringToCColor(str)
+	local r, g, b = 0, 0, 0
+	
+	str = string.sub(str, 3)
+
+	local val = tonumber(str, 16)
+
+	if val then
+		r = math.floor(val / 65536) 
+		g = math.floor(val / 256) % 256
+		b = val % 256
+	end
+
+	return CColor.new(r / 255, g / 255, b / 255, 1)
+end
+
 function Perspective:InitializeOptions()
 	if not self.optionsInitialized then
 		-- Load the window position
@@ -1959,16 +1983,18 @@ function Perspective:InitializeOptions()
 		settings:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
 		settings:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
 
-		-- Setup the event handlers for the newcategory window
-		local ok = self.NewCategory:FindChild("OKButton")
-		local cancel = self.NewCategory:FindChild("CancelButton")
-
-		ok:AddEventHandler("ButtonSignal", 			"OnNewCategory_OKClicked")
-		cancel:AddEventHandler("ButtonSignal",		"OnNewCategory_CancelClicked")
+		
 
 		self.Options:FindChild("CategoriesButton"):SetCheck(true)
 
+		
+
+		--self:InitializeWindow_EditCategory()
+		self:InitializeWindow_NewCategory()
+
+
 		self.optionsInitialized = true
+
 	end
 
 	local default
@@ -1977,20 +2003,23 @@ function Perspective:InitializeOptions()
 	for k, v in pairs(self.db.profile.categories) do
 		v = v or self.db.defaults.profile.categories[k]
 		if k ~= "default" then
-			local categoryItem = self.Categories:FindChild("CategoryItem" .. v.header)
+			local categoryItem = self.CategoryList:FindChild("CategoryItem_" .. k)
 
 			self:CategoryItem_Init(k, v.header, v.whitelist, categoryItem)
 		end
 	end
 
 	-- Check to make sure all our items still exist
-	for i, item in pairs(self.Categories:GetChildren()) do
-		local category = item:GetData().category
+	for i, item in pairs(self.CategoryList:GetChildren()) do
+		local category = item:GetData()
 
 		if not self.db.profile.categories[category] then
 			item:Destroy()
 		end
 	end
+
+	-- Initialize the category editor
+	self.CategoryEditor:FindChild("Back"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
 
 	-- Initialize the settings 
 	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
@@ -2001,154 +2030,412 @@ function Perspective:InitializeOptions()
 end
 
 function Perspective:CategoryItem_Init(category, header, whitelist, item)
-	local init = false
+	local button
+	--local data = { category = category, header = header }
 
 	if not item then
-		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.Categories, self)
+		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.CategoryList, self)
+		item:SetName("CategoryItem_" .. category)
+		item:SetData(category)
 
-		item:SetName("CategoryItem" .. header)
-		
-		local title 	= item:FindChild("HeaderButton")
-		local check 	= item:FindChild("HeaderCheck")
-		local default 	= item:FindChild("DefaultButton")
-		local delete 	= item:FindChild("DeleteButton")
-
-		title:SetText(header)
-		title:AddEventHandler("ButtonSignal",		"OnCategoryItem_HeaderClicked")
-		
-		check:AddEventHandler("ButtonCheck", 		"OnCategoryItem_HeaderChecked")
-		check:AddEventHandler("ButtonUncheck", 		"OnCategoryItem_HeaderChecked")
-
-		delete:SetData({ item = item })
-		delete:AddEventHandler("ButtonSignal", 		"OnCategoryItem_DeleteClicked")
-
-		default:SetData({ item = item })
-		default:AddEventHandler("ButtonSignal", 	"OnCategoryItem_DefaultClicked")
-
-		if whitelist then
-			delete:Show(true, true)
-		end
-
-		if header == "Set All" then
-			item:SetData({ category = category, header = header, whitelist = whitelist, expanded = true })
-			check:SetCheck(true)
-		else
-			item:SetData({ category = category, header = header, whitelist = whitelist, expanded = false })
-		end
-
-		init = true
+		button = item:FindChild("Button")
+		button:SetData(category)
+		button:AddEventHandler("ButtonSignal", "CategoryItem_Clicked")
 	end
 
-	local icon = item:FindChild("HeaderIcon")
-	local sprite = self.db.profile.categories[category].icon or self.db.profile.categories.default.icon
-	local color = self.db.profile.categories[category].iconColor or self.db.profile.categories.default.iconColor
+	local icon = button:GetPixieInfo(1)
+	icon.strSprite = self.db.profile.categories[category].icon or self.db.profile.categories.default.icon
+	icon.cr = self.db.profile.categories[category].iconColor or self.db.profile.categories.default.iconColor
+	button:UpdatePixie(1, icon)
 
-	icon:SetSprite(sprite)
-	icon:SetBGColor(color)
-
-	self:CategoryItem_InitDropDownMenu(item, "LimitBy",				category, "limitBy",				init)
-
-	self:CategoryItem_InitCheckOption(item, "Disable", 				category, "disabled",				init)
-	self:CategoryItem_InitCheckOption(item, "CombatDisable", 		category, "disableInCombat",		init)
-	self:CategoryItem_InitCheckOption(item, "ShowIcon", 			category, "showIcon",				init)
-	self:CategoryItem_InitCheckOption(item, "ShowName", 			category, "showName",				init)
-	self:CategoryItem_InitCheckOption(item, "ShowDistance", 		category, "showDistance",			init)
-	self:CategoryItem_InitCheckOption(item, "ShowLines", 			category, "showLines",				init)
-	self:CategoryItem_InitCheckOption(item, "ShowOutline", 			category, "showLineOutline",		init)
-	self:CategoryItem_InitCheckOption(item, "ShowOffScreenLine", 	category, "showLinesOffscreen",		init)
-	self:CategoryItem_InitCheckOption(item, "RangeFont", 			category, "rangeFont",				init)
-	self:CategoryItem_InitCheckOption(item, "RangeIcon", 			category, "rangeIcon",				init)
-	self:CategoryItem_InitCheckOption(item, "RangeLine", 			category, "rangeLine",				init)
-
-	self:CategoryItem_InitTextOption(item, "Font", 					category, "font", 			false,	init)
-	self:CategoryItem_InitTextOption(item, "Icon", 					category, "icon", 			false,	init)
-	self:CategoryItem_InitTextOption(item, "IconHeight", 			category, "iconHeight", 	true,	init)
-	self:CategoryItem_InitTextOption(item, "IconWidth", 			category, "iconWidth", 		true, 	init)
-	self:CategoryItem_InitTextOption(item, "MaxIcons", 				category, "max", 			true,	init)
-	self:CategoryItem_InitTextOption(item, "MaxLines", 				category, "maxLines", 		true,	init)
-	self:CategoryItem_InitTextOption(item, "LineWidth", 			category, "lineWidth", 		true,	init)
-	self:CategoryItem_InitTextOption(item, "ZDistance",				category, "zDistance", 		true,	init)
-	self:CategoryItem_InitTextOption(item, "MinDistance", 			category, "minDistance", 	true,	init)
-	self:CategoryItem_InitTextOption(item, "MaxDistance", 			category, "maxDistance", 	true,	init)
-	self:CategoryItem_InitTextOption(item, "Display", 				category, "display", 		false,	init)
-	self:CategoryItem_InitTextOption(item, "RangeLimit",			category, "rangeLimit",		true,	init)
-
-	self:CategoryItem_InitColorOption(item, "FontColor",			category, "fontColor",				init)
-	self:CategoryItem_InitColorOption(item, "IconColor", 			category, "iconColor",				init)
-	self:CategoryItem_InitColorOption(item, "LineColor", 			category, "lineColor",				init)
-	self:CategoryItem_InitColorOption(item, "RangeColor", 			category, "rangeColor",				init)
-
-	self:CategoryItem_Toggle(item)
+	local text= button:GetPixieInfo(2)
+	text.strText = header
+	text.flagsText = { DT_VCENTER = true }
+	button:UpdatePixie(2, text)
 
 	return item
 end
 
-function Perspective:CategoryItem_InitDropDownMenu(item, control, category, value, init)
-	-- Get the menu associated with the dropdownmenu
-	local menu = item:FindChild(control .. "DropDownMenu")
+function Perspective:CategoryItem_Clicked(handler, control, button)
+	-- Show the category editor.
+	self:CategoryEditor_Show(control:GetData())
+end
 
-	control = item:FindChild(control .. "DropDownButton")
+function Perspective:CategoryEditor_Show(category)
+
+	local function loadCheck(name, category, option)
+		-- Get the control by name
+		local control = self.CategoryEditor:FindChild(name .. "Check")
+
+		-- Set the check value.
+		control:SetCheck(self:GetOptionValue(nil, option, category))
+
+		-- Make sure we haven't already set the event handlers
+		if not control:GetData() then
+			--Setup the event handlers
+			control:AddEventHandler("ButtonCheck", 		"CategoryEditor_OnChecked")
+			control:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnChecked")	
+		end
+
+		-- Set the data for the control.
+		control:SetData({ category = category, option = option })
+	end
+
+	local function loadText(name, category, option, isNumber)
+		-- Get the control by name
+		local control = self.CategoryEditor:FindChild(name .. "Text")
+
+		-- Set the text value.
+		control:SetText(self:GetOptionValue(nil,  option, category) or "")
+
+		-- Make sure we haven't already set the event handlers
+		if not control:GetData() then
+			--Setup the event handlers
+			control:AddEventHandler("EditBoxReturn", 	"CategoryEditor_OnReturn")
+			control:AddEventHandler("EditBoxTab", 		"CategoryEditor_OnReturn")
+			control:AddEventHandler("EditBoxEscape", 	"CategoryEditor_OnEscape")
+		end
+		
+		-- Set the data for the control.
+		control:SetData({ category = category, option = option, isNumber = isNumber })
+	end
+
+	local function loadDropDown(name, category, option)
+		-- Get the control by name
+		local control = self.CategoryEditor:FindChild(name .. "DropDownButton")
+
+		-- Get the menu associated with the control
+		local menu = self.CategoryEditor:FindChild(name .. "DropDownMenu")
+
+		-- Set the control value.
+		control:SetText(self:GetOptionValue(nil, option, category))
+
+		-- Make sure we haven't already set the event handlers
+		if not control:GetData() then
+			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnDropDown")
+
+			for k, v in pairs(menu:GetChildren()) do
+				v:AddEventHandler("ButtonCheck", 	"CategoryEditor_OnDropDownItem")
+				v:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnDropDownItem")
+			end
+		end
+
+		-- Set the data for the control.
+		control:SetData({ category = category, option = option, menu = menu })
+
+		-- Set the data for the menu.
+		menu:SetData({ button = control })
+	end
+
+	local function loadColor(name, category, option)
+		-- Get the control by name
+		local control = self.CategoryEditor:FindChild(name .. "Button")
+
+		-- Get the color for the control
+		local color =  self:GetOptionValue(nil, option, category)
+
+		-- Set the color for the control
+		control:SetBGColor(color)
+			
+		-- Makre sure we haven't already set the event handlers
+		if not control:GetData() then
+			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnColorClick")
+		end
+
+		-- Set the data for the control.
+		control:SetData({ category = category, option = option, color = color })
+	end
+
+	local header = 	self:GetOptionValue(nil, "header", 		category)
+	local icon = 	self:GetOptionValue(nil, "icon", 		category)
+	local color = 	self:GetOptionValue(nil, "iconColor", 	category)
+
+	self.CategoryEditor:FindChild("Category"):SetText(header)
+	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
+	self.CategoryEditor:FindChild("Icon"):SetBGColor(color)
+
+	local whitelist = self:GetOptionValue(nil, "whitelist", category)
 	
-	menu:SetData({ button = control })
+	-- Set the rename text
+	self.CategoryEditor:FindChild("RenameText"):SetText(category)
+	
+	-- Show the rename edit box if this is a whitelist item
+	self.CategoryEditor:FindChild("RenameTextBG"):Show(whitelist, true)
+	
+	-- Show the category name if this is not a whitelist item
+	self.CategoryEditor:FindChild("Category"):Show(not whitelist, true)
 
-	local val = self:GetOptionValue(nil, value, category)
+	loadCheck("Disable", 			category, "disabled")
+	loadCheck("CombatDisable", 		category, "disableInCombat")
+	loadCheck("ShowIcon", 			category, "showIcon")
+	loadCheck("ShowName", 			category, "showName")
+	loadCheck("ShowDistance", 		category, "showDistance")
+	loadCheck("ShowLines", 			category, "showLines")
+	loadCheck("ShowOutline", 		category, "showLineOutline")
+	loadCheck("ShowOffScreenLine", 	category, "showLinesOffscreen")
+	loadCheck("RangeFont", 			category, "rangeFont")
+	loadCheck("RangeIcon", 			category, "rangeIcon")
+	loadCheck("RangeLine", 			category, "rangeLine")
 
-	control:SetText(val)
+	loadText("Font", 				category, "font", 			false)
+	loadText("Icon", 				category, "icon", 			false)
+	loadText("IconHeight",			category, "iconHeight", 	true)
+	loadText("IconWidth", 			category, "iconWidth", 		true)
+	loadText("MaxIcons", 			category, "max", 			true)
+	loadText("MaxLines", 			category, "maxLines", 		true)
+	loadText("LineWidth", 			category, "lineWidth", 		true)
+	loadText("ZDistance",			category, "zDistance", 		true)
+	loadText("MinDistance",			category, "minDistance", 	true)
+	loadText("MaxDistance",			category, "maxDistance", 	true)
+	loadText("Display", 			category, "display", 		false)
+	loadText("RangeLimit",			category, "rangeLimit",		true)
 
-	control:SetData({ item = item, category = category, value = value, menu = menu })
+	loadColor("FontColor",			category, "fontColor")
+	loadColor("IconColor", 			category, "iconColor")
+	loadColor("LineColor", 			category, "lineColor")
+	loadColor("RangeColor", 		category, "rangeColor")
 
-	if init then
-		control:AddEventHandler("ButtonSignal", "OnCategoryItem_DropDownButtonClicked")
+	loadDropDown("LimitBy",			category, "limitBy")
 
-		for k, v in pairs(menu:GetChildren()) do
-			v:AddEventHandler("ButtonCheck", 	"OnCategoryItem_DropDownItemButtonChecked")
-			v:AddEventHandler("ButtonUncheck", 	"OnCategoryItem_DropDownItemButtonChecked")
+	self.CategoryList:Show(false, true)
+	self.CategoryEditor:Show(true, true)
+end
+
+function Perspective:CategoryEditor_OnBackClick(handler, control, button)
+	self.CategoryEditor:Show(false, true)
+	self.CategoryList:Show(true, true)
+end
+
+function Perspective:CategoryEditor_OnChecked(handler, control, button)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Get the control's value
+	local val = control:IsChecked()
+
+	-- Check to see if we need to set the value for all categories
+	if data.category == "all" then
+		for k, v in pairs(self.db.profile.categories) do
+			self.db.profile.categories[k][data.option] = val
+		end
+	else
+		self.db.profile.categories[data.category][data.option] = val	
+	end
+
+	-- Update all the ui options.
+	self:UpdateOptions()
+end
+
+function Perspective:CategoryEditor_OnReturn(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+
+	-- Get the control's value
+	local val = control:GetText()
+
+	-- Check to see if the textbox is expecting a number
+	if data.isNumber then
+		if not tonumber(val) then
+			val = self:GetOptionValue(nil, data.option, data.category)
+		else
+			val = tonumber(val)
 		end
 	end
+
+	-- If the option is blank, load the default setting.
+	if val == "" then 
+		val = self:GetOptionValue(nil, data.option, data.category)
+	end
+
+	-- Check to see if we need to set the value for all categories
+	if data.category == "all" then
+		for k, v in pairs(self.db.profile.categories) do
+			self.db.profile.categories[k][data.option] = val
+		end
+	else
+		self.db.profile.categories[data.category][data.option] = val	
+	end
+
+	-- Update the category list icons.
+	if data.option == "icon" then
+		self:CategoryEditor_UpdateIcon(data.category, "icon")
+	end
+
+	-- Update all the ui options.
+	self:UpdateOptions()
 end
 
-function Perspective:CategoryItem_InitCheckOption(item, control, category, value, init)
-	control = item:FindChild(control .. "Check")
+function Perspective:CategoryItem_OnEscape(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
 	
-	control:SetData({ item = item, category = category, value = value })
+	-- Load the previous value
+	control:SetText(self:GetOptionValue(nil, data.option, data.category))
+end
 
-	local val = self:GetOptionValue(nil, value, category)
+function Perspective:CategoryEditor_OnDropDown(handler, control, button)
+	-- Get the control's data.
+	local data = control:GetData()
 
-	control:SetCheck(val)
+	-- Set the selected value
+	for k, v in pairs(data.menu:GetChildren()) do
+		if v:GetText() == control:GetText() then
+			v:SetCheck(true)
+		else
+			v:SetCheck(false)
+		end
+	end
 
-	if init then
-		control:AddEventHandler("ButtonCheck", 		"CategoryItem_OnChecked")
-		control:AddEventHandler("ButtonUncheck", 	"CategoryItem_OnChecked")
+	-- Show the menu and bring it to the top
+	data.menu:Show(true, true)--:BringChildToTop(data.menu)
+end
+
+function Perspective:CategoryEditor_OnDropDownItem(handler, control, button)
+	-- Get the data for the control
+	local data = control:GetParent():GetData()
+
+	-- Get the button that called the menu
+	local button = data.button
+
+	-- Get the data for the button
+	data = button:GetData()
+
+	-- Get the text of the selected dropdownmenu button
+	local val = control:GetText()
+
+	-- Update the button text for the caller button
+	button:SetText(val)
+
+	-- Hide the dropdownmenu immediately
+	control:GetParent():Show(false, true)
+
+	-- Update the settings.
+	if data.category == "all" then
+		for k, v in pairs(self.db.profile.categories) do
+			self.db.profile.categories[k][data.option] = val
+		end
+	else
+		self.db.profile.categories[data.category][data.option] = val
+	end
+
+	-- Update all the ui options.
+	self:UpdateOptions()
+end
+
+function Perspective:CategoryEditor_OnColorClick(handler, control, button)
+
+	local function setColor(data)
+		-- Convert the color back to str
+		local color = self:CColorToString(self.color)
+		
+		-- Set the control color
+		control:SetBGColor(self.color)
+
+		-- Update the settings
+		if data.category == "all" then
+			for _, category in pairs(self.db.profile.categories) do
+				category[data.option] = color
+			end
+		else
+			self.db.profile.categories[data.category][data.option] = color
+		end
+
+		-- Update the category list icons.
+		if data.option == "iconColor" then
+			self:CategoryEditor_UpdateIcon(data.category, "iconColor")
+		end
+
+		-- Update all the ui options.
+		self:UpdateOptions() 
+	end
+
+	-- Get the data for the control
+	local data = control:GetData()
+
+	-- Convert the color string
+	self.color = self:StringToCColor(data.color)
+
+	-- Show the color picker.
+	if ColorPicker then
+		ColorPicker.AdjustCColor(self.color, false, setColor, data)
+	else
+		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Realm, "This option requires the ColorPicker addon to be installed.")
 	end
 end
 
-function Perspective:CategoryItem_InitTextOption(item, control, category, value, number, init)
-	control = item:FindChild(control .. "Text")
+function Perspective:CategoryEditor_UpdateIcon(category, type)
+	local function setPixie(category, icon, color)
+		-- Exclude the default category, we dont have a button for it.
+		if category ~= "default" then
+			-- Get our category item button
+			local button  = self.CategoryList:FindChild("CategoryItem_" .. category):FindChild("Button")
 
-	control:SetData({ item = item, category = category, value = value, number = number })
-
-	local val = self:GetOptionValue(nil,  value, category)
-
-	control:SetText(val or "")
-
-	if init then
-		control:AddEventHandler("EditBoxReturn", 	"CategoryItem_OnReturn")
-		control:AddEventHandler("EditBoxTab", 		"CategoryItem_OnReturn")
-		control:AddEventHandler("EditBoxEscape", 	"CategoryItem_OnEscape")
+			-- Update our icon pixie
+			local pixie = button:GetPixieInfo(1)
+			pixie.strSprite = icon
+			pixie.cr = color
+			button:UpdatePixie(1, pixie)
+		end
 	end
+
+	-- Get the icon and icon color.
+	local icon = self:GetOptionValue(nil, "icon", category)
+	local iconColor = self:GetOptionValue(nil, "iconColor", category)
+
+	-- Update the category editor icon.
+	self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
+	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
+
+	-- Update our icon pixies
+	if category == "all" then
+		for cat, settings in pairs(self.db.profile.categories) do
+			-- Get the icon and icon color.
+			local i = self:GetOptionValue(nil, "icon", cat)
+			local ic = self:GetOptionValue(nil, "iconColor", cat)
+
+			if type == "iconColor" then
+				setPixie(cat, i, iconColor)
+			elseif type == "icon" then
+				setPixie(cat, icon, ic)
+			end
+		end
+	else
+		if type == "iconColor" then
+			setPixie(category, icon, iconColor)
+		elseif type == "icon" then
+			setPixie(category, icon, iconColor)
+		end
+	end
+
 end
 
-function Perspective:CategoryItem_InitColorOption(item, control, category, value, init)
-	control = item:FindChild(control .. "Button")
 
-	local color = self:GetOptionValue(nil, value, category)
 
-	control:SetBGColor(color)
-	control:SetData({ item = item, category = category, value = value, color = color })
 
-	if init then
-		control:AddEventHandler("ButtonSignal", "CategoryItem_OnColorClick")
-	end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function Perspective:InitializeWindow_NewCategory()
+	-- Setup the event handlers for the newcategory window
+	local ok = self.NewCategory:FindChild("OKButton")
+	local cancel = self.NewCategory:FindChild("CancelButton")
+
+	ok:AddEventHandler("ButtonSignal", 			"OnNewCategory_OKClicked")
+	cancel:AddEventHandler("ButtonSignal",		"OnNewCategory_CancelClicked")
 end
 
 function Perspective:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
@@ -2179,8 +2466,8 @@ end
 
 function Perspective:CategoryItems_Arrange()
 	local sort = function (a, b) 
-		local a = a:GetData().header
-		local b = b:GetData().header
+		a = self:GetOptionValue(nil, "header", a:GetData())
+		b = self:GetOptionValue(nil, "header", b:GetData())
 
 		a = a == "Set All" and " " or a
 		b = b == "Set All" and " " or b
@@ -2188,7 +2475,7 @@ function Perspective:CategoryItems_Arrange()
 		return a < b
 	end
 
-	self.Categories:ArrangeChildrenVert(1, sort)
+	self.CategoryList:ArrangeChildrenVert(0, sort)
 end
 
 function Perspective:CategoryItem_Toggle(item)
@@ -2347,7 +2634,6 @@ function Perspective:OnCategoryItem_DefaultClicked(handler, control, button)
 end
 
 function Perspective:OnCategoryItem_DropDownButtonClicked(handler, control, button)
-
 	local args = control:GetData()
 
 	for k, v in pairs(args.menu:GetChildren()) do
@@ -2360,11 +2646,9 @@ function Perspective:OnCategoryItem_DropDownButtonClicked(handler, control, butt
 
 	args.menu:Show(true, true)
 	self.Options:BringChildToTop(args.menu)
-
 end
 
 function Perspective:OnCategoryItem_DropDownItemButtonChecked(handler, control, button)
-
 	-- Get the args for the dropdownmenu
 	local args = control:GetParent():GetData()
 
@@ -2396,26 +2680,8 @@ function Perspective:OnCategoryItem_DropDownItemButtonChecked(handler, control, 
 
 	-- Update all the ui options.
 	self:UpdateOptions()
-
 end
 
-function Perspective:CategoryItem_OnChecked(handler, control, button)
-	local args = control:GetData()
-	
-	local val = control:IsChecked()
-
-	if args.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][args.value] = val
-		end
-
-		self:InitializeOptions()
-	else
-		self.db.profile.categories[args.category][args.value] = val	
-	end
-
-	self:UpdateOptions()
-end
 
 function Perspective:CategoryItem_OnReturn(handler, control)
 	local args = control:GetData()
@@ -2470,9 +2736,10 @@ function Perspective:CategoryItem_OnEscape(handler, control)
 end
 
 function Perspective:CategoryItem_OnColorClick(handler, control, button)
-	local args = control:GetData()
+	local data = control:GetData()
 
-  	GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control)
+  	--GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control)
+  	ColorPicker.AdjustCColor(data.color, false, setColor, data)
 end
 
 function Perspective:CategoryItem_OnColorSet(color, ...)

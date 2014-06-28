@@ -573,8 +573,6 @@ function Perspective:OnInitialize()
 					
 	-- Register the slash command	
 	Apollo.RegisterSlashCommand("perspective", "OnShowOptions", self)
-
-	GeminiColor = Apollo.GetPackage("GeminiColor").tPackage
 	
 	-- Table containing every unit we currently are aware of
 	self.units = {}

@@ -3,7 +3,7 @@ require "GameLib"
 require "Apollo"
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local Perspective = GeminiAddon:NewAddon("Perspective", true)
+local Perspective = GeminiAddon:NewAddon("Perspective", "Perspective")
 
 local Options
 
@@ -1068,9 +1068,9 @@ end
 function Perspective:OnEnable()
 	--self:InitializeOptions()
 
-	self.fastTimer = ApolloTimer.Create(self.db.profile.settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
-	self.slowTimer = ApolloTimer.Create(self.db.profile.settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
-	self.drawTimer = ApolloTimer.Create(self.db.profile.settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
+	self.fastTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
+	self.slowTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
+	self.drawTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
 
 		-- Get the player's path type
 	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
@@ -1697,7 +1697,7 @@ function Perspective:UpdateOptions(ui, name)
 			ui[k] = Options:GetOptionValue(ui, k)
 		end
 
-		ui.display = ui.named or ui.display
+		ui.display = ui.named  and Options.db.profile[Options.profile].names[ui.named].display or ui.display
 		
 		ui.loaded = true
 	end
@@ -1732,33 +1732,33 @@ function Perspective:MarkersDraw()
 			local uPos = GameLib.WorldLocToScreenPoint(region.vector)
 
 			-- Make sure the point is onscreen and in front of us.
-			if marks < self.db.profile.markers[marker.type].maxPer and
+			if marks < marker.max and
 				uPos.z > 0 and
 				not region.inArea then
 				self.Overlay:AddPixie({
 					strSprite = marker.icon,
-					--cr = ui.iconColor,
+					cr = marker.iconColor,
 					loc = {
 						fPoints = { 0, 0, 0, 0 },
 						nOffsets = {
-							uPos.x - (32), 
-							uPos.y - (32), 
-							uPos.x + (32),
-							uPos.y + (32)
+							uPos.x - (marker.iconWidth / 2), 
+							uPos.y - (marker.iconHeight / 2), 
+							uPos.x + (marker.iconWidth / 2),
+							uPos.y + (marker.iconHeight / 2)
 						}
 					}
 				})
 
 				self.Overlay:AddPixie({
 					strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
-					strFont = "CRB_Pixel_O",
-					crText = "ffffffff",
+					strFont = marker.font,
+					crText = marker.fontColor,
 					loc = {
 						fPoints = { 0, 0, 0, 0 },
 						nOffsets = {
-							uPos.x - (64), 
-							uPos.y + (32), 
-							uPos.x + (64),
+							uPos.x - (marker.iconWidth), 
+							uPos.y + (marker.iconHeight / 2), 
+							uPos.x + (marker.iconWidth),
 							uPos.y + (100)
 						}
 					},
@@ -1833,7 +1833,13 @@ function Perspective:MarkerEventUpdate(event)
 			name = event:GetName(),
 			type = "event",
 			regions = {},
-			icon = self.db.profile.markers.event.icon
+			icon = Options:GetOptionValue(nil, "icon", "eventLocation"),
+			iconColor = Options:GetOptionValue(nil, "iconColor", "eventLocation"),
+			iconWidth = Options:GetOptionValue(nil, "iconWidth", "eventLocation"),
+			iconHeight = Options:GetOptionValue(nil, "iconHeight", "eventLocation"),
+			font = Options:GetOptionValue(nil, "font", "eventLocation"),
+			fontColor = Options:GetOptionValue(nil, "fontColor", "eventLocation"),
+			max = Options:GetOptionValue(nil, "max", "eventLocation"),
 		}
 		for index, objective in pairs(event:GetObjectives()) do
 			for index, region in pairs(objective:GetMapRegions()) do
@@ -1858,7 +1864,13 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 				type = "path",
 				regions = {},
 				mission = mission,
-				icon = self.db.profile.markers.path[self.path .. "Icon"]
+				icon = Options:GetOptionValue(nil, "icon", "pathLocation"),
+				iconColor = Options:GetOptionValue(nil, "iconColor", "pathLocation"),
+				iconWidth = Options:GetOptionValue(nil, "iconWidth", "pathLocation"),
+				iconHeight = Options:GetOptionValue(nil, "iconHeight", "pathLocation"),
+				font = Options:GetOptionValue(nil, "font", "pathLocation"),
+				fontColor = Options:GetOptionValue(nil, "fontColor", "pathLocation"),
+				max = Options:GetOptionValue(nil, "max", "pathLocation"),
 			}
 			for index, region in pairs(mission:GetMapRegions()) do
 				self.markers[id].regions[index] = {
@@ -1885,7 +1897,13 @@ function Perspective:MarkerQuestUpdate(quest)
 		  		name = quest:GetTitle(),
 		  		type = "quest",
 		  		regions = {},
-		  		icon = self.db.profile.markers.quest.icon
+		  		icon = Options:GetOptionValue(nil, "icon", "questLocation"),
+				iconColor = Options:GetOptionValue(nil, "iconColor", "questLocation"),
+				iconWidth = Options:GetOptionValue(nil, "iconWidth", "questLocation"),
+				iconHeight = Options:GetOptionValue(nil, "iconHeight", "questLocation"),
+				font = Options:GetOptionValue(nil, "font", "questLocation"),
+				fontColor = Options:GetOptionValue(nil, "fontColor", "questLocation"),
+				max = Options:GetOptionValue(nil, "max", "questLocation"),
 		  	}
 			-- Create a marker for every quest region
 			for index, region in pairs(quest:GetMapRegions()) do

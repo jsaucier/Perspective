@@ -1308,14 +1308,12 @@ function PerspectiveOptions:OnOptions_AnchorsChanged()
 	}
 end
 
---[[function PerspectiveOptions:OnOptions_NewClicked(handler, control, button)
-	self.NewCategory:FindChild("NameText"):SetText("")
-	self.NewCategory:FindChild("DisplayText"):SetText("")
-	self.NewCategory:Show(true, true)
-end]]
-
 function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
 	self.db:ResetDB()
+
+	self.CategoryEditor:Show(false, true)
+	self.ModuleList:GetParent():Show(true, true)
+	self.CategoryList:GetParent():Show(true, true)
 
 	self:InitializeOptions()
 
@@ -1325,8 +1323,6 @@ end
 function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, button)
 	local panels = {
 		"Categories",
-		--"Markers",
-		--"Blacklist",
 		"Settings"
 	}
 

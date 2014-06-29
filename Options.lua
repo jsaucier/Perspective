@@ -1065,6 +1065,9 @@ function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
 
 	-- Update all the ui options.
 	Perspective:UpdateOptions()
+
+	-- Update the markers.
+	Perspective:MarkersInit()
 end
 
 function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
@@ -1108,6 +1111,9 @@ function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
 
 	-- Update all the ui options.
 	Perspective:UpdateOptions()
+
+	-- Update the markers.
+	Perspective:MarkersInit()
 end
 
 function PerspectiveOptions:CategoryItem_OnEscape(handler, control)
@@ -1167,6 +1173,9 @@ function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, butt
 
 	-- Update all the ui options.
 	Perspective:UpdateOptions()
+
+	-- Update the markers.
+	Perspective:MarkersInit()
 end
 
 function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button)
@@ -1199,6 +1208,9 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 
 		-- Update all the ui options.
 		Perspective:UpdateOptions() 
+
+		-- Update the markers.
+		Perspective:MarkersInit()
 	end
 
 	-- Get the data for the control
@@ -1317,7 +1329,11 @@ function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
 
 	self:InitializeOptions()
 
+	-- Update all the uis
 	Perspective:UpdateOptions()
+	
+	-- Update the markers.
+	Perspective:MarkersInit()
 end
 
 function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, button)

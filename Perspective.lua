@@ -1,11 +1,499 @@
 require "Window"
 require "GameLib"
 require "Apollo"
+local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local Perspective = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("Perspective", true)
+local Perspective = GeminiAddon:NewAddon("Perspective", true)
+
+local Options
 
 local defaults = {
 	profile = {
+		default = {
+			settings = { 
+				disabled = false,
+				max = 10,
+				drawTimer = 30,
+				slowTimer = 1,
+				fastTimer = 100 },
+			names = {
+				["Return Teleporter"]				= { category = "instancePortal" },
+				["Bruxen"]							= { category = "instancePortal",	display = "Ship to Thayd" },
+				["Gus Oakby"]						= { category = "instancePortal",	display = "Ship to Crimson Badlands" },
+				["Lilly Startaker"]					= { category = "instancePortal",	display = "Ship to Grimvault" },
+				["Transportation Expert Conner"]	= { category = "instancePortal",	display = "Ship to Farside" },
+				["Warrant Officer Burke"]			= { category = "instancePortal",	display = "Ship to Whitevale" },
+				["Empirius"]						= { category = "wotwChampion" },
+				["Sagittaurus"]						= { category = "wotwChampion" },
+				["Lectro"]							= { category = "wotwChampion" },
+				["Krule"]							= { category = "wotwChampion" },
+				["Zappo"]							= { category = "wotwChampion" },
+				["Ignacio"]							= { category = "wotwChampion" },
+				["Police Patrolman"]				= { category = "cowPolice" },
+				["Police Constable"]				= { category = "cowPolice" }
+			},
+			categories = {
+				default = {
+					disabled = false,
+					disableInCombat = false,
+					disableOccluded = false,
+					display = false,
+					font = "CRB_Pixel_O",
+					fontColor = "ffffffff",
+					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
+					iconColor = "ffffffff",
+					iconHeight = 48,
+					iconWidth = 48,
+					limitBy = "category", -- valid options are nil, "name", "category", "quest", "challenge"
+					lineColor = "ffffffff",
+					lineWidth = 2,
+					max = 2,
+					maxLines = 1,
+					minDistance = 0,
+					maxDistance = 9999,
+					zDistance = 9999,
+					showDistance = true,
+					showIcon = true,
+					showName = true,
+					showLineOutline = true,
+					showLines = true,
+					showLinesOffscreen = true,
+					rangeColor = "ffffffff",
+					rangeIcon = false,
+					rangeFont = false,
+					rangeLine = false,
+					rangeLimit = 15	},
+				all = {
+					header = "Set All", 
+					module = "All" },
+				target = {
+					header = "Target",
+					module = "Misc",
+					disabled = true,				
+					lineColor = "ffff00ff",
+					iconColor = "ffff00ff",
+					icon = "PerspectiveSprites:Circle-Outline",
+					maxIcons = 1,
+					maxLines = 1,
+					iconHeight = 24,
+					iconWidth = 24,
+					rangeColor = "ffffccff",
+					rangeLine = true,
+					rangeIcon = true },
+				group = {
+					header = "Group",
+					module = "Player",
+					fontColor = "ff7482c1",
+					lineColor = "ff7482c1",
+					iconColor = "ff7482c1",
+					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
+					showLines = false,
+					maxLines = 4,
+					max = 4,
+					useRange = true,
+					rangeColor = "ff00ff00",
+					rangeIcon = true,
+					rangeLine = true,
+					rangeFont = true },
+				guild = {
+					header = "Guild",
+					module = "Player",
+					fontColor = "ff00ff00",
+					lineColor = "ff00ff00",
+					iconColor = "ff00ff00",
+					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
+					showLines = false },
+				friendly = {
+					header = "Friendly Normal",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ff00ff00",
+					lineColor = "ff00ff00",
+					iconColor = "ff00ff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 8,
+					iconWidth = 8 },	
+				friendlyPrime = {
+					header = "Friendly Prime",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ff00ff00",
+					lineColor = "ff00ff00",
+					iconColor = "ff00ff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 16,
+					iconWidth = 16 },	
+				friendlyElite = {
+					header = "Friendly Elite",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ff00ff00",
+					lineColor = "ff00ff00",
+					iconColor = "ff00ff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 32,
+					iconWidth = 32 },
+				neutral = {
+					header = "Neutral Normal",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ffffff00",
+					lineColor = "ffffff00",
+					iconColor = "ffffff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 8,
+					iconWidth = 8 },	
+				neutralPrime = {
+					header = "Neutral Prime",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ffffff00",
+					lineColor = "ffffff00",
+					iconColor = "ffffff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 16,
+					iconWidth = 16 },	
+				neutralElite = {
+					header = "Neutral Elite",
+					module = "NPC",
+					disabled = true,
+					fontColor = "ffffff00",
+					lineColor = "ffffff00",
+					iconColor = "ffffff00",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 32,
+					iconWidth = 32 },	
+				hostile = {
+					header = "Hostile Normal",
+					module = "NPC",
+					fontColor = "ffff0000",
+					lineColor = "ffff0000",
+					iconColor = "ffff0000",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 8,
+					iconWidth = 8,
+					rangeIcon = true,
+					rangeColor = "ffff00ff"	},
+				hostilePrime = {
+					header = "Hostile Prime",
+					module = "NPC",
+					fontColor = "ffff0000",
+					lineColor = "ffff0000",
+					iconColor = "ffff0000",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 16,
+					iconWidth = 16,
+					rangeIcon = true,
+					rangeColor = "ffff00ff"	},
+				hostileElite = {
+					header = "Hostile Elite",
+					module = "NPC",
+					fontColor = "ffff0000",
+					lineColor = "ffff0000",
+					iconColor = "ffff0000",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					max = 10,
+					iconHeight = 32,
+					iconWidth = 32,
+					rangeIcon = true,
+					rangeColor = "ffff00ff"	},
+				questObjective = {
+					header = "Objective",
+					module = "Quest",
+					icon = "PerspectiveSprites:QuestObjective",
+					max = 3,
+					limitBy = "category",
+					lineColor = "ffff8000" },
+				questNew = {
+					header = "Start",
+					module = "Quest",
+					icon = "ClientSprites:MiniMapNewQuest",
+					lineColor = "ff00ff00" },
+				questTalkTo = {
+					header = "Talk To",
+					module = "Quest",
+					icon = "IconSprites:Icon_MapNode_Map_Chat",
+					iconColor = "ffff8000",
+					lineColor = "ffff8000" },
+				questReward = {
+					header = "Complete",
+					module = "Quest",
+					icon = "IconSprites:Icon_MapNode_Map_Checkmark",
+					lineColor = "ff00ff00" },			
+				challenge = {
+					header = "Objective",
+					module = "Challenge",
+					icon = "PerspectiveSprites:QuestObjective",
+					lineColor = "ffff0000",
+					iconColor = "ffff0000" },
+				farmer = {
+					header = "Farmer",
+					module = "Harvest",
+					max = 5,
+					fontColor = "ffffff00",
+					icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
+					lineColor = "ffffff00" },
+				miner = {
+					header = "Mine",
+					module = "Harvest",
+					max = 5,
+					fontColor = "ff0078ce",
+					icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
+					lineColor = "ff0078ce" },
+				relichunter = {
+					header = "Relic Hunter",
+					module = "Harvest",
+					max = 5,
+					fontColor = "ffff7fed",
+					icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
+					lineColor = "ffff7fed" },
+				survivalist = {
+					header = "Survivalist",
+					module = "Harvest",
+					max = 5,
+					fontColor = "ffce9967",
+					icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
+					lineColor = "ffce9967" },
+				flightPath = {
+					header = "Flight Path",
+					module = "Travel",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Taxi",
+					showLines = false },
+				instancePortal = {
+					header = "Portal",
+					module = "Travel",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Portal",
+					showLines = false },
+				bindPoint = {
+					header = "Bind Point",
+					module = "Travel",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Gate",
+					showLines = false },
+				marketplace = {
+					header = "Commodities Exchange",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
+					showLines = false },
+				auctionHouse = {
+					header = "Auction House",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
+					showLines = false },
+				mailBox = {
+					header = "Mailbox",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Mailbox",
+					showLines = false },
+				vendor = {
+					header = "Vendor",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Vendor",
+					showLines = false },
+				craftingStation = {
+					header = "Crafting Station",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
+					showLines = false },
+				tradeskillTrainer = {
+					header = "Tradeskill Trainer",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Trainer",
+					showLines = false },
+				dye = {
+					header = "Appearance Modifier",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
+					showLines = false },
+				bank = {
+					header = "Bank",
+					module = "Town",
+					fontColor = "ffabf8cb",
+					icon = "IconSprites:Icon_MapNode_Map_Bank",
+					showLines = false },
+				dungeon = {
+					header = "Dungeon",
+					module = "Travel",
+					fontColor = "ff00ffff",
+					icon = "IconSprites:Icon_MapNode_Map_Dungeon",
+					showLines = false },
+				lore = {
+					header = "Lore",
+					module = "Misc",
+					fontColor  = "ff7abcff",
+					icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
+					lineColor = "ff7abcff",
+					showLines = true,
+					maxLines = 1 },
+				scientist = {
+					header = "Scientist",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+					lineColor = "ffc759ff",
+					showLines = false,
+					maxLines = 1 },
+				scientistScans = {
+					header = "Scientist Scans",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+					lineColor = "ffc759ff",
+					maxLines = 1 },
+				solider = {
+					header = "Soldier",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
+					lineColor = "ffc759ff",
+					maxLines = 1 },
+				settler = {
+					header = "Settler",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+					lineColor = "ffc759ff",
+					maxLines = 1 },
+				settlerResources = {
+					header = "Settler Resources",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+					lineColor = "ffc759ff",
+					maxLines = 1 },
+				explorer = {
+					header = "Explorer",
+					module = "Path",
+					fontColor = "ffc759ff",
+					icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
+					lineColor = "ffc759ff",
+					maxLines = 1 },
+				questLoot = {
+					header = "Loot",
+					module = "Quest",
+					icon = "ClientSprites:GroupLootIcon",
+					showLines = false,
+					iconWidth = 32,
+					iconHeight = 32 },
+				subdue = {
+					header = "Weapon",
+					module = "Misc",
+					lineColor = "ffff8000",
+					iconColor = "ffff8000",
+					icon = "ClientSprites:GroupWarriorIcon",
+					lineWidth = 10,
+					iconHeight = 32,
+					iconWidth = 32 },
+				wotwChampion = {
+					header = "Enemy Champion",
+					module = "War of the Wilds",
+					icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+					showLines = false },
+				["Energy Node"] = {
+					header = "Energy Node",
+					module = "War of the Wilds",
+					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
+					showLines = false },
+				["Moodie Totem"] = {
+					header = "Moodie Totem",
+					module = "War of the Wilds",
+					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
+					iconColor = "ffff3300",
+					showLines = false },
+				["Skeech Totem"] = {
+					header = "Skeech Totem",
+					module = "War of the Wilds",
+					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
+					showLines = false },
+				cowPolice = {
+					header = "Police",
+					module = "Crimelords of Whitevale",
+					icon = "PerspectiveSprites:Circle-Outline",
+					showLines = false,
+					showName = false,
+					showDistance = false,
+					iconColor = "ff00ff00" },
+			},
+			markers = {
+				quest = {
+					header = "Quest",
+					icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
+					iconHeight = 64,
+					iconWidth = 64,
+					font = "CRB_Pixel_O",
+					fontColor = "ffffffff",
+					maxPer = 1,
+					inAreaRange = 100,
+				},
+				path = {
+					header = "Path",
+					soldierIcon = "CRB_PlayerPathSprites:spr_Path_Solider_Stretch",
+					settlerIcon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+					explorerIcon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
+					scientistIcon ="CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+					iconHeight = 64,
+					iconWidth = 64,
+					font = "CRB_Pixel_O",
+					fontColor = "ffffffff",
+					maxPer = 1,
+				},
+				event = {
+					header = "Event",
+					icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
+					iconHeight = 64,
+					iconWidth = 64,
+					font = "CRB_Pixel_O",
+					fontColor = "ffffffff",
+					maxPer = 1,
+					inAreaRange = 100,
+				},	
+			},
+			blacklist = {},
+		},
 		settings = { 
 			disabled = false,
 			max = 10,
@@ -14,9 +502,24 @@ local defaults = {
 			fastTimer = 100,
 			--skillRange = 15,
 		},
+		names = {
+			["Return Teleporter"]				= { category = "instancePortal" },
+			["Bruxen"]							= { category = "instancePortal",	display = "Ship to Thayd" },
+			["Gus Oakby"]						= { category = "instancePortal",	display = "Ship to Crimson Badlands" },
+			["Lilly Startaker"]					= { category = "instancePortal",	display = "Ship to Grimvault" },
+			["Transportation Expert Conner"]	= { category = "instancePortal",	display = "Ship to Farside" },
+			["Warrant Officer Burke"]			= { category = "instancePortal",	display = "Ship to Whitevale" },
+			["Empirius"]						= { category = "wotwChampion" },
+			["Sagittaurus"]						= { category = "wotwChampion" },
+			["Lectro"]							= { category = "wotwChampion" },
+			["Krule"]							= { category = "wotwChampion" },
+			["Zappo"]							= { category = "wotwChampion" },
+			["Ignacio"]							= { category = "wotwChampion" },
+			["Police Patrolman"]				= { category = "cowPolice" },
+			["Police Constable"]				= { category = "cowPolice" }
+		},
 		categories = {
 			default = {
-				order = 0,
 				disabled = false,
 				disableInCombat = false,
 				disableOccluded = false,
@@ -45,14 +548,14 @@ local defaults = {
 				rangeIcon = false,
 				rangeFont = false,
 				rangeLine = false,
-				rangeLimit = 15,
-			},
+				rangeLimit = 15	},
 			all = {
-				header = "Set All"
-			},
+				header = "Set All", 
+				module = "All" },
 			target = {
-				disabled = true,
 				header = "Target",
+				module = "Misc",
+				disabled = true,				
 				lineColor = "ffff00ff",
 				iconColor = "ffff00ff",
 				icon = "PerspectiveSprites:Circle-Outline",
@@ -62,10 +565,10 @@ local defaults = {
 				iconWidth = 24,
 				rangeColor = "ffffccff",
 				rangeLine = true,
-				rangeIcon = true,
-			},
+				rangeIcon = true },
 			group = {
-				header = "Player - Party",
+				header = "Group",
+				module = "Player",
 				fontColor = "ff7482c1",
 				lineColor = "ff7482c1",
 				iconColor = "ff7482c1",
@@ -77,18 +580,18 @@ local defaults = {
 				rangeColor = "ff00ff00",
 				rangeIcon = true,
 				rangeLine = true,
-				rangeFont = true,
-			},
+				rangeFont = true },
 			guild = {
-				header = "Player - Guild",
+				header = "Guild",
+				module = "Player",
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
 				iconColor = "ff00ff00",
 				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
-				showLines = false,
-			},
+				showLines = false },
 			friendly = {
-				header = "NPC - Friendly Normal",
+				header = "Friendly Normal",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
@@ -99,10 +602,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 8,
-				iconWidth = 8
-			},	
+				iconWidth = 8 },	
 			friendlyPrime = {
-				header = "NPC - Friendly Prime",
+				header = "Friendly Prime",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
@@ -113,10 +616,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 16,
-				iconWidth = 16
-			},	
+				iconWidth = 16 },	
 			friendlyElite = {
-				header = "NPC - Friendly Elite",
+				header = "Friendly Elite",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ff00ff00",
 				lineColor = "ff00ff00",
@@ -127,10 +630,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 32,
-				iconWidth = 32
-			},
+				iconWidth = 32 },
 			neutral = {
-				header = "NPC - Neutral Normal",
+				header = "Neutral Normal",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ffffff00",
 				lineColor = "ffffff00",
@@ -141,10 +644,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 8,
-				iconWidth = 8
-			},	
+				iconWidth = 8 },	
 			neutralPrime = {
-				header = "NPC - Neutral Prime",
+				header = "Neutral Prime",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ffffff00",
 				lineColor = "ffffff00",
@@ -155,10 +658,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 16,
-				iconWidth = 16
-			},	
+				iconWidth = 16 },	
 			neutralElite = {
-				header = "NPC - Neutral Elite",
+				header = "Neutral Elite",
+				module = "NPC",
 				disabled = true,
 				fontColor = "ffffff00",
 				lineColor = "ffffff00",
@@ -169,10 +672,10 @@ local defaults = {
 				showDistance = false,
 				max = 10,
 				iconHeight = 32,
-				iconWidth = 32
-			},	
+				iconWidth = 32 },	
 			hostile = {
-				header = "NPC - Hostile Normal",
+				header = "Hostile Normal",
+				module = "NPC",
 				fontColor = "ffff0000",
 				lineColor = "ffff0000",
 				iconColor = "ffff0000",
@@ -184,10 +687,10 @@ local defaults = {
 				iconHeight = 8,
 				iconWidth = 8,
 				rangeIcon = true,
-				rangeColor = "ffff00ff"
-			},
+				rangeColor = "ffff00ff"	},
 			hostilePrime = {
-				header = "NPC - Hostile Prime",
+				header = "Hostile Prime",
+				module = "NPC",
 				fontColor = "ffff0000",
 				lineColor = "ffff0000",
 				iconColor = "ffff0000",
@@ -199,10 +702,10 @@ local defaults = {
 				iconHeight = 16,
 				iconWidth = 16,
 				rangeIcon = true,
-				rangeColor = "ffff00ff"
-			},
+				rangeColor = "ffff00ff"	},
 			hostileElite = {
-				header = "NPC - Hostile Elite",
+				header = "Hostile Elite",
+				module = "NPC",
 				fontColor = "ffff0000",
 				lineColor = "ffff0000",
 				iconColor = "ffff0000",
@@ -214,301 +717,232 @@ local defaults = {
 				iconHeight = 32,
 				iconWidth = 32,
 				rangeIcon = true,
-				rangeColor = "ffff00ff"
-			},
+				rangeColor = "ffff00ff"	},
 			questObjective = {
-				header = "Quest - Objective",
+				header = "Objective",
+				module = "Quest",
 				icon = "PerspectiveSprites:QuestObjective",
 				max = 3,
 				limitBy = "category",
-				lineColor = "ffff8000",
-			},
+				lineColor = "ffff8000" },
 			questNew = {
-				header = "Quest - Start",
+				header = "Start",
+				module = "Quest",
 				icon = "ClientSprites:MiniMapNewQuest",
-				lineColor = "ff00ff00",
-			},
+				lineColor = "ff00ff00" },
 			questTalkTo = {
-				header = "Quest - Talk To",
+				header = "Talk To",
+				module = "Quest",
 				icon = "IconSprites:Icon_MapNode_Map_Chat",
 				iconColor = "ffff8000",
-				lineColor = "ffff8000",
-			},
+				lineColor = "ffff8000" },
 			questReward = {
-				header = "Quest - Complete",
+				header = "Complete",
+				module = "Quest",
 				icon = "IconSprites:Icon_MapNode_Map_Checkmark",
-				lineColor = "ff00ff00",
-			},			
+				lineColor = "ff00ff00" },			
 			challenge = {
-				header = "Challenge Objective",
+				header = "Objective",
+				module = "Challenge",
 				icon = "PerspectiveSprites:QuestObjective",
 				lineColor = "ffff0000",
-				iconColor = "ffff0000",
-			},
+				iconColor = "ffff0000" },
 			farmer = {
-				header = "Harvest - Farmer",
+				header = "Farmer",
+				module = "Harvest",
 				max = 5,
 				fontColor = "ffffff00",
 				icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
-				lineColor = "ffffff00",
-			},
+				lineColor = "ffffff00" },
 			miner = {
-				header = "Harvest - Mine",
+				header = "Mine",
+				module = "Harvest",
 				max = 5,
 				fontColor = "ff0078ce",
 				icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
-				lineColor = "ff0078ce",
-			},
+				lineColor = "ff0078ce" },
 			relichunter = {
-				header = "Harvest - Relic Hunter",
+				header = "Relic Hunter",
+				module = "Harvest",
 				max = 5,
 				fontColor = "ffff7fed",
 				icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
-				lineColor = "ffff7fed",
-			},
+				lineColor = "ffff7fed" },
 			survivalist = {
-				header = "Harvest - Survivalist",
+				header = "Survivalist",
+				module = "Harvest",
 				max = 5,
 				fontColor = "ffce9967",
 				icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
-				lineColor = "ffce9967",
-			},
+				lineColor = "ffce9967" },
 			flightPath = {
 				header = "Flight Path",
+				module = "Travel",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Taxi",
-				showLines = false,
-			},
+				showLines = false },
 			instancePortal = {
-				header = "Instance Portal",
+				header = "Portal",
+				module = "Travel",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
+				showLines = false },
 			bindPoint = {
 				header = "Bind Point",
+				module = "Travel",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Gate",
-				showLines = false,
-			},
+				showLines = false },
 			marketplace = {
-				header = "Town - Commodities Exchange",
+				header = "Commodities Exchange",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
-				showLines = false,
-			},
+				showLines = false },
 			auctionHouse = {
-				header = "Town - Auction House",
+				header = "Auction House",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
-				showLines = false,
-			},
+				showLines = false },
 			mailBox = {
-				header = "Town - Mailbox",
+				header = "Mailbox",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Mailbox",
-				showLines = false,
-			},
+				showLines = false },
 			vendor = {
-				header = "Town - Vendor",
+				header = "Vendor",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Vendor",
-				showLines = false,
-			},
+				showLines = false },
 			craftingStation = {
-				header = "Town - Crafting Station",
+				header = "Crafting Station",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
-				showLines = false,
-			},
+				showLines = false },
 			tradeskillTrainer = {
-				header = "Town - Tradeskill Trainer",
+				header = "Tradeskill Trainer",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Trainer",
-				showLines = false,
-			},
+				showLines = false },
 			dye = {
-				header = "Town - Appearance Modifier",
+				header = "Appearance Modifier",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
-				showLines = false,
-			},
+				showLines = false },
 			bank = {
-				header = "Town - Bank",
+				header = "Bank",
+				module = "Town",
 				fontColor = "ffabf8cb",
 				icon = "IconSprites:Icon_MapNode_Map_Bank",
-				showLines = false,
-			},
+				showLines = false },
 			dungeon = {
 				header = "Dungeon",
+				module = "Travel",
 				fontColor = "ff00ffff",
 				icon = "IconSprites:Icon_MapNode_Map_Dungeon",
-				showLines = false,
-			},
+				showLines = false },
 			lore = {
 				header = "Lore",
+				module = "Misc",
 				fontColor  = "ff7abcff",
 				icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
 				lineColor = "ff7abcff",
 				showLines = true,
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			scientist = {
-				header = "Path - Scientist",
+				header = "Scientist",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
 				showLines = false,
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			scientistScans = {
-				header = "Path - Scientist Scans",
+				header = "Scientist Scans",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 				lineColor = "ffc759ff",
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			solider = {
-				header = "Path - Soldier",
+				header = "Soldier",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
 				lineColor = "ffc759ff",
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			settler = {
-				header = "Path - Settler",
+				header = "Settler",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 				lineColor = "ffc759ff",
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			settlerResources = {
-				header = "Path - Settler Resources",
+				header = "Settler Resources",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 				lineColor = "ffc759ff",
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			explorer = {
-				header = "Path - Explorer",
+				header = "Explorer",
+				module = "Path",
 				fontColor = "ffc759ff",
 				icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
 				lineColor = "ffc759ff",
-				maxLines = 1,
-			},
+				maxLines = 1 },
 			questLoot = {
-				header = "Quest - Loot",
+				header = "Loot",
+				module = "Quest",
 				icon = "ClientSprites:GroupLootIcon",
 				showLines = false,
 				iconWidth = 32,
-				iconHeight = 32,
-			},
+				iconHeight = 32 },
 			subdue = {
-				header = "Subdue - Weapon",
+				header = "Weapon",
+				module = "Misc",
 				lineColor = "ffff8000",
 				iconColor = "ffff8000",
 				icon = "ClientSprites:GroupWarriorIcon",
 				lineWidth = 10,
 				iconHeight = 32,
-				iconWidth = 32
-			},
-			["Bruxen"] = {
-				header = "Crimson Badlands - Thayd Portal",
-				display = "Ship to Thayd",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
-			["Gus Oakby"] = {
-				header = "Thayd - Crimson Badlands Portal",
-				display = "Ship to Crimson Badlands",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
-			["Lilly Startaker"] = {
-				header = "Thayd - Grimvault Portal",
-				display = "Ship to Grimvault",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
-			["Transportation Expert Conner"] = {
-				header = "Thayd - Farside Portal",
-				display = "Ship to Farside",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
-			["Warrant Officer Burke"] = {
-				header = "Thayd - Whitevale Portal",
-				display = "Ship to Whitevale",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false,
-			},
-			["Empirius"] = {
-				header = "War of the Wilds - Empirius",
+				iconWidth = 32 },
+			wotwChampion = {
+				header = "Enemy Champion",
+				module = "War of the Wilds",
 				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			},
-			["Sagittaurus"] = {
-				header = "War of the Wilds - Sagittaurus",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			}, 
-			["Lectro"] = {
-				header = "War of the Wilds - Lectro",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			},
-			["Krule"] = {
-				header = "War of the Wilds - Krule",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			},
-			["Zappo"] = {
-				header = "War of the Wilds - Zappo",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			},
-			["Ignacio"] = {
-				header = "War of the Wilds - Ignacio",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false,
-			},
+				showLines = false },
 			["Energy Node"] = {
-				header = "War of the Wilds - Energy Node",
+				header = "Energy Node",
+				module = "War of the Wilds",
 				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
-				showLines = false,
-			},
+				showLines = false },
 			["Moodie Totem"] = {
-				header = "War of the Wilds - Moodie Totem",
+				header = "Moodie Totem",
+				module = "War of the Wilds",
 				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
 				iconColor = "ffff3300",
-				showLines = false,
-			},
+				showLines = false },
 			["Skeech Totem"] = {
-				header = "War of the Wilds - Skeech Totem",
+				header = "Skeech Totem",
+				module = "War of the Wilds",
 				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
-				showLines = false,
-			},
-			["Police Patrolman"] = {
-				header = "Crimelords of Whitevale - Police Patrolman",
+				showLines = false },
+			cowPolice = {
+				header = "Police",
+				module = "Crimelords of Whitevale",
 				icon = "PerspectiveSprites:Circle-Outline",
 				showLines = false,
 				showName = false,
 				showDistance = false,
-				iconColor = "ff00ff00"
-			},
-			["Police Constable"] = {
-				header = "Crimelords of Whitevale - Police Constable",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				iconColor = "ff00ff00"
-			},
+				iconColor = "ff00ff00" },
 		},
 		markers = {
 			quest = {
@@ -557,24 +991,25 @@ function Perspective:new(o)
 end
 
 function Perspective:OnInitialize()
+	Options = GeminiAddon:GetAddon("PerspectiveOptions")
+
 	Apollo.LoadSprites("PerspectiveSprites.xml")
 
 	self.db = Apollo.GetPackage("Gemini:DB-1.0").tPackage:New(self, defaults)
 	
-	self.xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
+	local xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
 
-    self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
-    self.CategoryList = self.Options:FindChild("CategoryList")
-    self.CategoryEditor = self.Options:FindChild("CategoryEditor")
+    --self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
+    --self.CategoryList = self.Options:FindChild("CategoryList"):FindChild("Categories"):FindChild("List")
+    --self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules"):FindChild("List")
 
-    self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
+    --self.CategoryEditor = self.Options:FindChild("CategoryEditor")
 
-	self.Overlay = Apollo.LoadForm(self.xmlDoc, "Overlay", "InWorldHudStratum", self)
+    --self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
+
+	self.Overlay = Apollo.LoadForm(xmlDoc, "Overlay", "InWorldHudStratum", self)
 	self.Overlay:Show(true, true)
 
-	-- Register the slash command	
-	Apollo.RegisterSlashCommand("perspective", "OnShowOptions", self)
-	
 	-- Table containing every unit we currently are aware of
 	self.units = {}
 
@@ -616,8 +1051,7 @@ function Perspective:OnInitialize()
 
 	Apollo.RegisterEventHandler("TargetUnitChanged",				"OnTargetUnitChanged", self)
 	
-	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
-	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
+	
 
 	Apollo.RegisterEventHandler("PublicEventStart", 					"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)
@@ -632,7 +1066,7 @@ function Perspective:OnInitialize()
 end
 
 function Perspective:OnEnable()
-	self:InitializeOptions()
+	--self:InitializeOptions()
 
 	self.fastTimer = ApolloTimer.Create(self.db.profile.settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
 	self.slowTimer = ApolloTimer.Create(self.db.profile.settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
@@ -1035,6 +1469,10 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 				-- target and focus.
 				ui.category = name
 				track = true
+			elseif self.db.profile.names[name] then
+				ui.category = self.db.profile.names[name].category
+				ui.named = name
+				track = true
 			else
 				-- Updates the activation state for the unit and determines if it is busy, if it is
 				-- busy then we do not care for this unit at this time.
@@ -1129,7 +1567,7 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 					-- Unit has never had its options updated or its category has changed, so
 					-- we need to update the options for it.
 					if not ui.loaded or ui.category ~= category then 	
-						self:UpdateOptions(ui)
+						self:UpdateOptions(ui, name)
 					end
 
 					-- Unit is not disabled and we have our options loaded for it, lets categorize it.
@@ -1252,14 +1690,14 @@ function Perspective:UpdateDistance(ui, unit)
 	ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
 end
 
-function Perspective:UpdateOptions(ui)
+function Perspective:UpdateOptions(ui, name)
 
-	local function updateOptions(ui)
+	local function updateOptions(ui, name)
 		for k, v in pairs(self.db.defaults.profile.categories.default) do
-			ui[k] = self:GetOptionValue(ui, k)
+			ui[k] = Options:GetOptionValue(ui, k)
 		end
 
-		--ui.display = self:GetOptionValue(ui, "display")
+		ui.display = ui.named or ui.display
 		
 		ui.loaded = true
 	end
@@ -1270,17 +1708,17 @@ function Perspective:UpdateOptions(ui)
 	else
 		-- Update all the prioritized units
 		for i, ui in pairs(self.prioritized) do
-			updateOptions(ui)
+			updateOptions(ui, name)
 		end
 
 		-- Update all the categorized units
 		for i, ui in pairs(self.categorized) do
-			updateOptions(ui)
+			updateOptions(ui, name)
 		end
 
 		-- Update the remaining units
 		for i, ui in pairs(self.units) do
-			updateOptions(ui)
+			updateOptions(ui, name)
 		end
 	end
 end
@@ -1508,30 +1946,6 @@ function Perspective:MarkerUpdate(marker, vector)
 
 		table.sort(marker.regions, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 	end
-end
-
-
-function Perspective:GetOptionValue(ui, option, category)
-	local category = category or ui.category or "default"
-		-- Get the category option value
-		if self.db.profile.categories[category] and
-			self.db.profile.categories[category][option] ~= nil then
-			return self.db.profile.categories[category][option]
-		-- Failback to the default option value
-		elseif self.db.defaults.profile.categories.default[option] ~= nil then
-			return self.db.defaults.profile.categories.default[option]
-		end
-		
-		return nil
-	--end
-end
-
-function Perspective:OnInterfaceMenuListHasLoaded()
-	Event_FireGenericEvent("InterfaceMenuList_NewAddOn", "Perspective", {"InterfaceMenuClicked", "", "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map"})
-end
-
-function Perspective:OnInterfaceMenuClicked(arg1, arg2, arg3)
-	self.Options:Show(not self.Options:IsShown(), true)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1907,891 +2321,4 @@ function Perspective:GetRewardInfo(ui, unit)
 	end
 	
 	return rewards
-end
-
-
----------------------------------------------------------------------------------------------------
--- UI Functions
----------------------------------------------------------------------------------------------------
-
-function Perspective:OnConfigure()
-	self.Options:Show(true, true)
-end
-
-function Perspective:OnShowOptions()
-	self.Options:Show(true, true)
-end
-
-function Perspective:OnCloseButton()
-	self.Options:Show(false, true)
-end
-
-function Perspective:CColorToString(color)
-	return string.format("FF%02X%02X%02X", 
-		math.floor(color.r * 255 + 0.5), 
-		math.floor(color.g * 255 + 0.5), 
-		math.floor(color.b * 255 + 0.5))
-end
-
-function Perspective:StringToCColor(str)
-	local r, g, b = 0, 0, 0
-	
-	str = string.sub(str, 3)
-
-	local val = tonumber(str, 16)
-
-	if val then
-		r = math.floor(val / 65536) 
-		g = math.floor(val / 256) % 256
-		b = val % 256
-	end
-
-	return CColor.new(r / 255, g / 255, b / 255, 1)
-end
-
-function Perspective:InitializeOptions()
-	if not self.optionsInitialized then
-		-- Load the window position
-		local pos = self.db.profile.position
-
-		if pos ~= nil then
-			self.Options:SetAnchorOffsets(pos.left, pos.top, pos.right, pos.bottom)
-		end
-
-		-- Setup the event handlers for the options window
-		self.Options:AddEventHandler("WindowMoved", 		"OnOptions_AnchorsChanged")
-		self.Options:AddEventHandler("WindowSizeChanged", 	"OnOptions_AnchorsChanged")
-		self.Options:FindChild("NewButton"):AddEventHandler("ButtonSignal",		"OnOptions_NewClicked")
-		self.Options:FindChild("DefaultButton"):AddEventHandler("ButtonSignal",	"OnOptions_DefaultClicked")
-
-		local categories = self.Options:FindChild("CategoriesButton")
-		local markers = self.Options:FindChild("MarkersButton")
-		local blacklist = self.Options:FindChild("BlacklistButton")
-		local settings = self.Options:FindChild("SettingsButton")
-
-		categories:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		categories:AddEventHandler("ButtonUncheck",	"OnOptions_HeaderButtonChecked")
-
-		markers:AddEventHandler("ButtonCheck", 		"OnOptions_HeaderButtonChecked")
-		markers:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
-		blacklist:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		blacklist:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
-		settings:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		settings:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
-		
-
-		self.Options:FindChild("CategoriesButton"):SetCheck(true)
-
-		
-
-		--self:InitializeWindow_EditCategory()
-		self:InitializeWindow_NewCategory()
-
-
-		self.optionsInitialized = true
-
-	end
-
-	local default
-
-	-- Initialize the categories
-	for k, v in pairs(self.db.profile.categories) do
-		v = v or self.db.defaults.profile.categories[k]
-		if k ~= "default" then
-			local categoryItem = self.CategoryList:FindChild("CategoryItem_" .. k)
-
-			self:CategoryItem_Init(k, v.header, v.whitelist, categoryItem)
-		end
-	end
-
-	-- Check to make sure all our items still exist
-	for i, item in pairs(self.CategoryList:GetChildren()) do
-		local category = item:GetData()
-
-		if not self.db.profile.categories[category] then
-			item:Destroy()
-		end
-	end
-
-	-- Initialize the category editor
-	self.CategoryEditor:FindChild("Back"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
-
-	-- Initialize the settings 
-	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
-	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")	
-
-	self:CategoryItems_Arrange()
-end
-
-function Perspective:CategoryItem_Init(category, header, whitelist, item)
-	local button
-	--local data = { category = category, header = header }
-
-	if not item then
-		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.CategoryList, self)
-		item:SetName("CategoryItem_" .. category)
-		item:SetData(category)
-
-		button = item:FindChild("Button")
-		button:SetData(category)
-		button:AddEventHandler("ButtonSignal", "CategoryItem_Clicked")
-	end
-
-	local icon = button:GetPixieInfo(1)
-	icon.strSprite = self.db.profile.categories[category].icon or self.db.profile.categories.default.icon
-	icon.cr = self.db.profile.categories[category].iconColor or self.db.profile.categories.default.iconColor
-	button:UpdatePixie(1, icon)
-
-	local text= button:GetPixieInfo(2)
-	text.strText = header
-	text.flagsText = { DT_VCENTER = true }
-	button:UpdatePixie(2, text)
-
-	return item
-end
-
-function Perspective:CategoryItem_Clicked(handler, control, button)
-	-- Show the category editor.
-	self:CategoryEditor_Show(control:GetData())
-end
-
-function Perspective:CategoryEditor_Show(category)
-
-	local function loadCheck(name, category, option)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Check")
-
-		-- Set the check value.
-		control:SetCheck(self:GetOptionValue(nil, option, category))
-
-		-- Make sure we haven't already set the event handlers
-		if not control:GetData() then
-			--Setup the event handlers
-			control:AddEventHandler("ButtonCheck", 		"CategoryEditor_OnChecked")
-			control:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnChecked")	
-		end
-
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option })
-	end
-
-	local function loadText(name, category, option, isNumber)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Text")
-
-		-- Set the text value.
-		control:SetText(self:GetOptionValue(nil,  option, category) or "")
-
-		-- Make sure we haven't already set the event handlers
-		if not control:GetData() then
-			--Setup the event handlers
-			control:AddEventHandler("EditBoxReturn", 	"CategoryEditor_OnReturn")
-			control:AddEventHandler("EditBoxTab", 		"CategoryEditor_OnReturn")
-			control:AddEventHandler("EditBoxEscape", 	"CategoryEditor_OnEscape")
-		end
-		
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option, isNumber = isNumber })
-	end
-
-	local function loadDropDown(name, category, option)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "DropDownButton")
-
-		-- Get the menu associated with the control
-		local menu = self.CategoryEditor:FindChild(name .. "DropDownMenu")
-
-		-- Set the control value.
-		control:SetText(self:GetOptionValue(nil, option, category))
-
-		-- Make sure we haven't already set the event handlers
-		if not control:GetData() then
-			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnDropDown")
-
-			for k, v in pairs(menu:GetChildren()) do
-				v:AddEventHandler("ButtonCheck", 	"CategoryEditor_OnDropDownItem")
-				v:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnDropDownItem")
-			end
-		end
-
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option, menu = menu })
-
-		-- Set the data for the menu.
-		menu:SetData({ button = control })
-	end
-
-	local function loadColor(name, category, option)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Button")
-
-		-- Get the color for the control
-		local color =  self:GetOptionValue(nil, option, category)
-
-		-- Set the color for the control
-		control:SetBGColor(color)
-			
-		-- Makre sure we haven't already set the event handlers
-		if not control:GetData() then
-			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnColorClick")
-		end
-
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option, color = color })
-	end
-
-	local header = 	self:GetOptionValue(nil, "header", 		category)
-	local icon = 	self:GetOptionValue(nil, "icon", 		category)
-	local color = 	self:GetOptionValue(nil, "iconColor", 	category)
-
-	self.CategoryEditor:FindChild("Category"):SetText(header)
-	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
-	self.CategoryEditor:FindChild("Icon"):SetBGColor(color)
-
-	local whitelist = self:GetOptionValue(nil, "whitelist", category)
-	
-	-- Set the rename text
-	self.CategoryEditor:FindChild("RenameText"):SetText(category)
-	
-	-- Show the rename edit box if this is a whitelist item
-	self.CategoryEditor:FindChild("RenameTextBG"):Show(whitelist, true)
-	
-	-- Show the category name if this is not a whitelist item
-	self.CategoryEditor:FindChild("Category"):Show(not whitelist, true)
-
-	loadCheck("Disable", 			category, "disabled")
-	loadCheck("CombatDisable", 		category, "disableInCombat")
-	loadCheck("ShowIcon", 			category, "showIcon")
-	loadCheck("ShowName", 			category, "showName")
-	loadCheck("ShowDistance", 		category, "showDistance")
-	loadCheck("ShowLines", 			category, "showLines")
-	loadCheck("ShowOutline", 		category, "showLineOutline")
-	loadCheck("ShowOffScreenLine", 	category, "showLinesOffscreen")
-	loadCheck("RangeFont", 			category, "rangeFont")
-	loadCheck("RangeIcon", 			category, "rangeIcon")
-	loadCheck("RangeLine", 			category, "rangeLine")
-
-	loadText("Font", 				category, "font", 			false)
-	loadText("Icon", 				category, "icon", 			false)
-	loadText("IconHeight",			category, "iconHeight", 	true)
-	loadText("IconWidth", 			category, "iconWidth", 		true)
-	loadText("MaxIcons", 			category, "max", 			true)
-	loadText("MaxLines", 			category, "maxLines", 		true)
-	loadText("LineWidth", 			category, "lineWidth", 		true)
-	loadText("ZDistance",			category, "zDistance", 		true)
-	loadText("MinDistance",			category, "minDistance", 	true)
-	loadText("MaxDistance",			category, "maxDistance", 	true)
-	loadText("Display", 			category, "display", 		false)
-	loadText("RangeLimit",			category, "rangeLimit",		true)
-
-	loadColor("FontColor",			category, "fontColor")
-	loadColor("IconColor", 			category, "iconColor")
-	loadColor("LineColor", 			category, "lineColor")
-	loadColor("RangeColor", 		category, "rangeColor")
-
-	loadDropDown("LimitBy",			category, "limitBy")
-
-	self.CategoryList:Show(false, true)
-	self.CategoryEditor:Show(true, true)
-end
-
-function Perspective:CategoryEditor_OnBackClick(handler, control, button)
-	self.CategoryEditor:Show(false, true)
-	self.CategoryList:Show(true, true)
-end
-
-function Perspective:CategoryEditor_OnChecked(handler, control, button)
-	-- Get the control's data
-	local data = control:GetData()
-	
-	-- Get the control's value
-	local val = control:IsChecked()
-
-	-- Check to see if we need to set the value for all categories
-	if data.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][data.option] = val
-		end
-	else
-		self.db.profile.categories[data.category][data.option] = val	
-	end
-
-	-- Update all the ui options.
-	self:UpdateOptions()
-end
-
-function Perspective:CategoryEditor_OnReturn(handler, control)
-	-- Get the control's data
-	local data = control:GetData()
-
-	-- Get the control's value
-	local val = control:GetText()
-
-	-- Check to see if the textbox is expecting a number
-	if data.isNumber then
-		if not tonumber(val) then
-			val = self:GetOptionValue(nil, data.option, data.category)
-		else
-			val = tonumber(val)
-		end
-	end
-
-	-- If the option is blank, load the default setting.
-	if val == "" then 
-		val = self:GetOptionValue(nil, data.option, data.category)
-	end
-
-	-- Check to see if we need to set the value for all categories
-	if data.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][data.option] = val
-		end
-	else
-		self.db.profile.categories[data.category][data.option] = val	
-	end
-
-	-- Update the category list icons.
-	if data.option == "icon" then
-		self:CategoryEditor_UpdateIcon(data.category, "icon")
-	end
-
-	-- Update all the ui options.
-	self:UpdateOptions()
-end
-
-function Perspective:CategoryItem_OnEscape(handler, control)
-	-- Get the control's data
-	local data = control:GetData()
-	
-	-- Load the previous value
-	control:SetText(self:GetOptionValue(nil, data.option, data.category))
-end
-
-function Perspective:CategoryEditor_OnDropDown(handler, control, button)
-	-- Get the control's data.
-	local data = control:GetData()
-
-	-- Set the selected value
-	for k, v in pairs(data.menu:GetChildren()) do
-		if v:GetText() == control:GetText() then
-			v:SetCheck(true)
-		else
-			v:SetCheck(false)
-		end
-	end
-
-	-- Show the menu and bring it to the top
-	data.menu:Show(true, true)--:BringChildToTop(data.menu)
-end
-
-function Perspective:CategoryEditor_OnDropDownItem(handler, control, button)
-	-- Get the data for the control
-	local data = control:GetParent():GetData()
-
-	-- Get the button that called the menu
-	local button = data.button
-
-	-- Get the data for the button
-	data = button:GetData()
-
-	-- Get the text of the selected dropdownmenu button
-	local val = control:GetText()
-
-	-- Update the button text for the caller button
-	button:SetText(val)
-
-	-- Hide the dropdownmenu immediately
-	control:GetParent():Show(false, true)
-
-	-- Update the settings.
-	if data.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][data.option] = val
-		end
-	else
-		self.db.profile.categories[data.category][data.option] = val
-	end
-
-	-- Update all the ui options.
-	self:UpdateOptions()
-end
-
-function Perspective:CategoryEditor_OnColorClick(handler, control, button)
-
-	local function setColor(data)
-		-- Convert the color back to str
-		local color = self:CColorToString(self.color)
-		
-		-- Set the control color
-		control:SetBGColor(self.color)
-
-		-- Update the settings
-		if data.category == "all" then
-			for _, category in pairs(self.db.profile.categories) do
-				category[data.option] = color
-			end
-		else
-			self.db.profile.categories[data.category][data.option] = color
-		end
-
-		-- Update the category list icons.
-		if data.option == "iconColor" then
-			self:CategoryEditor_UpdateIcon(data.category, "iconColor")
-		end
-
-		-- Update all the ui options.
-		self:UpdateOptions() 
-	end
-
-	-- Get the data for the control
-	local data = control:GetData()
-
-	-- Convert the color string
-	self.color = self:StringToCColor(data.color)
-
-	-- Show the color picker.
-	if ColorPicker then
-		ColorPicker.AdjustCColor(self.color, false, setColor, data)
-	else
-		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Realm, "This option requires the ColorPicker addon to be installed.")
-	end
-end
-
-function Perspective:CategoryEditor_UpdateIcon(category, type)
-	local function setPixie(category, icon, color)
-		-- Exclude the default category, we dont have a button for it.
-		if category ~= "default" then
-			-- Get our category item button
-			local button  = self.CategoryList:FindChild("CategoryItem_" .. category):FindChild("Button")
-
-			-- Update our icon pixie
-			local pixie = button:GetPixieInfo(1)
-			pixie.strSprite = icon
-			pixie.cr = color
-			button:UpdatePixie(1, pixie)
-		end
-	end
-
-	-- Get the icon and icon color.
-	local icon = self:GetOptionValue(nil, "icon", category)
-	local iconColor = self:GetOptionValue(nil, "iconColor", category)
-
-	-- Update the category editor icon.
-	self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
-	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
-
-	-- Update our icon pixies
-	if category == "all" then
-		for cat, settings in pairs(self.db.profile.categories) do
-			-- Get the icon and icon color.
-			local i = self:GetOptionValue(nil, "icon", cat)
-			local ic = self:GetOptionValue(nil, "iconColor", cat)
-
-			if type == "iconColor" then
-				setPixie(cat, i, iconColor)
-			elseif type == "icon" then
-				setPixie(cat, icon, ic)
-			end
-		end
-	else
-		if type == "iconColor" then
-			setPixie(category, icon, iconColor)
-		elseif type == "icon" then
-			setPixie(category, icon, iconColor)
-		end
-	end
-
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function Perspective:InitializeWindow_NewCategory()
-	-- Setup the event handlers for the newcategory window
-	local ok = self.NewCategory:FindChild("OKButton")
-	local cancel = self.NewCategory:FindChild("CancelButton")
-
-	ok:AddEventHandler("ButtonSignal", 			"OnNewCategory_OKClicked")
-	cancel:AddEventHandler("ButtonSignal",		"OnNewCategory_CancelClicked")
-end
-
-function Perspective:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
-	local slider = self.Options:FindChild(control .. "Slider")
-	local text = self.Options:FindChild(control .. "Text")
-
-	local val = round(self.db.profile.settings[value], numDecimal)
-
-	-- Associate the text control with the slider.
-	slider:SetData({ 
-		text = text, 
-		value = value, 
-		numDecimal = numDecimal, 
-		unit = unit,
-		divBy = divBy,
-		tickFunc = tickFunc 
-	})
-
-	-- Set the slider value.
-	slider:SetValue(val)
-
-	-- Set the text value.
-	text:SetText(val .. " " .. unit)
-
-	-- Set the event handler
-	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
-end
-
-function Perspective:CategoryItems_Arrange()
-	local sort = function (a, b) 
-		a = self:GetOptionValue(nil, "header", a:GetData())
-		b = self:GetOptionValue(nil, "header", b:GetData())
-
-		a = a == "Set All" and " " or a
-		b = b == "Set All" and " " or b
-
-		return a < b
-	end
-
-	self.CategoryList:ArrangeChildrenVert(0, sort)
-end
-
-function Perspective:CategoryItem_Toggle(item)
-	local data = item:GetData()
-
-	if data.expanded then
-		item:SetAnchorOffsets(0, 5, 0, 365)
-		item:FindChild("Content"):Show(true, true)
-	else
-		item:SetAnchorOffsets(0, 5, 0, 53)
-		item:FindChild("Content"):Show(false, true)
-	end
-
-	self:CategoryItems_Arrange()
-end
-
----------------------------------------------------------------------------------------------------
--- Options Events
----------------------------------------------------------------------------------------------------
-
-function Perspective:OnOptions_AnchorsChanged()
-	local l, t, r, b = self.Options:GetAnchorOffsets()
-
-	self.db.profile.position = {
-		left = l,
-		top = t,
-		right = r,
-		bottom = b
-	}
-end
-
-function Perspective:OnOptions_NewClicked(handler, control, button)
-	self.NewCategory:FindChild("NameText"):SetText("")
-	self.NewCategory:FindChild("DisplayText"):SetText("")
-	self.NewCategory:Show(true, true)
-end
-
-function Perspective:OnOptions_DefaultClicked(handler, control, button)
-	self.db:ResetDB()
-
-	self:InitializeOptions()
-
-	self:UpdateOptions()
-end
-
-function Perspective:OnOptions_HeaderButtonChecked(handler, control, button)
-	local panels = {
-		"Categories",
-		"Markers",
-		"Blacklist",
-		"Settings"
-	}
-
-	for k, v in pairs(panels) do
-		if v .. "Button" == control:GetName() then
-			self.Options:FindChild(v):Show(true, true)
-		else
-			self.Options:FindChild(v):Show(false, true)
-		end
-	end
-end
-
----------------------------------------------------------------------------------------------------
--- NewCategory Events
----------------------------------------------------------------------------------------------------
-
-function Perspective:OnNewCategory_OKClicked(handler, control, button)
-	local name = self.NewCategory:FindChild("NameText"):GetText()
-	local display = self.NewCategory:FindChild("DisplayText"):GetText()
-
-	if display == "" then
-		display = nil
-	end
-
-	self.db.profile.categories[name] = self.db.profile.categories[name] or {
-		header = "Unit Name - " .. name,
-		whitelist = true,
-		display = display
-	}
-
-	self:CategoryItem_Init(name, "Unit Name - " .. name, true)
-
-	self:CategoryItems_Arrange()
-
-	self.NewCategory:Show(false, true)
-end
-
-function Perspective:OnNewCategory_CancelClicked(handler, control, button)
-	self.NewCategory:Show(false, true)
-end
-
----------------------------------------------------------------------------------------------------
--- CategoryItem Events
----------------------------------------------------------------------------------------------------
-
-function Perspective:OnCategoryItem_HeaderClicked(handler, control, button)
-	local parent = control:GetParent():GetParent()
-
-	local data = parent:GetData()
-
-	data.expanded = not data.expanded
-
-	parent:SetData(data)
-
-	self:CategoryItem_Toggle(parent)
-
-	-- Update the checkbox
-	parent:FindChild("HeaderCheck"):SetCheck(data.expanded)
-end
-
-function Perspective:OnCategoryItem_HeaderChecked(handler, control, button)
-	local parent = control:GetParent():GetParent()
-
-	local data = parent:GetData()
-
-	data.expanded = not data.expanded
-
-	parent:SetData(data)
-
-	self:CategoryItem_Toggle(parent)
-end
-
-function Perspective:OnCategoryItem_DeleteClicked(handler, control, button)
-
-	local item = control:GetData().item
-	local args = item:GetData()
-
-	self.db.profile.categories[args.category] = nil
-
-	item:Destroy()
-
-	self:CategoryItems_Arrange()
-
-end
-
-function Perspective:OnCategoryItem_DefaultClicked(handler, control, button)
-
-	local item = control:GetData().item
-	local args = item:GetData()
-
-	if self.db.defaults.profile.categories[args.category] then
-		self.db.profile.categories[args.category] = self.db.defaults.profile.categories[args.category]
-	else
-		self.db.profile.categories[args.category] = self.db.defaults.profile.categories.default
-	end
-
-	if args.whitelist then
-		self.db.profile.categories[args.category].header = "Unit - " .. args.category
-		self.db.profile.categories[args.category].whitelist = true
-	end
-
-	self:CategoryItem_Init(args.category, header, whitelist, item)
-
-	self:UpdateOptions()
-
-end
-
-function Perspective:OnCategoryItem_DropDownButtonClicked(handler, control, button)
-	local args = control:GetData()
-
-	for k, v in pairs(args.menu:GetChildren()) do
-		if v:GetText() == control:GetText() then
-			v:SetCheck(true)
-		else
-			v:SetCheck(false)
-		end
-	end
-
-	args.menu:Show(true, true)
-	self.Options:BringChildToTop(args.menu)
-end
-
-function Perspective:OnCategoryItem_DropDownItemButtonChecked(handler, control, button)
-	-- Get the args for the dropdownmenu
-	local args = control:GetParent():GetData()
-
-	-- Get the button that called the menu
-	local button = args.button
-
-	-- Get the args for the button
-	args = button:GetData()
-
-	-- Get the text of the selected dropdownmenu button
-	local val = control:GetText()
-
-	-- Update the button text for the caller button
-	button:SetText(val)
-
-	-- Hide the dropdownmenu immediately
-	control:GetParent():Show(false, true)
-
-	-- Update the settings.
-	if args.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][args.value] = val
-		end
-
-		self:InitializeOptions()
-	else
-		self.db.profile.categories[args.category][args.value] = val
-	end
-
-	-- Update all the ui options.
-	self:UpdateOptions()
-end
-
-
-function Perspective:CategoryItem_OnReturn(handler, control)
-	local args = control:GetData()
-
-	local val = control:GetText()
-
-	if args.number then
-		if not tonumber(val) then
-			val = self:GetOptionValue(nil, args.value, args.category)
-		else
-			val = tonumber(val)
-		end
-	else
-		if args.value == "limitBy" then
-			val = string.lower(val)
-			if val ~= "nil" and
-				val ~= "quest" and
-				val ~= "challenge" and
-				val ~= "category" then
-				val = self:GetOptionValue(nil, args.value, args.category)
-			end
-		end
-	end
-
-	control:SetText(val)
-
-	if val == "nil" then 
-		val = nil 
-	end
-
-	self.db.profile.categories[args.category][args.value] = val	
-
-	if args.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			self.db.profile.categories[k][args.value] = val
-		end
-
-		self:InitializeOptions()
-	elseif args.value == "icon" then
-		args.item:FindChild("HeaderIcon"):SetSprite(val)	
-	end
-
-	self:UpdateOptions()
-end
-
-function Perspective:CategoryItem_OnEscape(handler, control)
-	local args = control:GetData()
-	
-	local val = self:GetOptionValue(nil, args.value, args.category)
-
-	control:SetText(val)
-end
-
-function Perspective:CategoryItem_OnColorClick(handler, control, button)
-	local data = control:GetData()
-
-  	--GeminiColor:ShowColorPicker(self, "CategoryItem_OnColorSet", true, args.color, control)
-  	ColorPicker.AdjustCColor(data.color, false, setColor, data)
-end
-
-function Perspective:CategoryItem_OnColorSet(color, ...)
-	local control = arg[1]
-	local args = control:GetData()
-
-	control:SetBGColor(color)
-	self.db.profile.categories[args.category][args.value] = color
-
-	if args.category == "all" then
-		for k, v in pairs(self.db.profile.categories) do
-			v[args.value] = color
-		end
-
-		self:InitializeOptions()
-	elseif args.value == "iconColor" then
-		args.item:FindChild("HeaderIcon"):SetBGColor(color)
-	end
-		
-	self:UpdateOptions()
-end
-
----------------------------------------------------------------------------------------------------
--- Settings Events
----------------------------------------------------------------------------------------------------
-
-function Perspective:SettingsTimer_OnChanged(handler, control, button)
-	local args = control:GetData()
-
-	local val = round(control:GetValue(), args.numDecimal)
-
-	args.text:SetText(val .. " " .. args.unit)
-
-	self.db.profile.settings[args.value] = val
-
-	self[args.value]:Set(val / args.divBy, true, args.tickFunc, self)
-end
-
-
-
-
-
-
-
-function round(num, idp)
-
-	if idp and idp > 0 then
-
-		local mult = 10 ^ idp
-
-		return math.floor(num * mult + 0.5) / mult
-
-	end
-
-	return math.floor(num + 0.5)
-
 end

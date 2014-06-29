@@ -1,6 +1,5 @@
 --[[ TODO: 
 		Set All does not properly work
-		Defaults does not work
 		New Category
 		New Module
 		Set Category to Module
@@ -686,6 +685,12 @@ function PerspectiveOptions:ArrangeChildren(window, type)
 end
 
 function PerspectiveOptions:InitializeOptions()
+
+	-- Options header buttons
+	local categories = self.Options:FindChild("CategoriesButton")
+	local settings = self.Options:FindChild("SettingsButton")
+
+	-- Only run these actions on the first initialize
 	if not self.initialized then
 		-- Load the window position
 		local pos = self.db.profile.position
@@ -700,66 +705,56 @@ function PerspectiveOptions:InitializeOptions()
 		self.Options:FindChild("NewButton"):AddEventHandler("ButtonSignal",		"OnOptions_NewClicked")
 		self.Options:FindChild("DefaultButton"):AddEventHandler("ButtonSignal",	"OnOptions_DefaultClicked")
 
-		local categories = self.Options:FindChild("CategoriesButton")
-		local markers = self.Options:FindChild("MarkersButton")
-		local blacklist = self.Options:FindChild("BlacklistButton")
-		local settings = self.Options:FindChild("SettingsButton")
 
 		categories:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
 		categories:AddEventHandler("ButtonUncheck",	"OnOptions_HeaderButtonChecked")
 
-		markers:AddEventHandler("ButtonCheck", 		"OnOptions_HeaderButtonChecked")
-		markers:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
-		blacklist:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		blacklist:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
 		settings:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
 		settings:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
 
-		self.Options:FindChild("CategoriesButton"):SetCheck(true)
+		-- Initialize the category editor
+		self.CategoryEditor:FindChild("Back"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
 
-		--self:InitializeWindow_NewCategory()
-
-
-		self.initialized = true
-
+		-- Set the categories header button as checked.
+		categories:SetCheck(true)
 	end
-
-	local default
 
 	-- Initialize the categories
 	for category, cat in pairs(self.db.profile[self.profile].categories) do
 		if category ~= "default" then
+			-- Create the category buttons
 			self:CategoryItem_Init(category, cat.module)
+
+			-- Create the module buttons
 			self:ModuleItem_Init(category, cat.module)
 		end
 	end
 
 	-- Check to make sure all our items still exist
 	for i, item in pairs(self.CategoryList:GetChildren()) do
-		local category = item:GetData().category
-
-		if not self.db.profile[self.profile].categories[category] then
+		if not self.db.profile[self.profile].categories[item:GetData().category] then
 			item:Destroy()
 		end
 	end
-
-	-- Initialize the category editor
-	self.CategoryEditor:FindChild("Back"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
 
 	-- Initialize the settings 
 	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
 	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
 	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")	
 
+	-- Sort the lists.
 	self:ArrangeChildren(self.CategoryList)
 	self:ArrangeChildren(self.ModuleList)
 
-	-- Set the All module as the selected module
-	self.module = L["All"]
+	if not self.initialized then
+		-- Set the All module as the selected module
+		self.module = L["All"]
+		-- Set the module button as checked.
+		self.ModuleList:FindChild("ModuleItem_" .. self.module):FindChild("Button"):SetCheck(true)
+	end
 
-	self.ModuleList:FindChild("ModuleItem_" .. self.module):FindChild("Button"):SetCheck(true)
+	-- Let the addon know we are now fully initialized.
+	self.initialized = true
 end
 
 function PerspectiveOptions:ModuleItem_Init(category, module)
@@ -827,9 +822,10 @@ function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
 end
 
 function PerspectiveOptions:CategoryItem_Init(category, module)
-	local button
-
+	
 	local item = self.CategoryList:FindChild("CategoryItem_" .. category)
+
+	local button
 
 	if not item then
 		-- Create a new category item.
@@ -851,6 +847,8 @@ function PerspectiveOptions:CategoryItem_Init(category, module)
 		button = item:FindChild("Button")
 		button:SetData(category)
 		button:AddEventHandler("ButtonSignal", "CategoryItem_Clicked")
+	else
+		button = item:FindChild("Button")
 	end
 
 	local icon = button:GetPixieInfo(1)
@@ -1316,7 +1314,6 @@ function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
 	self.db:ResetDB()
 
 	self:InitializeOptions()
-	Print("TODO: Update the options winow with defaults, currently requires a /reloadui.")
 
 	Perspective:UpdateOptions()
 end

@@ -1734,7 +1734,8 @@ function Perspective:MarkersDraw()
 			local uPos = GameLib.WorldLocToScreenPoint(region.vector)
 
 			-- Make sure the point is onscreen and in front of us.
-			if marks < marker.max and
+			if not marker.disabled and
+				marks < marker.max and
 				uPos.z > 0 and
 				not region.inArea then
 				self.Overlay:AddPixie({
@@ -1835,6 +1836,7 @@ function Perspective:MarkerEventUpdate(event)
 			name = event:GetName(),
 			type = "event",
 			regions = {},
+			disabled = Options:GetOptionValue(nil, "disabled", "eventLocation"),
 			icon = Options:GetOptionValue(nil, "icon", "eventLocation"),
 			iconColor = Options:GetOptionValue(nil, "iconColor", "eventLocation"),
 			iconWidth = Options:GetOptionValue(nil, "iconWidth", "eventLocation"),
@@ -1866,6 +1868,7 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 				type = "path",
 				regions = {},
 				mission = mission,
+				disabled = Options:GetOptionValue(nil, "disabled", "pathLocation"),
 				icon = Options:GetOptionValue(nil, "icon", "pathLocation"),
 				iconColor = Options:GetOptionValue(nil, "iconColor", "pathLocation"),
 				iconWidth = Options:GetOptionValue(nil, "iconWidth", "pathLocation"),
@@ -1899,6 +1902,7 @@ function Perspective:MarkerQuestUpdate(quest)
 		  		name = quest:GetTitle(),
 		  		type = "quest",
 		  		regions = {},
+		  		disabled = Options:GetOptionValue(nil, "disabled", "questLocation"),
 		  		icon = Options:GetOptionValue(nil, "icon", "questLocation"),
 				iconColor = Options:GetOptionValue(nil, "iconColor", "questLocation"),
 				iconWidth = Options:GetOptionValue(nil, "iconWidth", "questLocation"),

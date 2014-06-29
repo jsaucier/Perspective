@@ -770,7 +770,7 @@ function PerspectiveOptions:ModuleItem_Init(category, module)
 		item:SetName("ModuleItem_" .. module)
 
 		-- Get the sortBy value.
-		local sortBy = module == "All" and "_first" or module
+		local sortBy = module == L["All"] and "_first" or module
 
 		-- Set the data for the item.
 		item:SetData({ module = module, sortValue = sortBy })
@@ -799,7 +799,7 @@ function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
 		local m = item:GetData().module
 
 		-- If the module matches or we are showing all, then show the item, otherwise hide it.
-		if m == module or module == "All" or m == "All" then
+		if m == module or module == L["All"] or m == L["All"] then
 			item:Show(true, true)
 		else
 			item:Show(false, true)

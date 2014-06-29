@@ -755,6 +755,11 @@ function PerspectiveOptions:InitializeOptions()
 
 	self:ArrangeChildren(self.CategoryList)
 	self:ArrangeChildren(self.ModuleList)
+
+	-- Set the All module as the selected module
+	self.module = L["All"]
+
+	self.ModuleList:FindChild("ModuleItem_" .. self.module):FindChild("Button"):SetCheck(true)
 end
 
 function PerspectiveOptions:ModuleItem_Init(category, module)

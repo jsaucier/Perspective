@@ -1,986 +1,12 @@
 require "Window"
 require "GameLib"
 require "Apollo"
+
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
 local Perspective = GeminiAddon:NewAddon("Perspective")
 
 local Options
-
-local defaults = {
-	profile = {
-		default = {
-			settings = { 
-				disabled = false,
-				max = 10,
-				drawTimer = 30,
-				slowTimer = 1,
-				fastTimer = 100 },
-			names = {
-				["Return Teleporter"]				= { category = "instancePortal" },
-				["Bruxen"]							= { category = "instancePortal",	display = "Ship to Thayd" },
-				["Gus Oakby"]						= { category = "instancePortal",	display = "Ship to Crimson Badlands" },
-				["Lilly Startaker"]					= { category = "instancePortal",	display = "Ship to Grimvault" },
-				["Transportation Expert Conner"]	= { category = "instancePortal",	display = "Ship to Farside" },
-				["Warrant Officer Burke"]			= { category = "instancePortal",	display = "Ship to Whitevale" },
-				["Empirius"]						= { category = "wotwChampion" },
-				["Sagittaurus"]						= { category = "wotwChampion" },
-				["Lectro"]							= { category = "wotwChampion" },
-				["Krule"]							= { category = "wotwChampion" },
-				["Zappo"]							= { category = "wotwChampion" },
-				["Ignacio"]							= { category = "wotwChampion" },
-				["Police Patrolman"]				= { category = "cowPolice" },
-				["Police Constable"]				= { category = "cowPolice" }
-			},
-			categories = {
-				default = {
-					disabled = false,
-					disableInCombat = false,
-					disableOccluded = false,
-					display = false,
-					font = "CRB_Pixel_O",
-					fontColor = "ffffffff",
-					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
-					iconColor = "ffffffff",
-					iconHeight = 48,
-					iconWidth = 48,
-					limitBy = "category", -- valid options are nil, "name", "category", "quest", "challenge"
-					lineColor = "ffffffff",
-					lineWidth = 2,
-					max = 2,
-					maxLines = 1,
-					minDistance = 0,
-					maxDistance = 9999,
-					zDistance = 9999,
-					showDistance = true,
-					showIcon = true,
-					showName = true,
-					showLineOutline = true,
-					showLines = true,
-					showLinesOffscreen = true,
-					rangeColor = "ffffffff",
-					rangeIcon = false,
-					rangeFont = false,
-					rangeLine = false,
-					rangeLimit = 15	},
-				all = {
-					header = "Set All", 
-					module = "All" },
-				target = {
-					header = "Target",
-					module = "Misc",
-					disabled = true,				
-					lineColor = "ffff00ff",
-					iconColor = "ffff00ff",
-					icon = "PerspectiveSprites:Circle-Outline",
-					maxIcons = 1,
-					maxLines = 1,
-					iconHeight = 24,
-					iconWidth = 24,
-					rangeColor = "ffffccff",
-					rangeLine = true,
-					rangeIcon = true },
-				group = {
-					header = "Group",
-					module = "Player",
-					fontColor = "ff7482c1",
-					lineColor = "ff7482c1",
-					iconColor = "ff7482c1",
-					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
-					showLines = false,
-					maxLines = 4,
-					max = 4,
-					useRange = true,
-					rangeColor = "ff00ff00",
-					rangeIcon = true,
-					rangeLine = true,
-					rangeFont = true },
-				guild = {
-					header = "Guild",
-					module = "Player",
-					fontColor = "ff00ff00",
-					lineColor = "ff00ff00",
-					iconColor = "ff00ff00",
-					icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
-					showLines = false },
-				friendly = {
-					header = "Friendly Normal",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ff00ff00",
-					lineColor = "ff00ff00",
-					iconColor = "ff00ff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 8,
-					iconWidth = 8 },	
-				friendlyPrime = {
-					header = "Friendly Prime",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ff00ff00",
-					lineColor = "ff00ff00",
-					iconColor = "ff00ff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 16,
-					iconWidth = 16 },	
-				friendlyElite = {
-					header = "Friendly Elite",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ff00ff00",
-					lineColor = "ff00ff00",
-					iconColor = "ff00ff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 32,
-					iconWidth = 32 },
-				neutral = {
-					header = "Neutral Normal",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ffffff00",
-					lineColor = "ffffff00",
-					iconColor = "ffffff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 8,
-					iconWidth = 8 },	
-				neutralPrime = {
-					header = "Neutral Prime",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ffffff00",
-					lineColor = "ffffff00",
-					iconColor = "ffffff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 16,
-					iconWidth = 16 },	
-				neutralElite = {
-					header = "Neutral Elite",
-					module = "NPC",
-					disabled = true,
-					fontColor = "ffffff00",
-					lineColor = "ffffff00",
-					iconColor = "ffffff00",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 32,
-					iconWidth = 32 },	
-				hostile = {
-					header = "Hostile Normal",
-					module = "NPC",
-					fontColor = "ffff0000",
-					lineColor = "ffff0000",
-					iconColor = "ffff0000",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 8,
-					iconWidth = 8,
-					rangeIcon = true,
-					rangeColor = "ffff00ff"	},
-				hostilePrime = {
-					header = "Hostile Prime",
-					module = "NPC",
-					fontColor = "ffff0000",
-					lineColor = "ffff0000",
-					iconColor = "ffff0000",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 16,
-					iconWidth = 16,
-					rangeIcon = true,
-					rangeColor = "ffff00ff"	},
-				hostileElite = {
-					header = "Hostile Elite",
-					module = "NPC",
-					fontColor = "ffff0000",
-					lineColor = "ffff0000",
-					iconColor = "ffff0000",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					max = 10,
-					iconHeight = 32,
-					iconWidth = 32,
-					rangeIcon = true,
-					rangeColor = "ffff00ff"	},
-				questObjective = {
-					header = "Objective",
-					module = "Quest",
-					icon = "PerspectiveSprites:QuestObjective",
-					max = 3,
-					limitBy = "category",
-					lineColor = "ffff8000" },
-				questNew = {
-					header = "Start",
-					module = "Quest",
-					icon = "ClientSprites:MiniMapNewQuest",
-					lineColor = "ff00ff00" },
-				questTalkTo = {
-					header = "Talk To",
-					module = "Quest",
-					icon = "IconSprites:Icon_MapNode_Map_Chat",
-					iconColor = "ffff8000",
-					lineColor = "ffff8000" },
-				questReward = {
-					header = "Complete",
-					module = "Quest",
-					icon = "IconSprites:Icon_MapNode_Map_Checkmark",
-					lineColor = "ff00ff00" },			
-				challenge = {
-					header = "Objective",
-					module = "Challenge",
-					icon = "PerspectiveSprites:QuestObjective",
-					lineColor = "ffff0000",
-					iconColor = "ffff0000" },
-				farmer = {
-					header = "Farmer",
-					module = "Harvest",
-					max = 5,
-					fontColor = "ffffff00",
-					icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
-					lineColor = "ffffff00" },
-				miner = {
-					header = "Mine",
-					module = "Harvest",
-					max = 5,
-					fontColor = "ff0078ce",
-					icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
-					lineColor = "ff0078ce" },
-				relichunter = {
-					header = "Relic Hunter",
-					module = "Harvest",
-					max = 5,
-					fontColor = "ffff7fed",
-					icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
-					lineColor = "ffff7fed" },
-				survivalist = {
-					header = "Survivalist",
-					module = "Harvest",
-					max = 5,
-					fontColor = "ffce9967",
-					icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
-					lineColor = "ffce9967" },
-				flightPath = {
-					header = "Flight Path",
-					module = "Travel",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Taxi",
-					showLines = false },
-				instancePortal = {
-					header = "Portal",
-					module = "Travel",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Portal",
-					showLines = false },
-				bindPoint = {
-					header = "Bind Point",
-					module = "Travel",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Gate",
-					showLines = false },
-				marketplace = {
-					header = "Commodities Exchange",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
-					showLines = false },
-				auctionHouse = {
-					header = "Auction House",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
-					showLines = false },
-				mailBox = {
-					header = "Mailbox",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Mailbox",
-					showLines = false },
-				vendor = {
-					header = "Vendor",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Vendor",
-					showLines = false },
-				craftingStation = {
-					header = "Crafting Station",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
-					showLines = false },
-				tradeskillTrainer = {
-					header = "Tradeskill Trainer",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Trainer",
-					showLines = false },
-				dye = {
-					header = "Appearance Modifier",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
-					showLines = false },
-				bank = {
-					header = "Bank",
-					module = "Town",
-					fontColor = "ffabf8cb",
-					icon = "IconSprites:Icon_MapNode_Map_Bank",
-					showLines = false },
-				dungeon = {
-					header = "Dungeon",
-					module = "Travel",
-					fontColor = "ff00ffff",
-					icon = "IconSprites:Icon_MapNode_Map_Dungeon",
-					showLines = false },
-				lore = {
-					header = "Lore",
-					module = "Misc",
-					fontColor  = "ff7abcff",
-					icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
-					lineColor = "ff7abcff",
-					showLines = true,
-					maxLines = 1 },
-				scientist = {
-					header = "Scientist",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-					lineColor = "ffc759ff",
-					showLines = false,
-					maxLines = 1 },
-				scientistScans = {
-					header = "Scientist Scans",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-					lineColor = "ffc759ff",
-					maxLines = 1 },
-				solider = {
-					header = "Soldier",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
-					lineColor = "ffc759ff",
-					maxLines = 1 },
-				settler = {
-					header = "Settler",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-					lineColor = "ffc759ff",
-					maxLines = 1 },
-				settlerResources = {
-					header = "Settler Resources",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-					lineColor = "ffc759ff",
-					maxLines = 1 },
-				explorer = {
-					header = "Explorer",
-					module = "Path",
-					fontColor = "ffc759ff",
-					icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-					lineColor = "ffc759ff",
-					maxLines = 1 },
-				questLoot = {
-					header = "Loot",
-					module = "Quest",
-					icon = "ClientSprites:GroupLootIcon",
-					showLines = false,
-					iconWidth = 32,
-					iconHeight = 32 },
-				subdue = {
-					header = "Weapon",
-					module = "Misc",
-					lineColor = "ffff8000",
-					iconColor = "ffff8000",
-					icon = "ClientSprites:GroupWarriorIcon",
-					lineWidth = 10,
-					iconHeight = 32,
-					iconWidth = 32 },
-				wotwChampion = {
-					header = "Enemy Champion",
-					module = "War of the Wilds",
-					icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-					showLines = false },
-				["Energy Node"] = {
-					header = "Energy Node",
-					module = "War of the Wilds",
-					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
-					showLines = false },
-				["Moodie Totem"] = {
-					header = "Moodie Totem",
-					module = "War of the Wilds",
-					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
-					iconColor = "ffff3300",
-					showLines = false },
-				["Skeech Totem"] = {
-					header = "Skeech Totem",
-					module = "War of the Wilds",
-					icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
-					showLines = false },
-				cowPolice = {
-					header = "Police",
-					module = "Crimelords of Whitevale",
-					icon = "PerspectiveSprites:Circle-Outline",
-					showLines = false,
-					showName = false,
-					showDistance = false,
-					iconColor = "ff00ff00" },
-			},
-			markers = {
-				quest = {
-					header = "Quest",
-					icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
-					iconHeight = 64,
-					iconWidth = 64,
-					font = "CRB_Pixel_O",
-					fontColor = "ffffffff",
-					maxPer = 1,
-					inAreaRange = 100,
-				},
-				path = {
-					header = "Path",
-					soldierIcon = "CRB_PlayerPathSprites:spr_Path_Solider_Stretch",
-					settlerIcon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-					explorerIcon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-					scientistIcon ="CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-					iconHeight = 64,
-					iconWidth = 64,
-					font = "CRB_Pixel_O",
-					fontColor = "ffffffff",
-					maxPer = 1,
-				},
-				event = {
-					header = "Event",
-					icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
-					iconHeight = 64,
-					iconWidth = 64,
-					font = "CRB_Pixel_O",
-					fontColor = "ffffffff",
-					maxPer = 1,
-					inAreaRange = 100,
-				},	
-			},
-			blacklist = {},
-		},
-		settings = { 
-			disabled = false,
-			max = 10,
-			drawTimer = 30,
-			slowTimer = 1,
-			fastTimer = 100,
-			--skillRange = 15,
-		},
-		names = {
-			["Return Teleporter"]				= { category = "instancePortal" },
-			["Bruxen"]							= { category = "instancePortal",	display = "Ship to Thayd" },
-			["Gus Oakby"]						= { category = "instancePortal",	display = "Ship to Crimson Badlands" },
-			["Lilly Startaker"]					= { category = "instancePortal",	display = "Ship to Grimvault" },
-			["Transportation Expert Conner"]	= { category = "instancePortal",	display = "Ship to Farside" },
-			["Warrant Officer Burke"]			= { category = "instancePortal",	display = "Ship to Whitevale" },
-			["Empirius"]						= { category = "wotwChampion" },
-			["Sagittaurus"]						= { category = "wotwChampion" },
-			["Lectro"]							= { category = "wotwChampion" },
-			["Krule"]							= { category = "wotwChampion" },
-			["Zappo"]							= { category = "wotwChampion" },
-			["Ignacio"]							= { category = "wotwChampion" },
-			["Police Patrolman"]				= { category = "cowPolice" },
-			["Police Constable"]				= { category = "cowPolice" }
-		},
-		categories = {
-			default = {
-				disabled = false,
-				disableInCombat = false,
-				disableOccluded = false,
-				display = false,
-				font = "CRB_Pixel_O",
-				fontColor = "ffffffff",
-				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
-				iconColor = "ffffffff",
-				iconHeight = 48,
-				iconWidth = 48,
-				limitBy = "category", -- valid options are nil, "name", "category", "quest", "challenge"
-				lineColor = "ffffffff",
-				lineWidth = 2,
-				max = 2,
-				maxLines = 1,
-				minDistance = 0,
-				maxDistance = 9999,
-				zDistance = 9999,
-				showDistance = true,
-				showIcon = true,
-				showName = true,
-				showLineOutline = true,
-				showLines = true,
-				showLinesOffscreen = true,
-				rangeColor = "ffffffff",
-				rangeIcon = false,
-				rangeFont = false,
-				rangeLine = false,
-				rangeLimit = 15	},
-			all = {
-				header = "Set All", 
-				module = "All" },
-			target = {
-				header = "Target",
-				module = "Misc",
-				disabled = true,				
-				lineColor = "ffff00ff",
-				iconColor = "ffff00ff",
-				icon = "PerspectiveSprites:Circle-Outline",
-				maxIcons = 1,
-				maxLines = 1,
-				iconHeight = 24,
-				iconWidth = 24,
-				rangeColor = "ffffccff",
-				rangeLine = true,
-				rangeIcon = true },
-			group = {
-				header = "Group",
-				module = "Player",
-				fontColor = "ff7482c1",
-				lineColor = "ff7482c1",
-				iconColor = "ff7482c1",
-				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
-				showLines = false,
-				maxLines = 4,
-				max = 4,
-				useRange = true,
-				rangeColor = "ff00ff00",
-				rangeIcon = true,
-				rangeLine = true,
-				rangeFont = true },
-			guild = {
-				header = "Guild",
-				module = "Player",
-				fontColor = "ff00ff00",
-				lineColor = "ff00ff00",
-				iconColor = "ff00ff00",
-				icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
-				showLines = false },
-			friendly = {
-				header = "Friendly Normal",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ff00ff00",
-				lineColor = "ff00ff00",
-				iconColor = "ff00ff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 8,
-				iconWidth = 8 },	
-			friendlyPrime = {
-				header = "Friendly Prime",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ff00ff00",
-				lineColor = "ff00ff00",
-				iconColor = "ff00ff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 16,
-				iconWidth = 16 },	
-			friendlyElite = {
-				header = "Friendly Elite",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ff00ff00",
-				lineColor = "ff00ff00",
-				iconColor = "ff00ff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 32,
-				iconWidth = 32 },
-			neutral = {
-				header = "Neutral Normal",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ffffff00",
-				lineColor = "ffffff00",
-				iconColor = "ffffff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 8,
-				iconWidth = 8 },	
-			neutralPrime = {
-				header = "Neutral Prime",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ffffff00",
-				lineColor = "ffffff00",
-				iconColor = "ffffff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 16,
-				iconWidth = 16 },	
-			neutralElite = {
-				header = "Neutral Elite",
-				module = "NPC",
-				disabled = true,
-				fontColor = "ffffff00",
-				lineColor = "ffffff00",
-				iconColor = "ffffff00",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 32,
-				iconWidth = 32 },	
-			hostile = {
-				header = "Hostile Normal",
-				module = "NPC",
-				fontColor = "ffff0000",
-				lineColor = "ffff0000",
-				iconColor = "ffff0000",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 8,
-				iconWidth = 8,
-				rangeIcon = true,
-				rangeColor = "ffff00ff"	},
-			hostilePrime = {
-				header = "Hostile Prime",
-				module = "NPC",
-				fontColor = "ffff0000",
-				lineColor = "ffff0000",
-				iconColor = "ffff0000",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 16,
-				iconWidth = 16,
-				rangeIcon = true,
-				rangeColor = "ffff00ff"	},
-			hostileElite = {
-				header = "Hostile Elite",
-				module = "NPC",
-				fontColor = "ffff0000",
-				lineColor = "ffff0000",
-				iconColor = "ffff0000",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				max = 10,
-				iconHeight = 32,
-				iconWidth = 32,
-				rangeIcon = true,
-				rangeColor = "ffff00ff"	},
-			questObjective = {
-				header = "Objective",
-				module = "Quest",
-				icon = "PerspectiveSprites:QuestObjective",
-				max = 3,
-				limitBy = "category",
-				lineColor = "ffff8000" },
-			questNew = {
-				header = "Start",
-				module = "Quest",
-				icon = "ClientSprites:MiniMapNewQuest",
-				lineColor = "ff00ff00" },
-			questTalkTo = {
-				header = "Talk To",
-				module = "Quest",
-				icon = "IconSprites:Icon_MapNode_Map_Chat",
-				iconColor = "ffff8000",
-				lineColor = "ffff8000" },
-			questReward = {
-				header = "Complete",
-				module = "Quest",
-				icon = "IconSprites:Icon_MapNode_Map_Checkmark",
-				lineColor = "ff00ff00" },			
-			challenge = {
-				header = "Objective",
-				module = "Challenge",
-				icon = "PerspectiveSprites:QuestObjective",
-				lineColor = "ffff0000",
-				iconColor = "ffff0000" },
-			farmer = {
-				header = "Farmer",
-				module = "Harvest",
-				max = 5,
-				fontColor = "ffffff00",
-				icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
-				lineColor = "ffffff00" },
-			miner = {
-				header = "Mine",
-				module = "Harvest",
-				max = 5,
-				fontColor = "ff0078ce",
-				icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
-				lineColor = "ff0078ce" },
-			relichunter = {
-				header = "Relic Hunter",
-				module = "Harvest",
-				max = 5,
-				fontColor = "ffff7fed",
-				icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
-				lineColor = "ffff7fed" },
-			survivalist = {
-				header = "Survivalist",
-				module = "Harvest",
-				max = 5,
-				fontColor = "ffce9967",
-				icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
-				lineColor = "ffce9967" },
-			flightPath = {
-				header = "Flight Path",
-				module = "Travel",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Taxi",
-				showLines = false },
-			instancePortal = {
-				header = "Portal",
-				module = "Travel",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Portal",
-				showLines = false },
-			bindPoint = {
-				header = "Bind Point",
-				module = "Travel",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Gate",
-				showLines = false },
-			marketplace = {
-				header = "Commodities Exchange",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
-				showLines = false },
-			auctionHouse = {
-				header = "Auction House",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
-				showLines = false },
-			mailBox = {
-				header = "Mailbox",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Mailbox",
-				showLines = false },
-			vendor = {
-				header = "Vendor",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Vendor",
-				showLines = false },
-			craftingStation = {
-				header = "Crafting Station",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
-				showLines = false },
-			tradeskillTrainer = {
-				header = "Tradeskill Trainer",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Trainer",
-				showLines = false },
-			dye = {
-				header = "Appearance Modifier",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
-				showLines = false },
-			bank = {
-				header = "Bank",
-				module = "Town",
-				fontColor = "ffabf8cb",
-				icon = "IconSprites:Icon_MapNode_Map_Bank",
-				showLines = false },
-			dungeon = {
-				header = "Dungeon",
-				module = "Travel",
-				fontColor = "ff00ffff",
-				icon = "IconSprites:Icon_MapNode_Map_Dungeon",
-				showLines = false },
-			lore = {
-				header = "Lore",
-				module = "Misc",
-				fontColor  = "ff7abcff",
-				icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
-				lineColor = "ff7abcff",
-				showLines = true,
-				maxLines = 1 },
-			scientist = {
-				header = "Scientist",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-				lineColor = "ffc759ff",
-				showLines = false,
-				maxLines = 1 },
-			scientistScans = {
-				header = "Scientist Scans",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-				lineColor = "ffc759ff",
-				maxLines = 1 },
-			solider = {
-				header = "Soldier",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
-				lineColor = "ffc759ff",
-				maxLines = 1 },
-			settler = {
-				header = "Settler",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-				lineColor = "ffc759ff",
-				maxLines = 1 },
-			settlerResources = {
-				header = "Settler Resources",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-				lineColor = "ffc759ff",
-				maxLines = 1 },
-			explorer = {
-				header = "Explorer",
-				module = "Path",
-				fontColor = "ffc759ff",
-				icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-				lineColor = "ffc759ff",
-				maxLines = 1 },
-			questLoot = {
-				header = "Loot",
-				module = "Quest",
-				icon = "ClientSprites:GroupLootIcon",
-				showLines = false,
-				iconWidth = 32,
-				iconHeight = 32 },
-			subdue = {
-				header = "Weapon",
-				module = "Misc",
-				lineColor = "ffff8000",
-				iconColor = "ffff8000",
-				icon = "ClientSprites:GroupWarriorIcon",
-				lineWidth = 10,
-				iconHeight = 32,
-				iconWidth = 32 },
-			wotwChampion = {
-				header = "Enemy Champion",
-				module = "War of the Wilds",
-				icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
-				showLines = false },
-			["Energy Node"] = {
-				header = "Energy Node",
-				module = "War of the Wilds",
-				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
-				showLines = false },
-			["Moodie Totem"] = {
-				header = "Moodie Totem",
-				module = "War of the Wilds",
-				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
-				iconColor = "ffff3300",
-				showLines = false },
-			["Skeech Totem"] = {
-				header = "Skeech Totem",
-				module = "War of the Wilds",
-				icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
-				showLines = false },
-			cowPolice = {
-				header = "Police",
-				module = "Crimelords of Whitevale",
-				icon = "PerspectiveSprites:Circle-Outline",
-				showLines = false,
-				showName = false,
-				showDistance = false,
-				iconColor = "ff00ff00" },
-		},
-		markers = {
-			quest = {
-				header = "Quest",
-				icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
-				iconHeight = 64,
-				iconWidth = 64,
-				font = "CRB_Pixel_O",
-				fontColor = "ffffffff",
-				maxPer = 1,
-				inAreaRange = 100,
-			},
-			path = {
-				header = "Path",
-				soldierIcon = "CRB_PlayerPathSprites:spr_Path_Solider_Stretch",
-				settlerIcon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-				explorerIcon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-				scientistIcon ="CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-				iconHeight = 64,
-				iconWidth = 64,
-				font = "CRB_Pixel_O",
-				fontColor = "ffffffff",
-				maxPer = 1,
-			},
-			event = {
-				header = "Event",
-				icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
-				iconHeight = 64,
-				iconWidth = 64,
-				font = "CRB_Pixel_O",
-				fontColor = "ffffffff",
-				maxPer = 1,
-				inAreaRange = 100,
-			},	
-		},
-		blacklist = {},
-	}
-}
 
 function Perspective:new(o)
     o = o or {}
@@ -995,8 +21,6 @@ function Perspective:OnInitialize()
 
 	Apollo.LoadSprites("PerspectiveSprites.xml")
 
-	self.db = Apollo.GetPackage("Gemini:DB-1.0").tPackage:New(self, defaults)
-	
 	local xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
 
     --self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
@@ -1072,17 +96,6 @@ function Perspective:OnEnable()
 	self.slowTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
 	self.drawTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
 
-		-- Get the player's path type
-	if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
-		self.path = "solider"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
-		self.path = "settler"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
-		self.path = "scientist"
-	elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
-		self.path = "explorer"
-	end
-
 	self.loaded = true
 
 	if Apollo.GetAddon("Rover") then
@@ -1091,7 +104,7 @@ function Perspective:OnEnable()
 end
 
 function Perspective:Start()
-	self.db.profile.settings.disabled = false
+	Options.db.profile[Options.profile].settings.disabled = false
 
 	self.drawTimer:Start()
 	self.slowTimer:Start()
@@ -1101,7 +114,7 @@ function Perspective:Start()
 end
 
 function Perspective:Stop()
-	self.db.profile.settings.disabled = true
+	Options.db.profile[Options.profile].settings.disabledd = true
 
 	self.categorized = {}
 	self.markers = {}
@@ -1117,7 +130,7 @@ function Perspective:OnTimerTicked_Draw()
 				
 			local isOccluded = unit:IsOccluded()
 
-			if table.getn(pixies) < self.db.profile.settings.max
+			if table.getn(pixies) < Options.db.profile[Options.profile].settings.max
 				and (not isOccluded or (isOccluded and not ui.disableOccluded)) then
 
 				-- Update the units position
@@ -1286,7 +299,7 @@ function Perspective:OnTimerTicked_Draw()
 	self.drawTimer:Stop()
 
 	-- Check to see if the addon was disabled.
-	if self.db.profile.settings.disabled then 
+	if Options.db.profile[Options.profile].settings.disabled then 
 		-- Destroy all our pixies
 		self.Overlay:DestroyAllPixies()
 
@@ -1354,7 +367,7 @@ function Perspective:OnTimerTicked_Slow()
 	self.slowTimer:Stop()
 
 	-- Check to make sure the addon isn't disabled.
-	if self.db.profile.settings.disabled then 
+	if Options.db.profile[Options.profile].settings.disabled then 
 		return
 	end
 
@@ -1402,7 +415,7 @@ function Perspective:OnTimerTicked_Fast()
 	self.fastTimer:Stop()
 
 	-- Check to make sure the addon isn't disabled.
-	if self.db.profile.settings.disabled then 
+	if Options.db.profile[Options.profile].settings.disabled then 
 		return
 	end
 
@@ -1461,16 +474,16 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 			local busy
 
 			if unit == GameLib.GetTargetUnit() and
-				not self.db.profile.categories.target.disabled then
+				not Options.db.profile[Options.profile].categories.target.disabled then
 				ui.category = "target"
 				track = true
-			elseif self.db.profile.categories[name] then
+			elseif Options.db.profile[Options.profile].categories[name] then
 				-- This is a custom category, it has priority over all other category types except
 				-- target and focus.
 				ui.category = name
 				track = true
-			elseif self.db.profile.names[name] then
-				ui.category = self.db.profile.names[name].category
+			elseif Options.db.profile[Options.profile].names[name] then
+				ui.category = Options.db.profile[Options.profile].names[name].category
 				ui.named = name
 				track = true
 			else
@@ -1555,7 +568,7 @@ function Perspective:UpdateUnit(ui, inCombat, list, index)
 
 					local npcType = disposition .. difficulty
 
-					if not self.db.profile.categories[npcType].disabled then
+					if not Options.db.profile[Options.profile].categories[npcType].disabled then
 						ui.category = npcType
 					end
 				end
@@ -1693,7 +706,7 @@ end
 function Perspective:UpdateOptions(ui, name)
 	local function updateOptions(ui, name)
 		-- Loads the options for the ui
-		for k, v in pairs(self.db.defaults.profile.categories.default) do
+		for k, v in pairs(Options.db.profile[Options.profile].categories.default) do
 			ui[k] = Options:GetOptionValue(ui, k)
 		end
 
@@ -1962,7 +975,7 @@ function Perspective:MarkerUpdate(marker, vector)
 			if marker.type == "quest" then
 				-- No direct call that I can find to determine if the player is
 				-- in the area, so make it anywhere closer than 100m
-				region.inArea = (region.distance <= self.db.profile.markers.quest.inAreaRange)
+				region.inArea = (region.distance <= Options.db.profile[Options.profile].settings.inArea)
 			elseif marker.type == "path" then
 				region.inArea = inArea
 			end
@@ -2003,7 +1016,7 @@ end
 
 function Perspective:OnTargetUnitChanged(unit)
 	
-	if not self.db.profile.categories.target.disabled then
+	if not Options.db.profile[Options.profile].categories.target.disabled then
 		-- Update the units immediately
 		self:OnTimerTicked_Slow()
 		self:OnTimerTicked_Fast()
@@ -2114,12 +1127,12 @@ function Perspective:UpdatePlayer(ui, unit)
 	
 	-- Check to see if the unit is in our group
 	if 	unit:IsInYourGroup() and 
-		not self.db.profile.categories.group.disabled then
+		not Options.db.profile[Options.profile].categories.group.disabled then
 		ui.category = "group"			
 	-- Check to see if the unit is in our guild
 	elseif 	player and player:GetGuildName() and 
 			unit:GetGuildName() == player:GetGuildName() and
-			not self.db.profile.categories.guild.disabled then
+			not Options.db.profile[Options.profile].categories.guild.disabled then
 		ui.category = "guild"
 	end
 end
@@ -2128,16 +1141,16 @@ function Perspective:UpdateNonPlayer(ui, unit, rewards)
 	if 	rewards then
 		-- Quest target mob
 		if 	rewards.quest and not unit:IsDead() and
-			not self.db.profile.categories.questObjective.disabled then
+			not Options.db.profile[Options.profile].categories.questObjective.disabled then
 			ui.category = "questObjective"
 			ui.quest = rewards.quest
 		-- Challenge target mob
 		elseif rewards.challenge and not unit:IsDead() and
-			not self.db.profile.categories.challenge.disabled then
+			not Options.db.profile[Options.profile].categories.challenge.disabled then
 			ui.category = "challenge"
 			ui.challenge = rewards.challenge
 		elseif rewards.path and 
-			not self.db.profile.categories[rewards.path].disabled then
+			not Options.db.profile[Options.profile].categories[rewards.path].disabled then
 			ui.category = rewards.path
 		end
 	end	
@@ -2149,16 +1162,16 @@ function Perspective:UpdateSimple(ui, unit, rewards)
 	if state.Interact and state.Interact.bIsActive and rewards then
 		-- Quest target
 		if	rewards.quest and 
-			not self.db.profile.categories.questObjective.disabled then
+			not Options.db.profile[Options.profile].categories.questObjective.disabled then
 			ui.category = "questObjective"
 			ui.quest = rewards.quest
 		-- Challenge collectible
 		elseif rewards.challenge and
-			not self.db.profile.categories.questObjective.disabled then
+			not Options.db.profile[Options.profile].categories.questObjective.disabled then
 			ui.category = "challenge"
 			ui.challenge = rewards.challenge
 		elseif rewards.path and 
-			not self.db.profile.categories[rewards.path].disabled then
+			not Options.db.profile[Options.profile].categories[rewards.path].disabled then
 			ui.category = rewards.path
 		end
 	end
@@ -2168,16 +1181,16 @@ function Perspective:UpdateCollectible(ui, unit, rewards)
 	if rewards then
 		-- Quest collectible
 		if rewards.quest and 
-			not self.db.profile.categories.questObjective.disabled then
+			not Options.db.profile[Options.profile].categories.questObjective.disabled then
 			ui.category = "questObjective"
 			ui.quest = rewards.quest
 		-- Challenge collectible
 		elseif rewards.challenge and
-			not self.db.profile.categories.questObjective.disabled then
+			not Options.db.profile[Options.profile].categories.questObjective.disabled then
 			ui.category = "challenge"
 			ui.challenge = rewards.challenge
 		elseif rewards.path and 
-			not self.db.profile.categories[rewards.path].disabled then
+			not Options.db.profile[Options.profile].categories[rewards.path].disabled then
 			ui.category = rewards.path
 		end
 	end
@@ -2198,7 +1211,7 @@ function Perspective:UpdateHarvest(ui, unit)
 			category = "survivalist" 
 		end
 		
-		if category and not self.db.profile.categories[category].disabled then
+		if category and not Options.db.profile[Options.profile].categories[category].disabled then
 			ui.category = category
 		end
 	end
@@ -2206,7 +1219,7 @@ end
 
 function Perspective:UpdatePickup(ui, unit)
 	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
-		not self.db.profile.categories.subdue.disabled then
+		not Options.db.profile[Options.profile].categories.subdue.disabled then
 		ui.category = "subdue"
 	end
 end
@@ -2218,7 +1231,7 @@ function Perspective:UpdateLoot(ui, unit)
 	if loot and 
 		loot.eLootItemType and 
 		loot.eLootItemType == 6 and
-		not self.db.profile.categories.questLoot.disabled then
+		not Options.db.profile[Options.profile].categories.questLoot.disabled then
 		category = "questLoot"
 	end
 
@@ -2278,7 +1291,7 @@ function Perspective:UpdateActivation(ui, unit)
 
 		if state[v.state] and 
 			state[v.state].bIsActive and
-			not self.db.profile.categories[v.category].disabled then
+			not Options.db.profile[Options.profile].categories[v.category].disabled then
 
 			ui.category = v.category
 
@@ -2296,15 +1309,26 @@ function Perspective:UpdateActivation(ui, unit)
 
 	if not ui.category then
 
+		-- Get the player's path type
+		if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
+			path = "solider"
+		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
+			path = "settler"
+		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
+			path = "scientist"
+		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
+			path = "explorer"
+		end
+
 		if state.Collect and 
 			state.Collect.bUsePlayerPath and 
 			state.Collect.bCanInteract and
 			state.Collect.bIsActive then
 
-			if self.path == "settler" then
+			if path == "settler" then
 				ui.category = "settlerResources"
 			else
-				ui.category = self.path
+				ui.category = path
 			end
 
 		elseif state.Interact and 
@@ -2312,7 +1336,7 @@ function Perspective:UpdateActivation(ui, unit)
 			state.Interact.bCanInteract and
 			state.Interact.bIsActive then
 			
-			ui.category = self.path
+			ui.category = path
 
 		end
 

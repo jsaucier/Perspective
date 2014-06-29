@@ -3,7 +3,7 @@ require "GameLib"
 require "Apollo"
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local Perspective = GeminiAddon:NewAddon("Perspective", "Perspective")
+local Perspective = GeminiAddon:NewAddon("Perspective")
 
 local Options
 
@@ -1691,14 +1691,16 @@ function Perspective:UpdateDistance(ui, unit)
 end
 
 function Perspective:UpdateOptions(ui, name)
-
 	local function updateOptions(ui, name)
+		-- Loads the options for the ui
 		for k, v in pairs(self.db.defaults.profile.categories.default) do
 			ui[k] = Options:GetOptionValue(ui, k)
 		end
 
+		-- Determines if this is a named unit with a set display as value.
 		ui.display = ui.named  and Options.db.profile[Options.profile].names[ui.named].display or ui.display
 		
+		-- Lets the adodn know we've loaded this ui.
 		ui.loaded = true
 	end
 	

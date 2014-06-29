@@ -865,8 +865,11 @@ function PerspectiveOptions:CategoryItem_Init(category, module)
 end
 
 function PerspectiveOptions:CategoryItem_Clicked(handler, control, button)
+	-- Set the currently selected category
+	self.category = control:GetData()
+
 	-- Show the category editor.
-	self:CategoryEditor_Show(control:GetData())
+	self:CategoryEditor_Show(self.category)
 end
 
 function PerspectiveOptions:CategoryEditor_Show(category)
@@ -1052,7 +1055,7 @@ function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if self.module == L["All"] or cat.module == self.module then
+			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
 				cat[data.option] = val
 			end
 		end
@@ -1088,9 +1091,8 @@ function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if category == "all" or cat.module == self.module then
+			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
 				cat[data.option] = val
-
 				if data.option == "icon" then
 					self:CategoryEditor_UpdateIcon(category)
 				end
@@ -1155,7 +1157,7 @@ function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, butt
 	-- Update the settings.
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if self.module == L["All"] or cat.module == self.module then
+			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
 				cat[data.option] = val
 			end
 		end
@@ -1179,7 +1181,7 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 		-- Update the settings
 		if data.category == "all" then
 			for category, cat in pairs(self.db.profile[self.profile].categories) do
-				if category == data.category or cat.module == self.module then
+				if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
 					cat[data.option] = color
 
 					if data.option == "iconColor" then
@@ -1221,9 +1223,11 @@ function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
 	local icon = self:GetOptionValue(nil, "icon", category)
 	local iconColor = self:GetOptionValue(nil, "iconColor", category)
 
-	-- Update the category editor icon.
-	self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
-	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
+	if category == self.category or category == "all" then
+		-- Update the category editor icon.
+		self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
+		self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
+	end
 
 	-- Update our icon pixie
 	local pixie = button:GetPixieInfo(1)

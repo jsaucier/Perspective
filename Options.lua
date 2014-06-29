@@ -22,7 +22,6 @@ function PerspectiveOptions:new(o)
 end
 
 function PerspectiveOptions:OnInitialize()
-
 	self.profile = "default"
 
 	-- Load our localization
@@ -51,6 +50,9 @@ function PerspectiveOptions:OnInitialize()
     -- Options category editor
     self.CategoryEditor = self.Options:FindChild("CategoryEditor")
 
+    -- Options settings
+    self.Settings = self.Options:FindChild("Settings")
+
     -- Register our addon with the interface menu.
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
@@ -74,6 +76,7 @@ function PerspectiveOptions:LoadDefaults()
 				settings = { 
 					disabled = false,
 					max = 10,
+					inArea = 100,
 					drawTimer = 30,
 					slowTimer = 1,
 					fastTimer = 100 },
@@ -547,42 +550,7 @@ function PerspectiveOptions:LoadDefaults()
 						showName = false,
 						showDistance = false,
 						iconColor = "ff00ff00" },
-				},
-				markers = {
-					--[[quest = {
-						header = L["Quest"],
-						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
-						iconHeight = 64,
-						iconWidth = 64,
-						font = "CRB_Pixel_O",
-						fontColor = "ffffffff",
-						maxPer = 1,
-						inAreaRange = 100,
-					},]]
-					--[[path = {
-						header = L["Path"],
-						soldierIcon = "CRB_PlayerPathSprites:spr_Path_Solider_Stretch",
-						settlerIcon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
-						explorerIcon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
-						scientistIcon ="CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
-						iconHeight = 64,
-						iconWidth = 64,
-						font = "CRB_Pixel_O",
-						fontColor = "ffffffff",
-						maxPer = 1,
-					},]]
-					--[[event = {
-						header = L["Event"],
-						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
-						iconHeight = 64,
-						iconWidth = 64,
-						font = "CRB_Pixel_O",
-						fontColor = "ffffffff",
-						maxPer = 1,
-						inAreaRange = 100,
-					},	]]
-				},
-				blacklist = {},
+				}
 			}
 		}
 	}
@@ -740,9 +708,12 @@ function PerspectiveOptions:InitializeOptions()
 	-- Initialize the settings 
 	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
 	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")	
+	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
 
-	-- Sort the lists.
+	self:SettingsText_Init("Max", 		"max", true)
+	self:SettingsText_Init("InArea", 	"inArea", true)
+
+		-- Sort the lists.
 	self:ArrangeChildren(self.CategoryList)
 	self:ArrangeChildren(self.ModuleList)
 
@@ -1251,35 +1222,9 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[
-function PerspectiveOptions:InitializeWindow_NewCategory()
-	-- Setup the event handlers for the newcategory window
-	local ok = self.NewCategory:FindChild("OKButton")
-	local cancel = self.NewCategory:FindChild("CancelButton")
-
-	ok:AddEventHandler("ButtonSignal", 			"OnNewCategory_OKClicked")
-	cancel:AddEventHandler("ButtonSignal",		"OnNewCategory_CancelClicked")
-end
-]]
-
 function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
-	local slider = self.Options:FindChild(control .. "Slider")
-	local text = self.Options:FindChild(control .. "Text")
+	local slider = self.Settings:FindChild(control .. "Slider")
+	local text = self.Settings:FindChild(control .. "Text")
 
 	local val = Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal)
 
@@ -1301,6 +1246,62 @@ function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit,
 
 	-- Set the event handler
 	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
+end
+
+function PerspectiveOptions:SettingsText_Init(name, option, isNumber)
+	-- Get the control by name
+	local control = self.Settings:FindChild(name .. "Text")
+
+	-- Set the text value.
+	control:SetText(self.db.profile[self.profile].settings[option])
+
+	-- Make sure we haven't already set the event handlers
+	if not control:GetData() then
+		--Setup the event handlers
+		control:AddEventHandler("EditBoxReturn", 	"CategoryEditor_OnReturn")
+		control:AddEventHandler("EditBoxTab", 		"CategoryEditor_OnReturn")
+		control:AddEventHandler("EditBoxEscape", 	"CategoryEditor_OnEscape")
+	end
+		
+	-- Set the data for the control.
+	control:SetData({ option = option, isNumber = isNumber })
+end
+
+function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+
+	-- Get the control's value
+	local val = control:GetText()
+
+	-- Check to see if the textbox is expecting a number
+	if data.isNumber then
+		if not tonumber(val) then
+			val = self.db.profile[self.profile].settings[data.option]
+		else
+			val = tonumber(val)
+		end
+	end
+
+	-- If the option is blank, load the default setting.
+	if val == "" then 
+		val = self.db.profile[self.profile].settings[data.option]
+	end
+
+	-- Set the option value
+	self.db.profile[self.profile].settings[data.option] = val
+
+	if data.option == "inArea" then
+		Perspective:MarkersUpdate()
+	end
+end
+
+function PerspectiveOptions:CategoryItem_OnEscape(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Load the previous value
+	control:SetText(self.db.profile[self.profile].settings[data.option])
 end
 
 
@@ -1331,7 +1332,7 @@ function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
 
 	-- Update all the uis
 	Perspective:UpdateOptions()
-	
+
 	-- Update the markers.
 	Perspective:MarkersInit()
 end

@@ -1,7 +1,14 @@
-require "Apollo"
+--[[ TODO: 
+		Set All does not properly work
+		Defaults does not work
+		New Category
+		New Module
+		Set Category to Module
+]]
+
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", true)
+local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", "Perspective")
 
 local Perspective
 
@@ -48,12 +55,6 @@ function PerspectiveOptions:OnInitialize()
     -- Register our addon with the interface menu.
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
-
-
-
-self.NewCategory = Apollo.LoadForm(self.xmlDoc, "NewCategory", self.Options, self)
-
-
 
 	-- Register the slash command	
     Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
@@ -125,11 +126,11 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = false,
 						rangeLimit = 15	},
 					all = {
-						header = "Set All", 
-						module = "All" },
+						header = L["Set All"], 
+						module = L["All"] },
 					target = {
-						header = "Target",
-						module = "Misc",
+						header = L["Target"],
+						module = L["Miscellaneous"],
 						disabled = true,				
 						lineColor = "ffff00ff",
 						iconColor = "ffff00ff",
@@ -142,8 +143,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = true,
 						rangeIcon = true },
 					group = {
-						header = "Group",
-						module = "Player",
+						header = L["Group"],
+						module = L["Player"],
 						fontColor = "ff7482c1",
 						lineColor = "ff7482c1",
 						iconColor = "ff7482c1",
@@ -157,16 +158,16 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = true,
 						rangeFont = true },
 					guild = {
-						header = "Guild",
-						module = "Player",
+						header = L["Guild"],
+						module = L["Player"],
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
 						iconColor = "ff00ff00",
 						icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
 						showLines = false },
 					friendly = {
-						header = "Friendly Normal",
-						module = "NPC",
+						header = L["Friendly Normal"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -179,8 +180,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 8,
 						iconWidth = 8 },	
 					friendlyPrime = {
-						header = "Friendly Prime",
-						module = "NPC",
+						header = L["Friendly Prime"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -193,8 +194,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 16,
 						iconWidth = 16 },	
 					friendlyElite = {
-						header = "Friendly Elite",
-						module = "NPC",
+						header = L["Friendly Elite"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -207,8 +208,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32 },
 					neutral = {
-						header = "Neutral Normal",
-						module = "NPC",
+						header = L["Neutral Normal"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -221,8 +222,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 8,
 						iconWidth = 8 },	
 					neutralPrime = {
-						header = "Neutral Prime",
-						module = "NPC",
+						header = L["Neutral Prime"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -235,8 +236,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 16,
 						iconWidth = 16 },	
 					neutralElite = {
-						header = "Neutral Elite",
-						module = "NPC",
+						header = L["Neutral Elite"],
+						module = L["NPC"],
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -249,8 +250,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32 },	
 					hostile = {
-						header = "Hostile Normal",
-						module = "NPC",
+						header = L["Hostile Normal"],
+						module = L["NPC"],
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -264,8 +265,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					hostilePrime = {
-						header = "Hostile Prime",
-						module = "NPC",
+						header = L["Hostile Prime"],
+						module = L["NPC"],
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -279,8 +280,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					hostileElite = {
-						header = "Hostile Elite",
-						module = "NPC",
+						header = L["Hostile Elite"],
+						module = L["NPC"],
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -294,195 +295,224 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					questObjective = {
-						header = "Objective",
-						module = "Quest",
+						header = L["Objective"],
+						module = L["Quest"],
 						icon = "PerspectiveSprites:QuestObjective",
 						max = 3,
 						limitBy = "category",
 						lineColor = "ffff8000" },
 					questNew = {
-						header = "Start",
-						module = "Quest",
+						header = L["Start"],
+						module = L["Quest"],
 						icon = "ClientSprites:MiniMapNewQuest",
 						lineColor = "ff00ff00" },
 					questTalkTo = {
-						header = "Talk To",
-						module = "Quest",
+						header = L["Talk To"],
+						module = L["Quest"],
 						icon = "IconSprites:Icon_MapNode_Map_Chat",
 						iconColor = "ffff8000",
 						lineColor = "ffff8000" },
 					questReward = {
-						header = "Complete",
-						module = "Quest",
+						header = L["Complete"],
+						module = L["Quest"],
 						icon = "IconSprites:Icon_MapNode_Map_Checkmark",
-						lineColor = "ff00ff00" },			
+						lineColor = "ff00ff00" },	
+					questLocation = {
+						header = L["Quest Location"],
+						module = L["Quest"],
+						limitBy = "quest",
+						max = 1,
+						drawLine = false,
+						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
+						iconWidth = 64,
+						iconHeight = 64	},
+					eventLocation = {
+						header = L["Event Location"],
+						module = L["Quest"],
+						limitBy = "quest",
+						max = 1,
+						drawLine = false,
+						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
+						iconWidth = 64,
+						iconHeight = 64	},
 					challenge = {
-						header = "Objective",
-						module = "Challenge",
+						header = L["Objective"],
+						module = L["Challenge"],
 						icon = "PerspectiveSprites:QuestObjective",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000" },
 					farmer = {
-						header = "Farmer",
-						module = "Harvest",
+						header = L["Farmer"],
+						module = L["Harvest"],
 						max = 5,
 						fontColor = "ffffff00",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
 						lineColor = "ffffff00" },
 					miner = {
-						header = "Miner",
-						module = "Harvest",
+						header = L["Miner"],
+						module = L["Harvest"],
 						max = 5,
 						fontColor = "ff0078ce",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
 						lineColor = "ff0078ce" },
 					relichunter = {
-						header = "Relic Hunter",
-						module = "Harvest",
+						header = L["Relic Hunter"],
+						module = L["Harvest"],
 						max = 5,
 						fontColor = "ffff7fed",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
 						lineColor = "ffff7fed" },
 					survivalist = {
-						header = "Survivalist",
-						module = "Harvest",
+						header = L["Survivalist"],
+						module = L["Harvest"],
 						max = 5,
 						fontColor = "ffce9967",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
 						lineColor = "ffce9967" },
 					flightPath = {
-						header = "Flight Path",
-						module = "Travel",
+						header = L["Flight Path"],
+						module = L["Travel"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Taxi",
 						showLines = false },
 					instancePortal = {
-						header = "Portal",
-						module = "Travel",
+						header = L["Portal"],
+						module = L["Travel"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Portal",
+						max = 10,
 						showLines = false },
 					bindPoint = {
-						header = "Bind Point",
-						module = "Travel",
+						header = L["Bind Point"],
+						module = L["Travel"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Gate",
 						showLines = false },
 					marketplace = {
-						header = "Commodities Exchange",
-						module = "Town",
+						header = L["Commodities Exchange"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange",
 						showLines = false },
 					auctionHouse = {
-						header = "Auction House",
-						module = "Town",
+						header = L["Auction House"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_AuctionHouse",
 						showLines = false },
 					mailBox = {
-						header = "Mailbox",
-						module = "Town",
+						header = L["Mailbox"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Mailbox",
 						showLines = false },
 					vendor = {
-						header = "Vendor",
-						module = "Town",
+						header = L["Vendor"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Vendor",
 						showLines = false },
 					craftingStation = {
-						header = "Crafting Station",
-						module = "Town",
+						header = L["Crafting Station"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
 						showLines = false },
 					tradeskillTrainer = {
-						header = "Tradeskill Trainer",
-						module = "Town",
+						header = L["Tradeskill Trainer"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Trainer",
 						showLines = false },
 					dye = {
-						header = "Appearance Modifier",
-						module = "Town",
+						header = L["Appearance Modifier"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_DyeSpecialist",
 						showLines = false },
 					bank = {
-						header = "Bank",
-						module = "Town",
+						header = L["Bank"],
+						module = L["Town"],
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Bank",
 						showLines = false },
 					dungeon = {
-						header = "Dungeon",
-						module = "Travel",
+						header = L["Dungeon"],
+						module = L["Travel"],
 						fontColor = "ff00ffff",
 						icon = "IconSprites:Icon_MapNode_Map_Dungeon",
 						showLines = false },
 					lore = {
-						header = "Lore",
-						module = "Misc",
+						header = L["Lore"],
+						module = L["Miscellaneous"],
 						fontColor  = "ff7abcff",
 						icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
 						lineColor = "ff7abcff",
 						showLines = true,
 						maxLines = 1 },
+					pathLocation = {
+						header = L["Mission Location"],
+						module = L["Path"],
+						limitBy = "path",
+						max = 1,
+						iconColor = "ffffffff",
+						drawLine = false,
+						iconHeight = 64,
+						iconWidth = 64,
+						max = 1 },
 					scientist = {
-						header = "Scientist",
-						module = "Path",
+						header = L["Scientist"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 						lineColor = "ffc759ff",
 						showLines = false,
 						maxLines = 1 },
 					scientistScans = {
-						header = "Scientist Scans",
-						module = "Path",
+						header = L["Scientist Scans"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					solider = {
-						header = "Soldier",
-						module = "Path",
+						header = L["Soldier"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					settler = {
-						header = "Settler",
-						module = "Path",
+						header = L["Settler"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					settlerResources = {
-						header = "Settler Resources",
-						module = "Path",
+						header = L["Settler Resources"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					explorer = {
-						header = "Explorer",
-						module = "Path",
+						header = L["Explorer"],
+						module = L["Path"],
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					questLoot = {
-						header = "Loot",
-						module = "Quest",
+						header = L["Loot"],
+						module = L["Quest"],
 						icon = "ClientSprites:GroupLootIcon",
 						showLines = false,
 						iconWidth = 32,
 						iconHeight = 32 },
 					subdue = {
-						header = "Weapon",
-						module = "Misc",
+						header = L["Weapon Subdue"],
+						module = L["Miscellaneous"],
 						lineColor = "ffff8000",
 						iconColor = "ffff8000",
 						icon = "ClientSprites:GroupWarriorIcon",
@@ -490,29 +520,29 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32 },
 					wotwChampion = {
-						header = "Enemy Champion",
-						module = "War of the Wilds",
+						header = L["Enemy Champion"],
+						module = L["War of the Wilds"],
 						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
 						showLines = false },
-					["Energy Node"] = {
-						header = "Energy Node",
-						module = "War of the Wilds",
+					[L["Energy Node"]] = {
+						header = L["Energy Node"],
+						module = L["War of the Wilds"],
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
 						showLines = false },
-					["Moodie Totem"] = {
-						header = "Moodie Totem",
-						module = "War of the Wilds",
+					[L["Moodie Totem"]] = {
+						header = L["Moodie Totem"],
+						module = L["War of the Wilds"],
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
 						iconColor = "ffff3300",
 						showLines = false },
-					["Skeech Totem"] = {
-						header = "Skeech Totem",
-						module = "War of the Wilds",
+					[L["Skeech Totem"]] = {
+						header = L["Skeech Totem"],
+						module = L["War of the Wilds"],
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
 						showLines = false },
 					cowPolice = {
-						header = "Police",
-						module = "Crimelords of Whitevale",
+						header = L["Police"],
+						module = L["Crimelords of Whitevale"],
 						icon = "PerspectiveSprites:Circle-Outline",
 						showLines = false,
 						showName = false,
@@ -520,8 +550,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconColor = "ff00ff00" },
 				},
 				markers = {
-					quest = {
-						header = "Quest",
+					--[[quest = {
+						header = L["Quest"],
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconHeight = 64,
 						iconWidth = 64,
@@ -529,9 +559,9 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ffffffff",
 						maxPer = 1,
 						inAreaRange = 100,
-					},
-					path = {
-						header = "Path",
+					},]]
+					--[[path = {
+						header = L["Path"],
 						soldierIcon = "CRB_PlayerPathSprites:spr_Path_Solider_Stretch",
 						settlerIcon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 						explorerIcon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
@@ -541,9 +571,9 @@ function PerspectiveOptions:LoadDefaults()
 						font = "CRB_Pixel_O",
 						fontColor = "ffffffff",
 						maxPer = 1,
-					},
-					event = {
-						header = "Event",
+					},]]
+					--[[event = {
+						header = L["Event"],
 						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
 						iconHeight = 64,
 						iconWidth = 64,
@@ -551,7 +581,7 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ffffffff",
 						maxPer = 1,
 						inAreaRange = 100,
-					},	
+					},	]]
 				},
 				blacklist = {},
 			}
@@ -561,19 +591,38 @@ end
 
 function PerspectiveOptions:GetOptionValue(ui, option, category)
 	local category = category or ui.category or "default"
-		-- Get the category option value
-		if self.db.profile[self.profile].categories[category] and
-			self.db.profile[self.profile].categories[category][option] ~= nil then
-			return self.db.profile[self.profile].categories[category][option]
-		-- Failback to the default option value
-		elseif self.db.defaults.profile[self.profile].categories.default[option] ~= nil then
+
+	-- Get the category option value
+	if self.db.profile[self.profile].categories[category] and
+		self.db.profile[self.profile].categories[category][option] ~= nil then
+		return self.db.profile[self.profile].categories[category][option]
+	-- Failback to the default option value
+	elseif self.db.defaults.profile[self.profile].categories.default[option] ~= nil then
+		if category == "pathLocation" and option == "icon" then
+			return self:GetPathIcon()
+		else
 			return self.db.defaults.profile[self.profile].categories.default[option]
 		end
-		
-		return nil
-	--end
+	end
+	
+	return nil
 end
 
+function PerspectiveOptions:GetPathIcon()
+	local path
+
+	if PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
+		path = "Explorer"
+	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
+		path = "Scientist"
+	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
+		path = "Settler"
+	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Solider then
+		path = "Soldier"
+	end
+
+	return "CRB_PlayerPathSPrites:spr_Path_" .. path .. "_Stretch"
+end
 
 function PerspectiveOptions:OnInterfaceMenuListHasLoaded()
 	Event_FireGenericEvent("InterfaceMenuList_NewAddOn", "Perspective", {"InterfaceMenuClicked", "", "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map"})
@@ -582,8 +631,6 @@ end
 function PerspectiveOptions:OnInterfaceMenuClicked(arg1, arg2, arg3)
 	self.Options:Show(not self.Options:IsShown(), true)
 end
-
-
 
 ---------------------------------------------------------------------------------------------------
 -- UI Functions
@@ -624,8 +671,22 @@ function PerspectiveOptions:StringToCColor(str)
 	return CColor.new(r / 255, g / 255, b / 255, 1)
 end
 
+function PerspectiveOptions:ArrangeChildren(window, type)
+	local sort = function (a, b) 
+		a = a:GetData().sortValue
+		b = b:GetData().sortValue
+
+		a = (a == "_first" and " " or a) or "zzzz"
+		b = (b == "_first" and " " or b) or "zzzz"
+
+		return a < b
+	end
+
+	window:ArrangeChildrenVert(0, sort)
+end
+
 function PerspectiveOptions:InitializeOptions()
-	if not self.optionsInitialized then
+	if not self.initialized then
 		-- Load the window position
 		local pos = self.db.profile.position
 
@@ -658,10 +719,10 @@ function PerspectiveOptions:InitializeOptions()
 
 		self.Options:FindChild("CategoriesButton"):SetCheck(true)
 
-		self:InitializeWindow_NewCategory()
+		--self:InitializeWindow_NewCategory()
 
 
-		self.optionsInitialized = true
+		self.initialized = true
 
 	end
 
@@ -755,6 +816,9 @@ function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
 
 	-- Arrange the list items.
 	self:ArrangeChildren(self.CategoryList)
+
+	-- Scroll the list to the top
+	self.CategoryList:SetVScrollPos(0)
 end
 
 function PerspectiveOptions:CategoryItem_Init(category, module)
@@ -782,17 +846,17 @@ function PerspectiveOptions:CategoryItem_Init(category, module)
 		button = item:FindChild("Button")
 		button:SetData(category)
 		button:AddEventHandler("ButtonSignal", "CategoryItem_Clicked")
-
-		local icon = button:GetPixieInfo(1)
-		icon.strSprite = self:GetOptionValue(nil, "icon", category)--self.db.profile[self.profile].categories[category].icon or self.db.profile[self.profile].categories.default.icon
-		icon.cr = self:GetOptionValue(nil, "iconColor", category)--self.db.profile[self.profile].categories[category].iconColor or self.db.profile[self.profile].categories.default.iconColor
-		button:UpdatePixie(1, icon)
-
-		local text= button:GetPixieInfo(2)
-		text.strText = self:GetOptionValue(nil, "header", category)
-		text.flagsText = { DT_VCENTER = true }
-		button:UpdatePixie(2, text)
 	end
+
+	local icon = button:GetPixieInfo(1)
+	icon.strSprite = self:GetOptionValue(nil, "icon", category)
+	icon.cr = self:GetOptionValue(nil, "iconColor", category)
+	button:UpdatePixie(1, icon)
+
+	local text= button:GetPixieInfo(2)
+	text.strText = self:GetOptionValue(nil, "header", category)
+	text.flagsText = { DT_VCENTER = true }
+	button:UpdatePixie(2, text)
 
 	return item
 end
@@ -807,6 +871,20 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	local function loadCheck(name, category, option)
 		-- Get the control by name
 		local control = self.CategoryEditor:FindChild(name .. "Check")
+
+		-- Disable the line checks
+		if option == "showLines" or
+			option == "showLineOutline" or
+			option == "showLinesOffscreen" then
+			if category == "pathLocation" or 
+				category == "questLocation" or
+				category == "eventLocation" or
+				category == "challengeLocation" then
+				control:Enable(false)
+			else
+				control:Enable(true)
+			end
+		end		
 
 		-- Set the check value.
 		control:SetCheck(self:GetOptionValue(nil, option, category))
@@ -844,6 +922,18 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	local function loadDropDown(name, category, option)
 		-- Get the control by name
 		local control = self.CategoryEditor:FindChild(name .. "DropDownButton")
+
+		-- Disable the line texts
+		if option == "limitBy" then
+			if category == "pathLocation" or 
+				category == "questLocation" or
+				category == "eventLocation" or
+				category == "challengeLocation" then
+				control:Enable(false)
+			else
+				control:Enable(true)
+			end
+		end		
 
 		-- Get the menu associated with the control
 		local menu = self.CategoryEditor:FindChild(name .. "DropDownMenu")
@@ -958,8 +1048,10 @@ function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
 
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
-		for k, v in pairs(self.db.profile[self.profile].categories) do
-			self.db.profile[self.profile].categories[k][data.option] = val
+		for category, cat in pairs(self.db.profile[self.profile].categories) do
+			if self.module == L["All"] or cat.module == self.module then
+				cat[data.option] = val
+			end
 		end
 	else
 		self.db.profile[self.profile].categories[data.category][data.option] = val	
@@ -992,16 +1084,21 @@ function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
 
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
-		for k, v in pairs(self.db.profile[self.profile].categories) do
-			self.db.profile[self.profile].categories[k][data.option] = val
+		for category, cat in pairs(self.db.profile[self.profile].categories) do
+			if category == "all" or cat.module == self.module then
+				cat[data.option] = val
+
+				if data.option == "icon" then
+					self:CategoryEditor_UpdateIcon(category)
+				end
+			end
 		end
 	else
 		self.db.profile[self.profile].categories[data.category][data.option] = val	
-	end
 
-	-- Update the category list icons.
-	if data.option == "icon" then
-		self:CategoryEditor_UpdateIcon(data.category, "icon")
+		if data.option == "icon" then
+			self:CategoryEditor_UpdateIcon(data.category)
+		end
 	end
 
 	-- Update all the ui options.
@@ -1054,8 +1151,10 @@ function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, butt
 
 	-- Update the settings.
 	if data.category == "all" then
-		for k, v in pairs(self.db.profile[self.profile].categories) do
-			self.db.profile[self.profile].categories[k][data.option] = val
+		for category, cat in pairs(self.db.profile[self.profile].categories) do
+			if self.module == L["All"] or cat.module == self.module then
+				cat[data.option] = val
+			end
 		end
 	else
 		self.db.profile[self.profile].categories[data.category][data.option] = val
@@ -1072,20 +1171,25 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 		local color = self:CColorToString(self.color)
 		
 		-- Set the control color
-		control:SetBGColor(self.color)
+		control:SetBGColor(color)
 
 		-- Update the settings
 		if data.category == "all" then
-			for _, category in pairs(self.db.profile[self.profile].categories) do
-				category[data.option] = color
+			for category, cat in pairs(self.db.profile[self.profile].categories) do
+				if category == data.category or cat.module == self.module then
+					cat[data.option] = color
+
+					if data.option == "iconColor" then
+						self:CategoryEditor_UpdateIcon(category)
+					end
+				end
 			end
 		else
 			self.db.profile[self.profile].categories[data.category][data.option] = color
-		end
 
-		-- Update the category list icons.
-		if data.option == "iconColor" then
-			self:CategoryEditor_UpdateIcon(data.category, "iconColor")
+			if data.option == "iconColor" then
+				self:CategoryEditor_UpdateIcon(data.category)
+			end
 		end
 
 		-- Update all the ui options.
@@ -1106,20 +1210,9 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 	end
 end
 
-function PerspectiveOptions:CategoryEditor_UpdateIcon(category, type)
-	local function setPixie(category, icon, color)
-		-- Exclude the default category, we dont have a button for it.
-		if category ~= "default" then
-			-- Get our category item button
-			local button  = self.CategoryList:FindChild("CategoryItem_" .. category):FindChild("Button")
-
-			-- Update our icon pixie
-			local pixie = button:GetPixieInfo(1)
-			pixie.strSprite = icon
-			pixie.cr = color
-			button:UpdatePixie(1, pixie)
-		end
-	end
+function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
+	-- Get our category item button
+	local button  = self.CategoryList:FindChild("CategoryItem_" .. category):FindChild("Button")
 
 	-- Get the icon and icon color.
 	local icon = self:GetOptionValue(nil, "icon", category)
@@ -1129,29 +1222,11 @@ function PerspectiveOptions:CategoryEditor_UpdateIcon(category, type)
 	self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
 	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
 
-	-- Update our icon pixies
-	if category == "all" then
-		for cat, table in pairs(self.db.profile[self.profile].categories) do
-			if table.module == self.module then
-				-- Get the icon and icon color.
-				local i = self:GetOptionValue(nil, "icon", cat)
-				local ic = self:GetOptionValue(nil, "iconColor", cat)
-
-				if type == "iconColor" then
-					setPixie(cat, i, iconColor)
-				elseif type == "icon" then
-					setPixie(cat, icon, ic)
-				end
-			end
-		end
-	else
-		if type == "iconColor" then
-			setPixie(category, icon, iconColor)
-		elseif type == "icon" then
-			setPixie(category, icon, iconColor)
-		end
-	end
-
+	-- Update our icon pixie
+	local pixie = button:GetPixieInfo(1)
+	pixie.strSprite = icon
+	pixie.cr = iconColor
+	button:UpdatePixie(1, pixie)
 end
 
 
@@ -1172,8 +1247,7 @@ end
 
 
 
-
-
+--[[
 function PerspectiveOptions:InitializeWindow_NewCategory()
 	-- Setup the event handlers for the newcategory window
 	local ok = self.NewCategory:FindChild("OKButton")
@@ -1182,6 +1256,7 @@ function PerspectiveOptions:InitializeWindow_NewCategory()
 	ok:AddEventHandler("ButtonSignal", 			"OnNewCategory_OKClicked")
 	cancel:AddEventHandler("ButtonSignal",		"OnNewCategory_CancelClicked")
 end
+]]
 
 function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
 	local slider = self.Options:FindChild(control .. "Slider")
@@ -1209,19 +1284,7 @@ function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit,
 	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
 end
 
-function PerspectiveOptions:ArrangeChildren(window, type)
-	local sort = function (a, b) 
-		a = a:GetData().sortValue
-		b = b:GetData().sortValue
 
-		a = (a == "_first" and " " or a) or "zzzz"
-		b = (b == "_first" and " " or b) or "zzzz"
-
-		return a < b
-	end
-
-	window:ArrangeChildrenVert(0, sort)
-end
 
 ---------------------------------------------------------------------------------------------------
 -- Options Events
@@ -1238,16 +1301,17 @@ function PerspectiveOptions:OnOptions_AnchorsChanged()
 	}
 end
 
-function PerspectiveOptions:OnOptions_NewClicked(handler, control, button)
+--[[function PerspectiveOptions:OnOptions_NewClicked(handler, control, button)
 	self.NewCategory:FindChild("NameText"):SetText("")
 	self.NewCategory:FindChild("DisplayText"):SetText("")
 	self.NewCategory:Show(true, true)
-end
+end]]
 
 function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
 	self.db:ResetDB()
 
 	self:InitializeOptions()
+	Print("TODO: Update the options winow with defaults, currently requires a /reloadui.")
 
 	Perspective:UpdateOptions()
 end
@@ -1255,8 +1319,8 @@ end
 function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, button)
 	local panels = {
 		"Categories",
-		"Markers",
-		"Blacklist",
+		--"Markers",
+		--"Blacklist",
 		"Settings"
 	}
 
@@ -1272,7 +1336,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- NewCategory Events
 ---------------------------------------------------------------------------------------------------
-
+--[[
 function PerspectiveOptions:OnNewCategory_OKClicked(handler, control, button)
 	local name = self.NewCategory:FindChild("NameText"):GetText()
 	local display = self.NewCategory:FindChild("DisplayText"):GetText()
@@ -1297,7 +1361,7 @@ end
 function PerspectiveOptions:OnNewCategory_CancelClicked(handler, control, button)
 	self.NewCategory:Show(false, true)
 end
-
+]]
 ---------------------------------------------------------------------------------------------------
 -- CategoryItem Events
 ---------------------------------------------------------------------------------------------------
@@ -1307,13 +1371,18 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function PerspectiveOptions:SettingsTimer_OnChanged(handler, control, button)
-	local args = control:GetData()
+	-- Get the control's data.
+	local data = control:GetData()
 
-	local val = Apollo.FormatNumber(control:GetValue(), args.numDecimal)
+	-- Get the timer vale
+	local val = Apollo.FormatNumber(control:GetValue(), data.numDecimal)
 
-	args.text:SetText(val .. " " .. args.unit)
+	-- Get the control's text.
+	data.text:SetText(val .. " " .. data.unit)
 
-	self.db.profile[self.profile].settings[args.value] = val
+	-- Save the value.
+	self.db.profile[self.profile].settings[data.value] = val
 
-	self[args.value]:Set(val / args.divBy, true, args.tickFunc, self)
+	-- Set the timer in Perspective
+	Perspective[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
 end

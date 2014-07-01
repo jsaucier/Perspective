@@ -1,8 +1,5 @@
 --[[ TODO: 
-		Set All does not properly work
 		New Category
-		New Module
-		Set Category to Module
 ]]
 
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
@@ -13,6 +10,54 @@ local Perspective
 
 local L = {}
 	
+local fonts = {
+	{ name = "Courier" },
+	{ name = "CRB_AlienLarge" },
+	{ name = "CRB_AlienMedium" },
+	{ name = "CRB_AlienSmall" },
+	{ name = "CRB_Button" },
+	{ name = "CRB_ButtonHeader" },
+	{ name = "CRB_Dialog", 			styles = { "I"	} },
+	{ name = "CRB_Dialog_Heading", 	styles = { "Huge", "Small" } },
+	{ name = "CRB_FloaterGigantic",	styles= { "O" } },
+	{ name = "CRB_FloaterHuge" },
+	{ name = "CRB_FloaterLarge" },
+	{ name = "CRB_FloaterMedium" },
+	{ name = "CRB_FloaterSmall" },
+	{ name = "CRB_Header9", 		styles = { "O" } },
+	{ name = "CRB_Header10", 		styles = { "O" } },
+	{ name = "CRB_Header11", 		styles = { "O" } },
+	{ name = "CRB_Header12", 		styles = { "O" } },
+	{ name = "CRB_Header13", 		styles = { "O" } },
+	{ name = "CRB_Header14", 		styles = { "O" } },
+	{ name = "CRB_Header16", 		styles = { "O" } },
+	{ name = "CRB_Header20", 		styles = { "O" } },
+	{ name = "CRB_Header24", 		styles = { "O" } },
+	{ name = "CRB_HeaderGigantic",	styles = { "O" } },
+	{ name = "CRB_HeaderHuge", 		styles = { "O" } },
+	{ name = "CRB_HeaderLarge", 	styles = { "O" } },
+	{ name = "CRB_HeaderMedium", 	styles = { "O" } },
+	{ name = "CRB_HeaderSmall", 	styles = { "O" } },
+	{ name = "CRB_HeaderTiny", 		styles = { "O" } },
+	{ name = "CRB_Interface9", 		styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_Interface10", 	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_Interface11", 	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_Interface12", 	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_Interface14", 	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_Interface16", 	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_InterfaceLarge",	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_InterfaceMedium",	styles = { "B", "BB", "BBO", "BO", "I", "O" } },
+	{ name = "CRB_InterfaceSmall",	styles = { "BB", "I", "O" } },
+	{ name = "CRB_Pixel", 			styles = { "O" } },
+	{ name = "CRB_ResourceOnly" },
+	{ name = "Default" },
+	{ name = "DefaultButton" },
+	{ name = "Nameplates" },
+	{ name = "Subtitle" },
+	{ name = "Thick" } }
+
+local controls = {}
+
 function PerspectiveOptions:new(o)
 	o = o or {}
 	setmetatable(o, self)
@@ -32,6 +77,9 @@ function PerspectiveOptions:OnInitialize()
 	-- Load our default values
 	local defaults = self:LoadDefaults()
 
+	-- Load our controls
+	controls = self:LoadControls();
+
 	-- Load the default values into the db.
 	self.db = Apollo.GetPackage("Gemini:DB-1.0").tPackage:New(self, defaults)
 
@@ -42,10 +90,10 @@ function PerspectiveOptions:OnInitialize()
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
     
     -- Options categories list
-    self.CategoryList = self.Options:FindChild("CategoryList"):FindChild("Categories"):FindChild("List")
+    self.CategoryList = self.Options:FindChild("CategoryList"):FindChild("Categories")
     
     -- Options modules list
-    self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules"):FindChild("List")
+    self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules")
 
     -- Options category editor
     self.CategoryEditor = self.Options:FindChild("CategoryEditor")
@@ -83,10 +131,12 @@ function PerspectiveOptions:LoadDefaults()
 				names = {
 					[L["Return Teleporter"]]			= { category = "instancePortal" },
 					[L["Bruxen"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
+					[L["Tanxox"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
 					[L["Gus Oakby"]]					= { category = "instancePortal",	display = L["Ship to Crimson Badlands"] },
 					[L["Lilly Startaker"]]				= { category = "instancePortal",	display = L["Ship to Grimvault"] },
 					[L["Transportation Expert Conner"]]	= { category = "instancePortal",	display = L["Ship to Farside"] },
 					[L["Warrant Officer Burke"]]		= { category = "instancePortal",	display = L["Ship to Whitevale"] },
+					[L["Venyanna Skywind"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
 					[L["Empirius"]]						= { category = "wotwChampion" },
 					[L["Sagittaurus"]]					= { category = "wotwChampion" },
 					[L["Lectro"]]						= { category = "wotwChampion" },
@@ -114,8 +164,8 @@ function PerspectiveOptions:LoadDefaults()
 						max = 2,
 						maxLines = 1,
 						minDistance = 0,
-						maxDistance = 9999,
-						zDistance = 9999,
+						maxDistance = 500,
+						zDistance = 500,
 						showDistance = true,
 						showIcon = true,
 						showName = true,
@@ -556,6 +606,44 @@ function PerspectiveOptions:LoadDefaults()
 	}
 end
 
+function PerspectiveOptions:LoadControls()
+	return {
+		CategoryEditor 					= {
+			CheckButtons				= {
+				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L[""] },
+				CombatDisableCheck 		= { option = "disableInCombat",					text = L["Hide When In Combat"], 		tooltip = L[""] },
+				OccludedDisableCheck 	= { option = "disableOccluded",					text = L["Hide When Occluded"], 		tooltip = L[""] },
+				ShowIconCheck 			= { option = "showIcon",						text = L["Show Icon"], 					tooltip = L[""] },
+				ShowNameCheck 			= { option = "showName",						text = L["Show Name"], 					tooltip = L[""] },
+				ShowDistanceCheck 		= { option = "showDistance",					text = L["Show Distance"], 				tooltip = L[""] },
+				ShowLinesCheck 			= { option = "showLines",						text = L["Show Lines"], 				tooltip = L[""] },
+				ShowOutlineCheck 		= { option = "showLineOutline",					text = L["Show Line Outline"], 			tooltip = L[""] },
+				ShowOffScreenLineCheck 	= { option = "showLinesOffscreen",				text = L["Show Lines Offscreen"], 		tooltip = L[""] },
+				RangeFontCheck 			= { option = "rangeFont",						text = L["Color Font By Range Color"], 	tooltip = L[""] },
+				RangeIconCheck 			= { option = "rangeIcon",						text = L["Color Icon By Range Color"], 	tooltip = L[""] },
+				RangeLineCheck 			= { option = "rangeLine",						text = L["Color Line By Range Color"], 	tooltip = L[""] } },
+			TextBoxes					= {
+				DisplayText				= { option = "display",							label = L["Display As"],				tooltip = L[""] },
+				IconText				= { option = "icon",							label = L["Icon"],						tooltip = L[""] },
+				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L[""] },
+				IconWidthText			= { option = "iconWidth",	isNumber = true,	label = L["Icon Width"], 				tooltip = L[""] },
+				MinDistanceText			= { option = "minDistance",	isNumber = true,	label = L["Min Distance"], 				tooltip = L[""] },
+				MaxDistanceText			= { option = "maxDistance",	isNumber = true,	label = L["Max Distance"], 				tooltip = L[""] },
+				ZDistanceText			= { option = "zDistance",	isNumber = true,	label = L["Z Distance"], 				tooltip = L[""] },
+				LineWidthText			= { option = "lineWidth",	isNumber = true,	label = L["Line Width"], 				tooltip = L[""] },
+				MaxIconsText			= { option = "max",			isNumber = true,	label = L["Limit Icons"], 				tooltip = L[""] },
+				MaxLinesText			= { option = "maxLines",	isNumber = true,	label = L["Limit Lines"], 				tooltip = L[""] },
+				RangeLimitText			= { option = "rangeLimit",	isNumber = true,	label = L["Range Limit"], 				tooltip = L[""] } },
+			ColorButtons				= {
+				FontColorButton			= { option = "fontColor",						label = L["Font Color"],				tooltip = L[""] },
+				IconColorButton			= { option = "iconColor",						label = L["Icon Color"],				tooltip = L[""] },
+				LineColorButton			= { option = "lineColor",						label = L["Line Color"],				tooltip = L[""] },
+				RangeColorButton		= { option = "rangeColor",						label = L["Range Color"],				tooltip = L[""] } },
+		},
+		Settings = {}
+	}
+end
+
 function PerspectiveOptions:GetOptionValue(ui, option, category)
 	local category = category or ui.category or "default"
 
@@ -584,7 +672,7 @@ function PerspectiveOptions:GetPathIcon()
 		path = "Scientist"
 	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
 		path = "Settler"
-	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Solider then
+	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
 		path = "Soldier"
 	end
 
@@ -613,6 +701,18 @@ end
 
 function PerspectiveOptions:OnCloseButton()
 	self.Options:Show(false, true)
+end
+
+function PerspectiveOptions:SetPixie(window, index, options)
+	--local window = self.Options:FindChild(parent)
+	local pi = window:GetPixieInfo(index)
+
+	pi.strText = options.text or pi.strText
+	pi.crText = options.textColor or pi.crText
+	pi.strSprite = options.sprite or pi.strSprite
+	pi.cr = options.color or pi.cr
+
+	window:UpdatePixie(index, pi)
 end
 
 function PerspectiveOptions:CColorToString(color)
@@ -687,6 +787,9 @@ function PerspectiveOptions:InitializeOptions()
 		categories:SetCheck(true)
 	end
 
+	-- List of modules to check against
+	local modules = {}
+
 	-- Initialize the categories
 	for category, cat in pairs(self.db.profile[self.profile].categories) do
 		if category ~= "default" then
@@ -695,6 +798,9 @@ function PerspectiveOptions:InitializeOptions()
 
 			-- Create the module buttons
 			self:ModuleItem_Init(category, cat.module)
+
+			-- Add the module to the list.
+			modules[cat.module] = true
 		end
 	end
 
@@ -705,13 +811,22 @@ function PerspectiveOptions:InitializeOptions()
 		end
 	end
 
-	-- Initialize the settings 
-	self:SettingsTimer_Init("DrawUpdate", "drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
-	self:SettingsTimer_Init("FastUpdate", "fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:SettingsTimer_Init("SlowUpdate", "slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
+	-- Check to make sure all our items still exist
+	for i, item in pairs(self.ModuleList:GetChildren()) do
+		if not modules[item:GetData().module] then
+			item:Destroy()
+		end
+	end
 
-	self:SettingsText_Init("Max", 		"max", true)
-	self:SettingsText_Init("InArea", 	"inArea", true)
+	-- Initialize the settings 
+	self:Settings_CheckInit("Disable", 		"disabled")
+
+	self:Settings_TimerInit("DrawUpdate", 	"drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
+	self:Settings_TimerInit("FastUpdate", 	"fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
+	self:Settings_TimerInit("SlowUpdate", 	"slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
+
+	self:Settings_TextInit("Max", 			"max", 		true)
+	self:Settings_TextInit("InArea", 		"inArea", 	true)
 
 		-- Sort the lists.
 	self:ArrangeChildren(self.CategoryList)
@@ -845,57 +960,6 @@ end
 
 function PerspectiveOptions:CategoryEditor_Show(category)
 
-	local function loadCheck(name, category, option)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Check")
-
-		-- Disable the line checks
-		if option == "showLines" or
-			option == "showLineOutline" or
-			option == "showLinesOffscreen" then
-			if category == "pathLocation" or 
-				category == "questLocation" or
-				category == "eventLocation" or
-				category == "challengeLocation" then
-				control:Enable(false)
-			else
-				control:Enable(true)
-			end
-		end		
-
-		-- Set the check value.
-		control:SetCheck(self:GetOptionValue(nil, option, category))
-
-		-- Make sure we haven't already set the event handlers
-		if not control:GetData() then
-			--Setup the event handlers
-			control:AddEventHandler("ButtonCheck", 		"CategoryEditor_OnChecked")
-			control:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnChecked")	
-		end
-
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option })
-	end
-
-	local function loadText(name, category, option, isNumber)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Text")
-
-		-- Set the text value.
-		control:SetText(self:GetOptionValue(nil,  option, category) or "")
-
-		-- Make sure we haven't already set the event handlers
-		if not control:GetData() then
-			--Setup the event handlers
-			control:AddEventHandler("EditBoxReturn", 	"CategoryEditor_OnReturn")
-			control:AddEventHandler("EditBoxTab", 		"CategoryEditor_OnReturn")
-			control:AddEventHandler("EditBoxEscape", 	"CategoryEditor_OnEscape")
-		end
-		
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option, isNumber = isNumber })
-	end
-
 	local function loadDropDown(name, category, option)
 		-- Get the control by name
 		local control = self.CategoryEditor:FindChild(name .. "DropDownButton")
@@ -958,22 +1022,38 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	local icon = 	self:GetOptionValue(nil, "icon", 		category)
 	local color = 	self:GetOptionValue(nil, "iconColor", 	category)
 
-	self.CategoryEditor:FindChild("Category"):SetText(header)
-	self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
-	self.CategoryEditor:FindChild("Icon"):SetBGColor(color)
+	-- Set the category editor image pixie
+	self:SetPixie(self.CategoryEditor, 1, { sprite = icon, color = color })
 
 	local whitelist = self:GetOptionValue(nil, "whitelist", category)
 	
+	local catEdit = self.CategoryEditor:FindChild("CategoryEdit")
+
 	-- Set the rename text
-	self.CategoryEditor:FindChild("RenameText"):SetText(category)
+	catEdit:SetText(header)
 	
 	-- Show the rename edit box if this is a whitelist item
-	self.CategoryEditor:FindChild("RenameTextBG"):Show(whitelist, true)
+	if whitelist then
+		self:SetPixie(self.CategoryEditor, 2, { sprite = "BK3:UI_BK3_Holo_InsetSimple" })
+		catEdit:SetStyleEx("ReadOnly", false)
+	else
+		self:SetPixie(self.CategoryEditor, 2, { sprite = "" })
+		catEdit:SetStyleEx("ReadOnly", true)
+	end
 	
 	-- Show the category name if this is not a whitelist item
-	self.CategoryEditor:FindChild("Category"):Show(not whitelist, true)
+	--self.CategoryEditor:FindChild("Category"):Show(not whitelist, true)
 
-	loadCheck("Disable", 			category, "disabled")
+	-- Initialize the checkbuttons
+	for name, options in pairs(controls.CategoryEditor.CheckButtons) do
+		self:CheckButtonInitialize("CategoryEditor", name, category, options)
+	end
+
+	-- Initialize the textboxes
+	for name, options in pairs(controls.CategoryEditor.TextBoxes) do
+		self:TextBoxInitialize("CategoryEditor", name, category, options)
+	end
+	--[[loadCheck("Disable", 			category, "disabled")
 	loadCheck("CombatDisable", 		category, "disableInCombat")
 	loadCheck("ShowIcon", 			category, "showIcon")
 	loadCheck("ShowName", 			category, "showName")
@@ -997,7 +1077,7 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	loadText("MaxDistance",			category, "maxDistance", 	true)
 	loadText("Display", 			category, "display", 		false)
 	loadText("RangeLimit",			category, "rangeLimit",		true)
-
+]]
 	loadColor("FontColor",			category, "fontColor")
 	loadColor("IconColor", 			category, "iconColor")
 	loadColor("LineColor", 			category, "lineColor")
@@ -1005,17 +1085,233 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 
 	loadDropDown("LimitBy",			category, "limitBy")
 
+	for k, v in pairs(fonts) do
+		self.CategoryEditor:FindChild("FontDropDown"):FindChild("DropDown"):AddItem(k)
+	end
+
 	self.ModuleList:GetParent():Show(false, true)
 	self.CategoryList:GetParent():Show(false, true)
 	self.CategoryEditor:Show(true, true)
 end
+
+--[[
+-- Disable the location line checkbuttons
+		if category == "questLocation" or
+			category == "eventLocation" or
+			category == "pathLocation" or
+			category == "challengeLocation" then
+			if name == "maxLines" or 
+				name == "lineWidth" or
+				name == "zDistance" or
+				name == "minDistance" or
+				name == "maxDistance" or
+				name == "display" or
+				option == "rangeLimit" or
+				optoin == "lineColor" or
+				option == "rangeColor" or
+				option == "limitBy" then
+				control:Show(false, false)
+			end
+		end]]
+
+-----------------------------------------------------------------------------------------
+-- CheckButton
+-----------------------------------------------------------------------------------------
+
+function PerspectiveOptions:CheckButtonInitialize(parent, name, category, options)
+	-- Get the control by name
+	local control = self[parent]:FindChild(name)
+
+	-- Set the control toolip.
+	control:SetTooltip(options.tooltip)
+
+	-- Set the checkbutton value.
+	if category then
+		-- category checkbutton
+		control:SetCheck(self:GetOptionValue(nil, options.option, category))
+
+		-- Show the checkbutton
+		control:Show(true, true)
+
+		-- Disable the location checkbuttons
+		if category == "questLocation" or
+			category == "eventLocation" or
+			category == "pathLocation" or
+			category == "challengeLocation" then
+			if options.option == "disableInCombat" or 
+				options.option == "disableOccluded" or
+				options.option == "showLines" or
+				options.option == "showLineOutline" or
+				options.option == "showLinesOffscreen" or
+				options.option == "rangeFont" or
+				options.option == "rangeIcon" or
+				options.option == "rangeLine" then
+				-- Hide the checkbutton
+				control:Show(false, true)
+			end
+		end
+
+	else
+		-- Setting checkbutton
+		control:SetCheck(self.db.profile[self.profile].settings[options.option])
+	end
+
+	-- Make sure we haven't already set the event handlers
+	if not control:GetData() then
+		--Setup the event handlers
+		control:AddEventHandler("ButtonCheck", 		"CheckButtonClicked" .. parent)
+		control:AddEventHandler("ButtonUncheck", 	"CheckButtonClicked" .. parent)
+	end
+
+	-- Set the data for the control.
+	control:SetData({ category = category, options = options })
+end
+
+function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, button)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Get the control's value
+	local val = control:IsChecked()
+
+	-- Check to see if we need to set the value for all categories
+	if data.category == "all" then
+		for category, cat in pairs(self.db.profile[self.profile].categories) do
+			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+				cat[data.options.option] = val
+			end
+		end
+	else
+		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
+	end
+
+	-- Update all the ui options.
+	Perspective:UpdateOptions()
+
+	-- Update the markers.
+	Perspective:MarkersInit()
+end
+
+-----------------------------------------------------------------------------------------
+-- TextBox
+-----------------------------------------------------------------------------------------
+
+function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
+	-- Get the control by name
+	local control = self[parent]:FindChild(name)
+	local label = control:FindChild("Label")
+	local text = control:FindChild("TextBox")
+
+	-- Set the control toolip.
+	control:SetTooltip(options.tooltip)
+
+	-- Set the textbox label.
+	label:SetText(options.label)
+
+	-- Set the textbox value.
+	if category then
+		-- Category textbox
+		text:SetText(self:GetOptionValue(nil,  options.option, category) or "")
+
+		-- Show the textbox
+		control:Show(true, true)
+
+		-- Disable the location checkbuttons
+		if category == "questLocation" or
+			category == "eventLocation" or
+			category == "pathLocation" or
+			category == "challengeLocation" then
+			if options.option == "maxLines" or 
+				options.option == "lineWidth" or
+				options.option == "zDistance" or
+				options.option == "minDistance" or
+				options.option == "maxDistance" or
+				options.option == "display" or
+				options.option == "rangeLimit" then
+				-- Hide the textbox
+				control:Show(false, true)
+			end
+		end
+	else
+		-- Settings checkbutton
+		text:SetText(self.db.profile[self.profile].settings[options.option])
+	end
+
+	-- Make sure we haven't already set the event handlers
+	if not text:GetData() then
+		--Setup the event handlers
+		text:AddEventHandler("EditBoxReturn", 	"TextBoxReturn" .. parent)
+		text:AddEventHandler("EditBoxTab", 		"TextBoxReturn" .. parent)
+		text:AddEventHandler("EditBoxEscape", 	"TextBoxEscape" .. parent)
+	end
+	
+	-- Set the data for the control.
+	text:SetData({ category = category, options = options })
+end
+
+function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+
+	-- Get the control's value
+	local val = control:GetText()
+
+	-- Check to see if the textbox is expecting a number
+	if data.options.isNumber then
+		if not tonumber(val) then
+			val = self:GetOptionValue(nil, data.options.option, data.category)
+		else
+			val = tonumber(val)
+		end
+	end
+
+	-- If the option is blank, load the default setting.
+	if val == "" then 
+		val = self:GetOptionValue(nil, data.options.option, data.category)
+	end
+
+	-- Check to see if we need to set the value for all categories
+	if data.category == "all" then
+		for category, cat in pairs(self.db.profile[self.profile].categories) do
+			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+				cat[data.options.option] = val
+				if data.options.option == "icon" then
+					self:CategoryEditor_UpdateIcon(category)
+				end
+			end
+		end
+	else
+		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
+
+		if data.option == "icon" then
+			self:CategoryEditor_UpdateIcon(data.category)
+		end
+	end
+
+	-- Update all the ui options.
+	Perspective:UpdateOptions()
+
+	-- Update the markers.
+	Perspective:MarkersInit()
+end
+
+function PerspectiveOptions:TextBoxEscapeCategoryEditor(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Load the previous value
+	control:SetText(self:GetOptionValue(nil, data.options.option, data.category))
+end
+
+
+
 
 function PerspectiveOptions:CategoryEditor_OnBackClick(handler, control, button)
 	self.CategoryEditor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 end
-
+--[[
 function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
 	-- Get the control's data
 	local data = control:GetData()
@@ -1093,7 +1389,7 @@ function PerspectiveOptions:CategoryItem_OnEscape(handler, control)
 	
 	-- Load the previous value
 	control:SetText(self:GetOptionValue(nil, data.option, data.category))
-end
+end]]
 
 function PerspectiveOptions:CategoryEditor_OnDropDown(handler, control, button)
 	-- Get the control's data.
@@ -1221,8 +1517,24 @@ end
 
 
 
+function PerspectiveOptions:Settings_CheckInit(name, option)
+	local control = self.Settings:FindChild(name .. "Check")
 
-function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit, divBy, tickFunc)
+	-- Set the check value.
+	control:SetCheck(self.db.profile[self.profile].settings.disabled)
+
+	-- Make sure we haven't already set the event handlers
+	if not control:GetData() then
+		--Setup the event handlers
+		control:AddEventHandler("ButtonCheck", 		"Settings_OnChecked")
+		control:AddEventHandler("ButtonUncheck", 	"Settings_OnChecked")	
+	end
+
+	-- Set the data for the control.
+	control:SetData({ option = option })
+end
+
+function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit, divBy, tickFunc)
 	local slider = self.Settings:FindChild(control .. "Slider")
 	local text = self.Settings:FindChild(control .. "Text")
 
@@ -1245,10 +1557,10 @@ function PerspectiveOptions:SettingsTimer_Init(control, value, numDecimal, unit,
 	text:SetText(val .. " " .. unit)
 
 	-- Set the event handler
-	slider:AddEventHandler("SliderBarChanged", "SettingsTimer_OnChanged")
+	slider:AddEventHandler("SliderBarChanged", "Settings_OnSliderChanged")
 end
 
-function PerspectiveOptions:SettingsText_Init(name, option, isNumber)
+function PerspectiveOptions:Settings_TextInit(name, option, isNumber)
 	-- Get the control by name
 	local control = self.Settings:FindChild(name .. "Text")
 
@@ -1258,16 +1570,52 @@ function PerspectiveOptions:SettingsText_Init(name, option, isNumber)
 	-- Make sure we haven't already set the event handlers
 	if not control:GetData() then
 		--Setup the event handlers
-		control:AddEventHandler("EditBoxReturn", 	"CategoryEditor_OnReturn")
-		control:AddEventHandler("EditBoxTab", 		"CategoryEditor_OnReturn")
-		control:AddEventHandler("EditBoxEscape", 	"CategoryEditor_OnEscape")
+		control:AddEventHandler("EditBoxReturn", 	"Settings_OnTextReturn")
+		control:AddEventHandler("EditBoxTab", 		"Settings_OnTextReturn")
+		control:AddEventHandler("EditBoxEscape", 	"Settings_OnTextEscape")
 	end
 		
 	-- Set the data for the control.
 	control:SetData({ option = option, isNumber = isNumber })
 end
 
-function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
+function PerspectiveOptions:Settings_OnChecked(handler, control, button)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Get the control's value
+	local val = control:IsChecked()
+
+	if data.option == "disabled" then
+		if val then
+			Perspective:Stop();
+		else
+			Perspective:Start();
+		end
+	else
+		-- Set the settings value
+		self.db.profile[self.profile].settings[data.option] = val	
+	end
+end
+
+function PerspectiveOptions:Settings_OnSliderChanged(handler, control, button)
+	-- Get the control's data.
+	local data = control:GetData()
+
+	-- Get the timer vale
+	local val = Apollo.FormatNumber(control:GetValue(), data.numDecimal)
+
+	-- Get the control's text.
+	data.text:SetText(val .. " " .. data.unit)
+
+	-- Save the value.
+	self.db.profile[self.profile].settings[data.value] = val
+
+	-- Set the timer in Perspective
+	Perspective[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
+end
+
+function PerspectiveOptions:Settings_OnTextReturn(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 
@@ -1296,7 +1644,7 @@ function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
 	end
 end
 
-function PerspectiveOptions:CategoryItem_OnEscape(handler, control)
+function PerspectiveOptions:Settings_OnTextEscape(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 	
@@ -1389,19 +1737,4 @@ end
 -- Settings Events
 ---------------------------------------------------------------------------------------------------
 
-function PerspectiveOptions:SettingsTimer_OnChanged(handler, control, button)
-	-- Get the control's data.
-	local data = control:GetData()
 
-	-- Get the timer vale
-	local val = Apollo.FormatNumber(control:GetValue(), data.numDecimal)
-
-	-- Get the control's text.
-	data.text:SetText(val .. " " .. data.unit)
-
-	-- Save the value.
-	self.db.profile[self.profile].settings[data.value] = val
-
-	-- Set the timer in Perspective
-	Perspective[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
-end

@@ -2,6 +2,7 @@
 <Addon Author="Credit-Avatus(US)" APIVersion="8" Name="Perspective" Description="">
     <Script Name="Libs/GeminiAddon.lua"/>
     <Script Name="Libs/GeminiDB-1.0.lua"/>
+    <Script Name="Libs/GeminiTimer-1.0.lua"/>
     <Script Name="Options.lua"/>
     <Script Name="Locale.lua"/>
     <Script Name="Perspective.lua"/>

@@ -100,12 +100,34 @@ function Perspective:OnEnable()
 	end
 end
 
-function Perspective:Start()
-	Options.db.profile[Options.profile].settings.disabled = nil
 
-	if Options.db.profile[Options.profile].settings.draw == 0 then
-		
+function Perspective:CreateTimer(timer)
+	-- Cancel the current timer
+	self:CancelTimer(self.timers[timer], true)
+
+	local func, divBy
+	
+	if timer == "draw" then 
+		func = "OnTimerTicked_Draw"
+		divBy = 1000
+	elseif timer == "slow" then 
+		func = "OnTimerTicked_Slow"
+		divBy = 1
+	elseif timer == "fast" then 
+		func = "OnTimerTicked_Fast"
+		divBy = 1000
 	end
+
+	-- Create a new timer
+	self.timers[timer] = self:ScheduleTimer(func, Options.db.profile[Options.profile].settings[timer] / divBy)
+end
+
+function Perspective:Start()
+	-- Cancel all current timers as a precaution
+	self:CancelAllTimers()
+
+	-- Remove the event handler for next frame, again as a precaution
+	Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", self)
 
 	if self.loaded then
 		-- Recreate all the units
@@ -113,29 +135,15 @@ function Perspective:Start()
 			self:OnUnitCreated(unit)
 		end
 	end
-
-	-- Create or start the slow timer
-	if self.timers.slow then
-		self.timers.slow:Start()
-	else
-		self.timers.slow = ApolloTimer.Create(Options.db.profile[Options.profile].settings.slow, 			true, "OnTimerTicked_Slow", self)
-	end
-
-	-- Create or start the fast timer
-	if self.timers.fast then
-		self.timers.fast:Start()
-	else
-		self.timers.fast = ApolloTimer.Create(Options.db.profile[Options.profile].settings.fast / 1000, 	true, "OnTimerTicked_Fast", self)
-	end
-
+	
+	-- Create our update timers.
+	self:CreateTimer("fast")
+	self:CreateTimer("slow")
+	
 	-- Only start the draw timer if we aren't updating every frame
 	if Options.db.profile[Options.profile].settings.draw > 0 then
-		-- Create or start the draw timer
-		if self.timers.draw then
-			self.timers.draw:Start()
-		else
-			self.timers.draw = ApolloTimer.Create(Options.db.profile[Options.profile].settings.draw / 1000,	true, "OnTimerTicked_Draw", self)
-		end
+		-- Create the draw timer
+		self:CreateTimer("draw")
 	else
 		-- Redraw the screen on every frame
 		Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", self)
@@ -143,27 +151,20 @@ function Perspective:Start()
 end
 
 function Perspective:Stop()
-	Options.db.profile[Options.profile].settings.disabled = true
+	-- Cancel all current timers
+	self:CancelAllTimers()
 
+	-- Remove the event handler for next frame
 	Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", self)
-
-	if self.timers.slow then
-		self.timers.slow:Stop()
-	end
-
-	if self.timers.fast then
-		self.timers.fast:Stop()	
-	end
-
-	if self.timers.draw then
-		self.timers.draw:Stop()
-	end
-
+	
 	self.units.prioritized = {}
 	self.units.categorized = {}
 
 	self.markers = {}
 	self.markersInitialized = false
+
+	-- Destroy all our pixies
+	self.Overlay:DestroyAllPixies()
 end
 
 function Perspective:GetUnitById(id)
@@ -361,19 +362,6 @@ function Perspective:OnTimerTicked_Draw()
 		end
 	end
 
-	if self.timers.draw then
-		-- Stop our draw timer
-		self.timers.draw:Stop()
-	end
-
-	-- Check to see if the addon was disabled.
-	if Options.db.profile[Options.profile].settings.disabled then 
-		-- Destroy all our pixies
-		self.Overlay:DestroyAllPixies()
-
-		return
-	end
-
 	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
@@ -404,7 +392,7 @@ function Perspective:OnTimerTicked_Draw()
 
 		-- Draw the markers, they are most likely going to be the farthest pixies from the player
 		-- so we want them "behind" our other units.
-		self:MarkersDraw()
+		--self:MarkersDraw()
 
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
 		-- distance, closest to farthest.  This will ensure our farthers are drawn first and 
@@ -425,23 +413,18 @@ function Perspective:OnTimerTicked_Draw()
 
 	end
 
-	if self.timers.draw then
-		-- Start the draw timer
-		self.timers.draw:Start()
+	if not Options.db.profile[Options.profile].settings.disabled and
+		Options.db.profile[Options.profile].settings.draw > 0 then
+		-- Create a new timer
+		self.timers.draw = self:ScheduleTimer(
+							"OnTimerTicked_Draw", 
+							Options.db.profile[Options.profile].settings.draw / 1000)
 	end
 end
 
 -- Updates all the units we know about as well as loading options if its needed.
 -- Categorizes and prioritizes our units.
 function Perspective:OnTimerTicked_Slow()
-	-- Stop the timer while we process the units.
-	self.timers.slow:Stop()
-
-	-- Check to make sure the addon isn't disabled.
-	if Options.db.profile[Options.profile].settings.disabled then 
-		return
-	end
-
 	local player = GameLib.GetPlayerUnit()
 
 	if player then
@@ -475,21 +458,17 @@ function Perspective:OnTimerTicked_Slow()
 		end
 	end
 
-	-- Restart our timer now that we are finished processing
-	self.timers.slow:Start()
+	if not Options.db.profile[Options.profile].settings.disabled then
+		-- Create a new timer
+		self.timers.slow = self:ScheduleTimer(
+							"OnTimerTicked_Slow", 
+							Options.db.profile[Options.profile].settings.slow)
+	end
 end
 
 -- Updates our prioritized (close) units faster than the farther ones.
 -- We'll keep this as light weight as possible, only updating the distance and relevant info.
 function Perspective:OnTimerTicked_Fast()
-	-- Stop the timer while we process the units.
-	self.timers.fast:Stop()
-
-	-- Check to make sure the addon isn't disabled.
-	if Options.db.profile[Options.profile].settings.disabled then 
-		return
-	end
-
 	local player = GameLib.GetPlayerUnit()
 
 	if player then
@@ -517,8 +496,12 @@ function Perspective:OnTimerTicked_Fast()
 		end
 	end
 
-	-- Restart our timer now that we are finished processing
-	self.timers.fast:Start()
+	if not Options.db.profile[Options.profile].settings.disabled then
+		-- Create a new timer
+		self.timers.fast = self:ScheduleTimer(
+							"OnTimerTicked_Fast", 
+							Options.db.profile[Options.profile].settings.fast / 1000)
+	end
 end
 
 function Perspective:UpdateUnitCategory(ui, unit)
@@ -1428,7 +1411,7 @@ function Perspective:UpdateActivationState(ui, unit)
 
 	ui.category = category
 
-	return busy
+	return false
 end
 
 function Perspective:UpdateRewardInfo(ui, unit)

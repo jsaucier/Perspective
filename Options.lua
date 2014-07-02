@@ -1158,31 +1158,7 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	for name, options in pairs(controls.CategoryEditor.TextBoxes) do
 		self:TextBoxInitialize("CategoryEditor", name, category, options)
 	end
-	--[[loadCheck("Disable", 			category, "disabled")
-	loadCheck("CombatDisable", 		category, "disableInCombat")
-	loadCheck("ShowIcon", 			category, "showIcon")
-	loadCheck("ShowName", 			category, "showName")
-	loadCheck("ShowDistance", 		category, "showDistance")
-	loadCheck("ShowLines", 			category, "showLines")
-	loadCheck("ShowOutline", 		category, "showLineOutline")
-	loadCheck("ShowOffScreenLine", 	category, "showLinesOffscreen")
-	loadCheck("RangeFont", 			category, "rangeFont")
-	loadCheck("RangeIcon", 			category, "rangeIcon")
-	loadCheck("RangeLine", 			category, "rangeLine")
 
-	loadText("Font", 				category, "font", 			false)
-	loadText("Icon", 				category, "icon", 			false)
-	loadText("IconHeight",			category, "iconHeight", 	true)
-	loadText("IconWidth", 			category, "iconWidth", 		true)
-	loadText("MaxIcons", 			category, "max", 			true)
-	loadText("MaxLines", 			category, "maxLines", 		true)
-	loadText("LineWidth", 			category, "lineWidth", 		true)
-	loadText("ZDistance",			category, "zDistance", 		true)
-	loadText("MinDistance",			category, "minDistance", 	true)
-	loadText("MaxDistance",			category, "maxDistance", 	true)
-	loadText("Display", 			category, "display", 		false)
-	loadText("RangeLimit",			category, "rangeLimit",		true)
-]]
 	loadColor("FontColor",			category, "fontColor")
 	loadColor("IconColor", 			category, "iconColor")
 	loadColor("LineColor", 			category, "lineColor")
@@ -1198,26 +1174,6 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 	self.CategoryList:GetParent():Show(false, true)
 	self.CategoryEditor:Show(true, true)
 end
-
---[[
--- Disable the location line checkbuttons
-		if category == "questLocation" or
-			category == "eventLocation" or
-			category == "pathLocation" or
-			category == "challengeLocation" then
-			if name == "maxLines" or 
-				name == "lineWidth" or
-				name == "zDistance" or
-				name == "minDistance" or
-				name == "maxDistance" or
-				name == "display" or
-				option == "rangeLimit" or
-				optoin == "lineColor" or
-				option == "rangeColor" or
-				option == "limitBy" then
-				control:Show(false, false)
-			end
-		end]]
 
 -----------------------------------------------------------------------------------------
 -- CheckButton
@@ -1626,7 +1582,7 @@ function PerspectiveOptions:Settings_CheckInit(name, option)
 	local control = self.Settings:FindChild(name .. "Check")
 
 	-- Set the check value.
-	control:SetCheck(self.db.profile[self.profile].settings.disabled)
+	control:SetCheck(self.db.profile[self.profile].settings[option])
 
 	-- Make sure we haven't already set the event handlers
 	if not control:GetData() then
@@ -1701,12 +1657,12 @@ function PerspectiveOptions:Settings_OnChecked(handler, control, button)
 
 	-- Set the settings value
 	self.db.profile[self.profile].settings[data.option] = val	
-
+Print(data.option .. ": " .. (val and tostring(val) or "nil"))
 	if data.option == "disabled" then
 		if val then
-			Perspective:Stop();
+			Perspective:Stop()
 		else
-			Perspective:Start();
+			Perspective:Start()
 		end	
 	end
 end

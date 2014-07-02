@@ -86,6 +86,10 @@ function PerspectiveOptions:OnInitialize()
 	-- Load the xml document
 	self.xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
 
+	-- Dialog window
+    self.Dialog = Apollo.LoadForm(self.xmlDoc, "Dialog", nil, self)
+    self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "OnDialogClose")
+
 	-- Options window
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
     
@@ -107,63 +111,95 @@ function PerspectiveOptions:OnInitialize()
 
 	-- Register the slash command	
 	Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
-	Apollo.RegisterSlashCommand("pt", "ShowTargetInfo", self)
+	Apollo.RegisterSlashCommand("pti", "ShowTargetInfo", self)
 end
 
-
 function PerspectiveOptions:ShowTargetInfo()
+	local text = ""
+
+	local function appendLine(txt, bNoReturn)
+		text = text .. txt .. (not bNoReturn and "\n" or "")
+	end
+
+	local function getIndent(indent)
+		local txt = ""
+
+		for i = 1, indent do
+			txt = txt .. "    "
+		end
+
+		return txt
+	end
+
+	local function deepPrint(key, value, indent)
+		local txt = ""
+
+		if type(value) == "table" then
+			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
+			for k, v in pairs(value) do
+				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
+			end
+			txt = txt .. " }"
+		else
+			txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
+		end
+
+		return txt
+	end
+
 	local indent = 1
 	local target = GameLib.GetTargetUnit()
 
-	local type = target:GetType()
 	local rewards = target:GetRewardInfo()
-	local activation = target:GetActivationState()
+	local state = target:GetActivationState()
+	local zone = GameLib.GetCurrentZoneMap()
 
-	Print("Perspective: " .. target:GetName())
-
-	Print(self:GetIndent(indent) .. "Type: " .. type)
+	appendLine("Name: " .. target:GetName())
+	appendLine("Id: " .. target:GetId())
+	appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
+	appendLine("Type: " .. target:GetType())
 
 	if rewards then
-		Print(self:GetIndent(indent) .. "RewardInfo: {")
+		local txt = ""
 		for k, v in pairs(rewards) do
-			self:DeepPrint(k, v, indent + 1)
+			txt = txt .. deepPrint(k, v, indent + 1)
 		end
-		Print(self:GetIndent(indent) .. "}")
+
+		if txt ~= "" then
+			appendLine("RewardInfo: {", true)
+			appendLine(txt .. " }")
+		else
+			appendLine("RewardInfo: {}")
+		end
 	else
-		Print(self:GetIndent(indent) .. "RewardInfo: nil")
+		appendLine("RewardInfo: nil")
 	end
 
-	if activation then
-		Print(self:GetIndent(indent) .. "ActivationState: {")
-		for k, v in pairs(activation) do
-			self:DeepPrint(k, v, indent + 1)
+	if state then
+		local txt = ""
+		for k, v in pairs(state) do
+			txt = txt .. deepPrint(k, v, indent + 1)
 		end
-		Print(self:GetIndent(indent) .. "}")
+
+		if txt ~= "" then
+			appendLine("ActivationState: {", true)
+			appendLine(txt .. " }")
+		else
+			appendLine("ActivationState: {}")
+		end
 	else
-		Print(self:GetIndent(indent) .. "ActivationState: nil")
+		appendLine("ActivationState: nil")
 	end
+
+	self.Dialog:FindChild("CopyButton"):SetActionData(
+    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
+
+	self.Dialog:FindChild("TextBox"):SetText(text)
+	self.Dialog:Show(true, true)
 end
 
-function PerspectiveOptions:GetIndent(indent)
-	local str = ""
-
-	for i = 1, indent do
-		str =  str .. "    "
-	end
-
-	return str
-end
-
-function PerspectiveOptions:DeepPrint(key, value, indent)
-	if type(value) == "table" then
-		Print(self:GetIndent(indent) .. key .. " {")
-		for k, v in pairs(value) do
-			self:DeepPrint(k, v, indent + 1)
-		end
-		Print(self:GetIndent(indent) .. "}")
-	else
-		Print(self:GetIndent(indent) .. key .. ": " .. tostring(value))
-	end
+function PerspectiveOptions:OnDialogClose()
+	self.Dialog:Show(false, true)
 end
 
 function PerspectiveOptions:OnEnable()

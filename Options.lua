@@ -513,17 +513,18 @@ function PerspectiveOptions:LoadDefaults()
 						limitBy = "category",
 						max = 1,
 						drawLine = false,
-						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
+						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
-						iconHeight = 64	},
+						iconHeight = 64,
+						iconColor = "ffffff00" },
 					challengeLocation = {
 						header = L["Challenge Location"],
-						iconColor = "ffff0000",
+						iconColor = "ffff8000",
 						module = L["Challenge"],
 						limitBy = "challenge",
 						max = 1,
 						drawLine = false,
-						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetGreen",
+						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64	},
 					challenge = {
@@ -1599,8 +1600,10 @@ function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
 
 	if category == self.category or category == "all" then
 		-- Update the category editor icon.
-		self.CategoryEditor:FindChild("Icon"):SetBGColor(iconColor)
-		self.CategoryEditor:FindChild("Icon"):SetSprite(icon)
+		local pixie = self.CategoryEditor:GetPixieInfo(1)
+		pixie.strSprite = icon
+		pixie.cr = iconColor
+		self.CategoryEditor:UpdatePixie(1, pixie)
 	end
 
 	-- Update our icon pixie
@@ -1691,7 +1694,7 @@ function PerspectiveOptions:Settings_OnChecked(handler, control, button)
 
 	-- Set the settings value
 	self.db.profile[self.profile].settings[data.option] = val	
-Print(data.option .. ": " .. (val and tostring(val) or "nil"))
+
 	if data.option == "disabled" then
 		if val then
 			Perspective:Stop()
@@ -1808,6 +1811,8 @@ function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, butt
 			self.Options:FindChild(v):Show(false, true)
 		end
 	end
+
+	control:SetCheck(true)
 end
 
 ---------------------------------------------------------------------------------------------------

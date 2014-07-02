@@ -34,49 +34,47 @@ function Perspective:OnInitialize()
 		prioritized	= {},
 		categorized	= {} }
 
+	-- Table of the sorted units, used to sort and draw by distance
 	self.sorted 	= {
 		prioritized	= {},
 		categorized	= {} }
 	
+	-- Table of the current active challenges
 	self.challenges = {}
+
+	-- Table of our update timers
+	self.timers 	= {
+		draw 		= nil,
+		fast 		= nil,
+		slow 		= nil }
 
 	-- Path marker windows
 	self.markers = {}
 	self.markersInitialized = false
 	
 	-- Register our addon events	
-	Apollo.RegisterEventHandler("NextFrame", 			"OnNextFrame", self)
-
 	Apollo.RegisterEventHandler("UnitCreated", 						"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 					"OnUnitDestroyed", self)
-	Apollo.RegisterEventHandler("ChangeWorld", 						"OnWorldChanged", self)
-	
+	Apollo.RegisterEventHandler("ChangeWorld", 						"OnWorldChanged", self)	
 	Apollo.RegisterEventHandler("QuestInit", 						"OnQuestInit", self)
 	Apollo.RegisterEventHandler("QuestObjectiveUpdated", 			"OnQuestObjectiveUpdated", self)
 	Apollo.RegisterEventHandler("QuestStateChanged", 				"OnQuestStateChanged", self)
-	Apollo.RegisterEventHandler("QuestTrackedChanged", 				"OnQuestTrackedChanged", self)
-	
+	Apollo.RegisterEventHandler("QuestTrackedChanged", 				"OnQuestTrackedChanged", self)	
 	Apollo.RegisterEventHandler("ChallengeActivate", 				"OnChallengeActivated", self) 
 	Apollo.RegisterEventHandler("ChallengeAbandon", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeCompleted", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailArea", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailTime", 				"OnChallengeRemoved", self)
 	Apollo.RegisterEventHandler("ChallengeFailGeneric", 			"OnChallengeRemoved", self)
-
 	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 		"OnPlayerPathMissionActivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionAdvanced", 		"OnPlayerPathMissionAdvanced", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionComplete", 		"OnPlayerPathMissionComplete", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 		"OnPlayerPathMissionDeactivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 		"OnPlayerPathMissionUnlocked", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 			"OnPlayerPathMissionUpdate", self)
-
-	Apollo.RegisterEventHandler("TargetUnitChanged",				"OnTargetUnitChanged", self)
-	
-	
-
+	Apollo.RegisterEventHandler("TargetUnitChanged",				"OnTargetUnitChanged", self)	
 	Apollo.RegisterEventHandler("PublicEventStart", 					"OnPublicEventUpdate", self)
-	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)
-	
+	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)	
 	Apollo.RegisterEventHandler("PublicEventLocationAdded", 			"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventLocationRemoved", 			"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveLocationAdded", 	"OnPublicEventUpdate", self)
@@ -84,15 +82,16 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
-
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitActivationTypeChanged", self)
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
 end
 
 function Perspective:OnEnable()
-	self.fastTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.fastTimer / 1000, 	true, "OnTimerTicked_Fast", self)
-	self.slowTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.slowTimer, 		true, "OnTimerTicked_Slow", self)	
-	self.drawTimer = ApolloTimer.Create(Options.db.profile[Options.profile].settings.drawTimer / 1000,	true, "OnTimerTicked_Draw", self)
+	-- Make sure the addon isn't disabled before starting.
+	if not Options.db.profile[Options.profile].settings.disabled then
+		-- Start the timers
+		Perspective:Start()
+	end
 
 	self.loaded = true
 
@@ -104,20 +103,64 @@ end
 function Perspective:Start()
 	Options.db.profile[Options.profile].settings.disabled = nil
 
-	self.drawTimer:Start()
-	self.slowTimer:Start()
-	self.fastTimer:Start()
+	if Options.db.profile[Options.profile].settings.draw == 0 then
+		
+	end
+
+	if self.loaded then
+		-- Recreate all the units
+		for id, unit in pairs(self.units.all) do
+			self:OnUnitCreated(unit)
+		end
+	end
+
+	-- Create or start the slow timer
+	if self.timers.slow then
+		self.timers.slow:Start()
+	else
+		self.timers.slow = ApolloTimer.Create(Options.db.profile[Options.profile].settings.slow, 			true, "OnTimerTicked_Slow", self)
+	end
+
+	-- Create or start the fast timer
+	if self.timers.fast then
+		self.timers.fast:Start()
+	else
+		self.timers.fast = ApolloTimer.Create(Options.db.profile[Options.profile].settings.fast / 1000, 	true, "OnTimerTicked_Fast", self)
+	end
+
+	-- Only start the draw timer if we aren't updating every frame
+	if Options.db.profile[Options.profile].settings.draw > 0 then
+		-- Create or start the draw timer
+		if self.timers.draw then
+			self.timers.draw:Start()
+		else
+			self.timers.draw = ApolloTimer.Create(Options.db.profile[Options.profile].settings.draw / 1000,	true, "OnTimerTicked_Draw", self)
+		end
+	else
+		-- Redraw the screen on every frame
+		Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+	end
 end
 
 function Perspective:Stop()
 	Options.db.profile[Options.profile].settings.disabled = true
 
-	-- Copy the prioritized back to the categorized table
-	for i, ui in pairs(self.units.prioritized) do
-		table.insert(self.units.categorized, { id = ui.id })
+	Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+
+	if self.timers.slow then
+		self.timers.slow:Stop()
+	end
+
+	if self.timers.fast then
+		self.timers.fast:Stop()	
+	end
+
+	if self.timers.draw then
+		self.timers.draw:Stop()
 	end
 
 	self.units.prioritized = {}
+	self.units.categorized = {}
 
 	self.markers = {}
 	self.markersInitialized = false
@@ -144,8 +187,8 @@ function Perspective:DestroyUnitInfo(unit)
 	self.units.categorized[unit:GetId()] = nil
 end
 
---function Perspective:OnTimerTicked_Draw()
-function Perspective:OnNextFrame()
+function Perspective:OnTimerTicked_Draw()
+--function Perspective:OnNextFrame()
 	-- Determines if we are allowed to draw the unit
 	local function addPixies(ui, pPos, pixies, items, lines)
 		local unit = self:GetUnitById(ui.id)
@@ -318,8 +361,10 @@ function Perspective:OnNextFrame()
 		end
 	end
 
-	-- Stop our draw timer
-	--self.drawTimer:Stop()
+	if self.timers.draw then
+		-- Stop our draw timer
+		self.timers.draw:Stop()
+	end
 
 	-- Check to see if the addon was disabled.
 	if Options.db.profile[Options.profile].settings.disabled then 
@@ -380,14 +425,17 @@ function Perspective:OnNextFrame()
 
 	end
 
-	--self.drawTimer:Start()
+	if self.timers.draw then
+		-- Start the draw timer
+		self.timers.draw:Start()
+	end
 end
 
 -- Updates all the units we know about as well as loading options if its needed.
 -- Categorizes and prioritizes our units.
 function Perspective:OnTimerTicked_Slow()
 	-- Stop the timer while we process the units.
-	self.slowTimer:Stop()
+	self.timers.slow:Stop()
 
 	-- Check to make sure the addon isn't disabled.
 	if Options.db.profile[Options.profile].settings.disabled then 
@@ -428,14 +476,14 @@ function Perspective:OnTimerTicked_Slow()
 	end
 
 	-- Restart our timer now that we are finished processing
-	self.slowTimer:Start()
+	self.timers.slow:Start()
 end
 
 -- Updates our prioritized (close) units faster than the farther ones.
 -- We'll keep this as light weight as possible, only updating the distance and relevant info.
 function Perspective:OnTimerTicked_Fast()
 	-- Stop the timer while we process the units.
-	self.fastTimer:Stop()
+	self.timers.fast:Stop()
 
 	-- Check to make sure the addon isn't disabled.
 	if Options.db.profile[Options.profile].settings.disabled then 
@@ -470,7 +518,7 @@ function Perspective:OnTimerTicked_Fast()
 	end
 
 	-- Restart our timer now that we are finished processing
-	self.fastTimer:Start()
+	self.timers.fast:Start()
 end
 
 function Perspective:UpdateUnitCategory(ui, unit)

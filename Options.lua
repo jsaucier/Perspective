@@ -1645,16 +1645,6 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 
 	local val = tonumber(Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal))
 
-	-- Associate the text control with the slider.
-	slider:SetData({ 
-		text = text, 
-		value = value, 
-		numDecimal = numDecimal, 
-		unit = unit,
-		divBy = divBy,
-		tickFunc = tickFunc 
-	})
-
 	-- Set the slider value.
 	slider:SetValue(val)
 
@@ -1666,8 +1656,21 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 		text:SetText(val .. " " .. unit)
 	end
 	
-	-- Set the event handler
-	slider:AddEventHandler("SliderBarChanged", "Settings_OnSliderChanged")
+	-- Make sure we haven't already set the event handlers
+	if not slider:GetData() then
+		-- Set the event handler
+		slider:AddEventHandler("SliderBarChanged", "Settings_OnTimerChanged")
+	end
+
+	-- Associate the text control with the slider.
+	slider:SetData({ 
+		text = text, 
+		value = value, 
+		numDecimal = numDecimal, 
+		unit = unit,
+		divBy = divBy,
+		tickFunc = tickFunc 
+	})
 end
 
 function PerspectiveOptions:Settings_TextInit(name, option, isNumber)
@@ -1696,19 +1699,19 @@ function PerspectiveOptions:Settings_OnChecked(handler, control, button)
 	-- Get the control's value
 	local val = control:IsChecked()
 
+	-- Set the settings value
+	self.db.profile[self.profile].settings[data.option] = val	
+
 	if data.option == "disabled" then
 		if val then
 			Perspective:Stop();
 		else
 			Perspective:Start();
-		end
-	else
-		-- Set the settings value
-		self.db.profile[self.profile].settings[data.option] = val	
+		end	
 	end
 end
 
-function PerspectiveOptions:Settings_OnSliderChanged(handler, control, button)
+function PerspectiveOptions:Settings_OnTimerChanged(handler, control, button)
 	-- Get the control's data.
 	local data = control:GetData()
 
@@ -1718,24 +1721,17 @@ function PerspectiveOptions:Settings_OnSliderChanged(handler, control, button)
 	-- Set the control's text.
 	data.text:SetText(val .. " " .. data.unit)
 
-	if data.value == "draw" then
-		if tonumber(val) == 0 then
-			Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", Perspective)
-			-- Set the control's text.
-			data.text:SetText("Every Frame")
-		else
-			Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", Perspective)
-			-- Save the value.
-			self.db.profile[self.profile].settings[data.value] = val
-		end
-	else
-		-- Save the value.
-		self.db.profile[self.profile].settings[data.value] = val
+	if data.value == "draw" and tonumber(val) == 0 then
+		-- Set the control's text.
+		data.text:SetText("Every Frame")
 	end
 
-	-- Set the timer in Perspective
-	if Perspective.timers[data.value] then
-		Perspective.timers[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
+	-- Save the value.
+	self.db.profile[self.profile].settings[data.value] = val
+
+	-- Only create new timers if the addon isn't disabled.
+	if not self.db.profile[self.profile].settings.disabled then
+		Perspective:CreateTimer(data.value)
 	end
 end
 

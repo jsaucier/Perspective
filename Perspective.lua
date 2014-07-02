@@ -697,17 +697,17 @@ function Perspective:UpdateUnit(ui, unit)
 
 		if position then
 			if unit then
-				-- Check to make sure our unit's category is still valid for stuff we dont have events for.
-				if unit:GetType() == "NonPlayer" and 
-					unit:IsDead() and
-					(ui.category == "questObjective" or ui.category == "challenge") then
-					-- Unit is a npc, quest objective or challlenge, and is dead.
-					-- Would really love to to find an event for unit death.
+				-- Clear dead units
+				if unit:IsDead() then
+					-- Clear dead npc quest / challenge objectives, but not scientist scans as
+					-- well as harvest
+					if ui.category == "harvest" or
+						ui.category == "questObjective" or
+						ui.category == "challenge" then
+						self:UpdateUnitCategory(ui, unit)
 
-					--Upate the category this unit
-					self:UpdateUnitCategory(ui, unit)
-
-					return
+						return
+					end
 				end
 
 				if ui.loaded then

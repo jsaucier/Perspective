@@ -1294,6 +1294,18 @@ function Perspective:UpdatePlayer(ui, unit)
 			unit:GetGuildName() == player:GetGuildName() and
 			not Options.db.profile[Options.profile].categories.guild.disabled then
 		ui.category = "guild"
+	elseif unit:IsFriend() or unit:IsAccountFriend() and
+		not Options.db.profile[Options.profile].categories.friend.disabled then
+		ui.category = "friend"
+	elseif unit:IsRival() and
+		not Options.db.profile[Options.profile].categories.rival.disabled then
+		ui.category = "rival"
+	elseif unit:GetFaction() == 167 and
+		not Options.db.profile[Options.profile].categories.exile.disabled then
+		ui.category = "exile"
+	elseif unit:GetFaction() == 166 and
+		not Options.db.profile[Options.profile].categories.dominion.disabled then
+		ui.category = "dominion"
 	end
 end
 

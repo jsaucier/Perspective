@@ -1057,6 +1057,7 @@ function Perspective:OnUnitCreated(unit)
 		type == "Collectible" or
 		type == "Harvest" or
 		type == "Pickup" or
+		type == "InstancePortal" or
 		unit:GetLoot() then
 		
 		self.units.all[unit:GetId()] = unit

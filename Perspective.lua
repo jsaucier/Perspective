@@ -1423,6 +1423,9 @@ function Perspective:UpdateRewardInfo(ui, unit)
 		quests = {},
 		challenges = {},
 		scans = {} }
+
+	-- To track quests so we can apply fixes to misunderstood quests below
+	local quests = {}
 	
 	if rewardInfo and type(rewardInfo) == "table" then
 		for i = 1, #rewardInfo do
@@ -1431,6 +1434,7 @@ function Perspective:UpdateRewardInfo(ui, unit)
 			if type == "Quest" and
 				not Options:GetOptionValue(nil, "disabled", "questObjective") then
 				table.insert(ui.rewards.quests, rewardInfo[i].idQuest)
+				quests[rewardInfo[i].idQuest] = true
 			elseif type == "Challenge" and
 				self.challenges[rewardInfo[i].idChallenge] and
 				not Options:GetOptionValue(nil, "disabled", "challenge") then

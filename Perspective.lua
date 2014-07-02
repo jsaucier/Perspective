@@ -1471,17 +1471,25 @@ function Perspective:UpdateRewardInfo(ui, unit)
 		table.getn(ui.rewards.quests) > 0 then
 
 		local isValid = true
-		-- Fix for landing site security camera's in northern wastes
-		-- They are Simple mouseovertype and NonPlayer type with no activation state once used.
-		if unit:GetMouseOverType() == "Simple" and 
-			unit:GetType() == "NonPlayer" then
+		
+		-- Simple, yunowork??
+		if unit:GetMouseOverType() == "Simple" then
 			local activation = unit:GetActivationState()
 
-			if not activation.Interact or not activation.Interact.bIsActive then
-				isValid = false
+			if unit:GetType() == "NonPlayer" then
+				-- Landing Site (Northern Wastes)
+				if quests[0] and not activation.Interact then
+					isValid = false
+				end
+				--if not activation.Interact or not activation.Interact.bIsActive then
+				--	isValid = false
+				--end
+			elseif unit:GetType() == "Simple" then
+				-- ANALYSIS: Crystal Healing (Northern Wastes)
+				if quests[7086] and not activation.ScientistRawScannable then
+					isValid = false
+				end
 			end
-		elseif unit:GetType() == "NonPlayer" and unit:IsDead() then
-			isValid = false
 		end
 
 		if isValid then

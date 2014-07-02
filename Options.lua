@@ -89,6 +89,7 @@ function PerspectiveOptions:OnInitialize()
 	-- Dialog window
     self.Dialog = Apollo.LoadForm(self.xmlDoc, "Dialog", nil, self)
     self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "OnDialogClose")
+    self.Dialog:FindChild("TargetButton"):AddEventHandler("ButtonSignal", "ShowTargetInfo")
 
 	-- Options window
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
@@ -158,6 +159,7 @@ function PerspectiveOptions:ShowTargetInfo()
 	appendLine("Id: " .. target:GetId())
 	appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
 	appendLine("Type: " .. target:GetType())
+	appendLine("MouseOverType: " .. target:GetMouseOverType())
 
 	if rewards then
 		local txt = ""

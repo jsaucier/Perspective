@@ -127,26 +127,28 @@ function Perspective:Start()
 	self:CancelAllTimers()
 
 	-- Remove the event handler for next frame, again as a precaution
-	Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+	Apollo.RemoveEventHandler("NextFrame", self)
 
-	if self.loaded then
-		-- Recreate all the units
-		for id, unit in pairs(self.units.all) do
-			self:OnUnitCreated(unit)
+	if not Options.db.profile[Options.profile].settings.disabled then
+		if self.loaded then
+			-- Recreate all the units
+			for id, unit in pairs(self.units.all) do
+				self:OnUnitCreated(unit)
+			end
 		end
-	end
-	
-	-- Create our update timers.
-	self:CreateTimer("fast")
-	self:CreateTimer("slow")
-	
-	-- Only start the draw timer if we aren't updating every frame
-	if Options.db.profile[Options.profile].settings.draw > 0 then
-		-- Create the draw timer
-		self:CreateTimer("draw")
-	else
-		-- Redraw the screen on every frame
-		Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+		
+		-- Create our update timers.
+		self:CreateTimer("fast")
+		self:CreateTimer("slow")
+		
+		-- Only start the draw timer if we aren't updating every frame
+		if Options.db.profile[Options.profile].settings.draw > 0 then
+			-- Create the draw timer
+			self:CreateTimer("draw")
+		else
+			-- Redraw the screen on every frame
+			Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+		end
 	end
 end
 
@@ -155,7 +157,7 @@ function Perspective:Stop()
 	self:CancelAllTimers()
 
 	-- Remove the event handler for next frame
-	Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+	Apollo.RemoveEventHandler("NextFrame", self)
 	
 	self.units.prioritized = {}
 	self.units.categorized = {}
@@ -188,8 +190,7 @@ function Perspective:DestroyUnitInfo(unit)
 	self.units.categorized[unit:GetId()] = nil
 end
 
-function Perspective:OnTimerTicked_Draw()
---function Perspective:OnNextFrame()
+function Perspective:OnTimerTicked_Draw(forced)
 	-- Determines if we are allowed to draw the unit
 	local function addPixies(ui, pPos, pixies, items, lines)
 		local unit = self:GetUnitById(ui.id)
@@ -362,6 +363,9 @@ function Perspective:OnTimerTicked_Draw()
 		end
 	end
 
+	-- Perspective is disabled
+	if Options.db.profile[Options.profile].settings.disabled then return end
+
 	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
@@ -414,7 +418,8 @@ function Perspective:OnTimerTicked_Draw()
 	end
 
 	if not Options.db.profile[Options.profile].settings.disabled and
-		Options.db.profile[Options.profile].settings.draw > 0 then
+		Options.db.profile[Options.profile].settings.draw > 0 and
+		not forced then
 		-- Create a new timer
 		self.timers.draw = self:ScheduleTimer(
 							"OnTimerTicked_Draw", 
@@ -424,7 +429,10 @@ end
 
 -- Updates all the units we know about as well as loading options if its needed.
 -- Categorizes and prioritizes our units.
-function Perspective:OnTimerTicked_Slow()
+function Perspective:OnTimerTicked_Slow(forced)
+	-- Perspective is disabled
+	if Options.db.profile[Options.profile].settings.disabled then return end
+
 	local player = GameLib.GetPlayerUnit()
 
 	if player then
@@ -458,7 +466,7 @@ function Perspective:OnTimerTicked_Slow()
 		end
 	end
 
-	if not Options.db.profile[Options.profile].settings.disabled then
+	if not Options.db.profile[Options.profile].settings.disabled and not forced then
 		-- Create a new timer
 		self.timers.slow = self:ScheduleTimer(
 							"OnTimerTicked_Slow", 
@@ -468,7 +476,10 @@ end
 
 -- Updates our prioritized (close) units faster than the farther ones.
 -- We'll keep this as light weight as possible, only updating the distance and relevant info.
-function Perspective:OnTimerTicked_Fast()
+function Perspective:OnTimerTicked_Fast(forced)
+	-- Perspective is disabled
+	if Options.db.profile[Options.profile].settings.disabled then return end
+
 	local player = GameLib.GetPlayerUnit()
 
 	if player then
@@ -496,7 +507,7 @@ function Perspective:OnTimerTicked_Fast()
 		end
 	end
 
-	if not Options.db.profile[Options.profile].settings.disabled then
+	if not Options.db.profile[Options.profile].settings.disabled and not forced then
 		-- Create a new timer
 		self.timers.fast = self:ScheduleTimer(
 							"OnTimerTicked_Fast", 
@@ -658,16 +669,25 @@ function Perspective:UpdateOptions(ui)
 		-- Update only the specific unit information
 		updateOptions(ui)
 	else
-		-- Update all the prioritized units
-		for i, ui in pairs(self.units.prioritized) do
-			updateOptions(ui)
-		end
+		-- Updating all options
 
-		-- Update all the categorized units
-		for i, ui in pairs(self.units.categorized) do
-			updateOptions(ui)
+		-- First lets destroy all units
+		self.units.prioritized = {}
+		self.units.categorized = {}
+
+		-- Now we can recategorize all units we know about
+		for id, unit in pairs(self.units.all) do
+			-- Get the ui or create a new one (in this case mostly creating)
+			local ui = self:GetUnitInfo(unit)
+			-- Categorize the unit
+			self:UpdateUnitCategory(ui, unit)
 		end
 	end
+
+	-- Force our timers to tick now, to update the screen immediately
+	self:OnTimerTicked_Slow(true)
+	self:OnTimerTicked_Fast(true)	
+	self:OnTimerTicked_Draw(true)
 end
 
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
@@ -1121,7 +1141,6 @@ function Perspective:OnQuestTrackedChanged(quest)
 end
 
 function Perspective:OnQuestObjectiveUpdated(quest, state)
-Print("OnQuestObjectiveUpdated: " .. state)
 	if self.loaded then
 		-- Update our quest location markers
 		self:MarkerQuestUpdate(quest)
@@ -1133,7 +1152,6 @@ end
 
 -- Event fired when quests are abandoned, accepted, accomplished, etc..
 function Perspective:OnQuestStateChanged(quest, state)
-Print("OnQuestStateChanged: " .. state)
 	if self.loaded then
 		-- Update our quest location markers
 		self:MarkerQuestUpdate(quest)

@@ -53,26 +53,26 @@ function Perspective:OnInitialize()
 	self.markersInitialized = false
 	
 	-- Register our addon events	
-	Apollo.RegisterEventHandler("UnitCreated", 						"OnUnitCreated", self)
-	Apollo.RegisterEventHandler("UnitDestroyed", 					"OnUnitDestroyed", self)
-	Apollo.RegisterEventHandler("ChangeWorld", 						"OnWorldChanged", self)	
-	Apollo.RegisterEventHandler("QuestInit", 						"OnQuestInit", self)
-	Apollo.RegisterEventHandler("QuestObjectiveUpdated", 			"OnQuestObjectiveUpdated", self)
-	Apollo.RegisterEventHandler("QuestStateChanged", 				"OnQuestStateChanged", self)
-	Apollo.RegisterEventHandler("QuestTrackedChanged", 				"OnQuestTrackedChanged", self)	
-	Apollo.RegisterEventHandler("ChallengeActivate", 				"OnChallengeActivated", self) 
-	Apollo.RegisterEventHandler("ChallengeAbandon", 				"OnChallengeRemoved", self)
-	Apollo.RegisterEventHandler("ChallengeCompleted", 				"OnChallengeRemoved", self)
-	Apollo.RegisterEventHandler("ChallengeFailArea", 				"OnChallengeRemoved", self)
-	Apollo.RegisterEventHandler("ChallengeFailTime", 				"OnChallengeRemoved", self)
-	Apollo.RegisterEventHandler("ChallengeFailGeneric", 			"OnChallengeRemoved", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 		"OnPlayerPathMissionActivate", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionAdvanced", 		"OnPlayerPathMissionAdvanced", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionComplete", 		"OnPlayerPathMissionComplete", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 		"OnPlayerPathMissionDeactivate", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 		"OnPlayerPathMissionUnlocked", self)
-	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 			"OnPlayerPathMissionUpdate", self)
-	Apollo.RegisterEventHandler("TargetUnitChanged",				"OnTargetUnitChanged", self)	
+	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
+	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
+	Apollo.RegisterEventHandler("ChangeWorld", 							"OnWorldChanged", self)	
+	Apollo.RegisterEventHandler("QuestInit", 							"OnQuestInit", self)
+	Apollo.RegisterEventHandler("QuestObjectiveUpdated", 				"OnQuestObjectiveUpdated", self)
+	Apollo.RegisterEventHandler("QuestStateChanged", 					"OnQuestStateChanged", self)
+	Apollo.RegisterEventHandler("QuestTrackedChanged", 					"OnQuestTrackedChanged", self)	
+	Apollo.RegisterEventHandler("ChallengeActivate",	 				"OnChallengeActivated", self) 
+	Apollo.RegisterEventHandler("ChallengeAbandon", 					"OnChallengeRemoved", self)
+	Apollo.RegisterEventHandler("ChallengeCompleted", 					"OnChallengeRemoved", self)
+	Apollo.RegisterEventHandler("ChallengeFailArea", 					"OnChallengeRemoved", self)
+	Apollo.RegisterEventHandler("ChallengeFailTime", 					"OnChallengeRemoved", self)
+	Apollo.RegisterEventHandler("ChallengeFailGeneric",	 				"OnChallengeRemoved", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 			"OnPlayerPathMissionActivate", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionAdvanced", 			"OnPlayerPathMissionAdvanced", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionComplete",	 		"OnPlayerPathMissionComplete", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 			"OnPlayerPathMissionDeactivate", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 			"OnPlayerPathMissionUnlocked", self)
+	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 				"OnPlayerPathMissionUpdate", self)
+	Apollo.RegisterEventHandler("TargetUnitChanged",					"OnTargetUnitChanged", self)	
 	Apollo.RegisterEventHandler("PublicEventStart", 					"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)	
 	Apollo.RegisterEventHandler("PublicEventLocationAdded", 			"OnPublicEventUpdate", self)
@@ -84,6 +84,10 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitActivationTypeChanged", self)
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
+	Apollo.RegisterEventHandler("Group_Join",							"OnGroupChanged", self)
+	Apollo.RegisterEventHandler("Group_Add",							"OnGroupChanged", self)
+	Apollo.RegisterEventHandler("Group_Remove",							"OnGroupChanged", self)
+	Apollo.RegisterEventHandler("Group_Left",							"OnGroupChanged", self)
 end
 
 function Perspective:OnEnable()
@@ -396,7 +400,7 @@ function Perspective:OnTimerTicked_Draw(forced)
 
 		-- Draw the markers, they are most likely going to be the farthest pixies from the player
 		-- so we want them "behind" our other units.
-		--self:MarkersDraw()
+		self:MarkersDraw()
 
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
 		-- distance, closest to farthest.  This will ensure our farthers are drawn first and 
@@ -894,7 +898,7 @@ end
 function Perspective:MarkerChallengeUpdate(challenge)
 	local id = "challenge" .. challenge:GetId()
 
-	if challenge:IsActivated() --[[and challenge:GetZoneInfo().idZone == GameLib:GetCurrentZoneId()]] then
+	if challenge:IsActivated() then
 		self.markers[id] = {
 			name = challenge:GetName(),
 			type = "challenge",
@@ -1200,6 +1204,8 @@ end
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
 	self:MarkerChallengeUpdate(challenge)
+
+	self:UpdateChallengeUnits(challenge, true)
 end
 
 function Perspective:OnUnitActivationTypeChanged(unit)
@@ -1215,17 +1221,37 @@ function Perspective:OnUnitNameChanged(unit)
 	self:UpdateUnitCategory(ui, unit, ui.isNew)
 end
 
+function Perspective:OnGroupChanged()
+	if not Options.db.profile[Options.profile].categories.group.disabled then
+		-- This could probably be done better if I wasn't lazy and had a group member on which to test
+		for id, unit in pairs(self.units.all) do
+			if unit:GetType() == "Player" then
+				-- Get the ui for this player
+				local ui = self:GetUnitInfo(unit)
+
+				-- Recategorize the player.
+				unit:UpdateUnitCategory(ui, unit)
+			end
+		end
+	end
+end
+
 function Perspective:OnChallengeRemoved(challenge)
-Print("Perspective: OnChallengeRemoved: " .. type(challenge))
+	local id
+
 	if type(challenge) == "number" then
-		self.challenges[challenge] = nil
-		self:MarkerChallengeUpdate(ChallengesLib:GetActiveChallengeList()[challenge])
-	elseif type(challenge) == "userdata" and
-		challenge:GetId() then
-		self.challenges[challenge:GetId()] = nil
-		self:MarkerChallengeUpdate(challenge)
+		id = challenge
+		challenge = ChallengesLib:GetActiveChallengeList()[challenge]
+	elseif type(challenge) == "userdata" and challenge:GetId() then
+		id = challenge:GetId()
 	else
 		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
+	end
+
+	if id then
+		self.challenges[id] = nil
+		self:MarkerChallengeUpdate(challenge)
+		self:UpdateChallengeUnits(challenge, false)
 	end
 end
 
@@ -1270,6 +1296,39 @@ function Perspective:UpdateQuestUnits(quest, state)
 					
 					for _, questId in pairs(ui.rewards.quests) do
 						if questId == quest:GetId() then
+							self:UpdateUnitCategory(ui, unit)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Perspective:UpdateChallengeUnits(challenge, active)
+	if active then
+		-- Update all known units that have the new quest.
+		for id, unit in pairs(self.units.all) do
+			-- Make sure the unit is still valid and has a challenge reward for the challenge.
+			if unit:IsValid() and self:HasChallengeReward(unit, challenge:GetId()) then
+				-- Get the ui for the unit or create a new one.
+				local ui = self:GetUnitInfo(unit)
+				-- Categorize the unit.
+				self:UpdateUnitCategory(ui, unit)
+			end
+		end
+	else
+		-- Challenge is no longer active, just update the units that had the challenge.
+		for _, tbl in pairs({ "prioritized", "categorized" }) do
+			for id, ui in pairs(self.units[tbl]) do
+				local unit = GameLib.GetUnitById(id)
+
+				if unit and
+					ui.rewards and
+					ui.rewards.challenges then
+
+					for _, challengeId in pairs(ui.rewards.challenges) do
+						if challengeId == challenge:GetId() then
 							self:UpdateUnitCategory(ui, unit)
 						end
 					end
@@ -1530,6 +1589,20 @@ function Perspective:HasQuestReward(unit, questId)
 	if rewardInfo and type(rewardInfo) == "table" then
 		for i = 1, #rewardInfo do
 			if rewardInfo[i].strType == "Quest" and rewardInfo[i].idQuest == questId then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+function Perspective:HasChallengeReward(unit, challengeId)
+	local rewardInfo = unit:GetRewardInfo()
+
+	if rewardInfo and type(rewardInfo) == "table" then
+		for i = 1, #rewardInfo do
+			if rewardInfo[i].strType == "Challenge" and rewardInfo[i].idChallenge == challengeId then
 				return true
 			end
 		end

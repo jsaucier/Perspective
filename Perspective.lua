@@ -867,6 +867,14 @@ function Perspective:MarkersInit()
 		end
 	end
 
+	local challenges = ChallengesLib.GetActiveChallengeList()
+
+	if challenges then
+		for _, challenge in pairs(challenges) do
+			self:MarkerChallengeUpdate(challenge)
+		end
+	end
+
 	-- Set the markers as having been initialized
 	self.markersInitialized = true
 end
@@ -877,6 +885,34 @@ function Perspective:MarkersUpdate(vector)
 	-- Update all the episode markers
 	for _, marker in pairs(self.markers) do
 		self:MarkerUpdate(marker, vector)
+	end
+end
+
+function Perspective:MarkerChallengeUpdate(challenge)
+	local id = "challenge" .. challenge:GetId()
+
+	if challenge:IsActivated() --[[and challenge:GetZoneInfo().idZone == GameLib:GetCurrentZoneId()]] then
+		self.markers[id] = {
+			name = challenge:GetName(),
+			type = "challenge",
+			regions = {},
+			disabled = Options:GetOptionValue(nil, "disabled", "challengeLocation"),
+			icon = Options:GetOptionValue(nil, "icon", "challengeLocation"),
+			iconColor = Options:GetOptionValue(nil, "iconColor", "challengeLocation"),
+			iconWidth = Options:GetOptionValue(nil, "iconWidth", "challengeLocation"),
+			iconHeight = Options:GetOptionValue(nil, "iconHeight", "challengeLocation"),
+			font = Options:GetOptionValue(nil, "font", "challengeLocation"),
+			fontColor = Options:GetOptionValue(nil, "fontColor", "challengeLocation"),
+			max = Options:GetOptionValue(nil, "max", "challengeLocation"),
+		}
+		for index, region in pairs(challenge:GetMapRegions()) do
+			self.markers[id].regions[index] = {
+				vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
+			}
+			self:MarkerUpdate(self.markers[id])
+		end
+	else
+		self.markers[id] = nil
 	end
 end
 
@@ -1161,6 +1197,7 @@ end
 
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
+	self:MarkerChallengeUpdate(challenge)
 end
 
 function Perspective:OnUnitActivationTypeChanged(unit)
@@ -1176,13 +1213,15 @@ function Perspective:OnUnitNameChanged(unit)
 	self:UpdateUnitCategory(ui, unit, ui.isNew)
 end
 
-
 function Perspective:OnChallengeRemoved(challenge)
+Print("Perspective: OnChallengeRemoved: " .. type(challenge))
 	if type(challenge) == "number" then
 		self.challenges[challenge] = nil
+		self:MarkerChallengeUpdate(ChallengesLib:GetActiveChallengeList()[challenge])
 	elseif type(challenge) == "userdata" and
 		challenge:GetId() then
 		self.challenges[challenge:GetId()] = nil
+		self:MarkerChallengeUpdate(challenge)
 	else
 		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
 	end

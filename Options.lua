@@ -106,7 +106,64 @@ function PerspectiveOptions:OnInitialize()
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
 
 	-- Register the slash command	
-    Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
+	Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
+	Apollo.RegisterSlashCommand("pt", "ShowTargetInfo", self)
+end
+
+
+function PerspectiveOptions:ShowTargetInfo()
+	local indent = 1
+	local target = GameLib.GetTargetUnit()
+
+	local type = target:GetType()
+	local rewards = target:GetRewardInfo()
+	local activation = target:GetActivationState()
+
+	Print("Perspective: " .. target:GetName())
+
+	Print(self:GetIndent(indent) .. "Type: " .. type)
+
+	if rewards then
+		Print(self:GetIndent(indent) .. "RewardInfo: {")
+		for k, v in pairs(rewards) do
+			self:DeepPrint(k, v, indent + 1)
+		end
+		Print(self:GetIndent(indent) .. "}")
+	else
+		Print(self:GetIndent(indent) .. "RewardInfo: nil")
+	end
+
+	if activation then
+		Print(self:GetIndent(indent) .. "ActivationState: {")
+		for k, v in pairs(activation) do
+			self:DeepPrint(k, v, indent + 1)
+		end
+		Print(self:GetIndent(indent) .. "}")
+	else
+		Print(self:GetIndent(indent) .. "ActivationState: nil")
+	end
+end
+
+function PerspectiveOptions:GetIndent(indent)
+	local str = ""
+
+	for i = 1, indent do
+		str =  str .. "    "
+	end
+
+	return str
+end
+
+function PerspectiveOptions:DeepPrint(key, value, indent)
+	if type(value) == "table" then
+		Print(self:GetIndent(indent) .. key .. " {")
+		for k, v in pairs(value) do
+			self:DeepPrint(k, v, indent + 1)
+		end
+		Print(self:GetIndent(indent) .. "}")
+	else
+		Print(self:GetIndent(indent) .. key .. ": " .. tostring(value))
+	end
 end
 
 function PerspectiveOptions:OnEnable()
@@ -125,9 +182,9 @@ function PerspectiveOptions:LoadDefaults()
 					disabled = false,
 					max = 10,
 					inArea = 100,
-					drawTimer = 30,
-					slowTimer = 1,
-					fastTimer = 100 },
+					draw = 30,
+					slow = 1,
+					fast = 100 },
 				names = {
 					[L["Return Teleporter"]]			= { category = "instancePortal" },
 					[L["Bruxen"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
@@ -381,10 +438,20 @@ function PerspectiveOptions:LoadDefaults()
 					eventLocation = {
 						header = L["Event Location"],
 						module = L["Quest"],
-						limitBy = "quest",
+						limitBy = "category",
 						max = 1,
 						drawLine = false,
 						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetRed",
+						iconWidth = 64,
+						iconHeight = 64	},
+					challengeLocation = {
+						header = L["Challenge Location"],
+						iconColor = "ffff0000",
+						module = L["Challenge"],
+						limitBy = "challenge",
+						max = 1,
+						drawLine = false,
+						icon = "Crafting_CoordSprites:sprCoord_AdditiveTargetGreen",
 						iconWidth = 64,
 						iconHeight = 64	},
 					challenge = {
@@ -821,9 +888,9 @@ function PerspectiveOptions:InitializeOptions()
 	-- Initialize the settings 
 	self:Settings_CheckInit("Disable", 		"disabled")
 
-	self:Settings_TimerInit("DrawUpdate", 	"drawTimer", 0, "ms", 1000, 	"OnTimerTicked_Draw")
-	self:Settings_TimerInit("FastUpdate", 	"fastTimer", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:Settings_TimerInit("SlowUpdate", 	"slowTimer", 1, "secs", 1,	"OnTimerTicked_Slow")
+	self:Settings_TimerInit("DrawUpdate", 	"draw", 0, "ms", 1000, 	"OnTimerTicked_Draw")
+	self:Settings_TimerInit("FastUpdate", 	"fast", 1, "ms", 1000, 	"OnTimerTicked_Fast")
+	self:Settings_TimerInit("SlowUpdate", 	"slow", 1, "secs", 1,	"OnTimerTicked_Slow")
 
 	self:Settings_TextInit("Max", 			"max", 		true)
 	self:Settings_TextInit("InArea", 		"inArea", 	true)
@@ -1538,7 +1605,7 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 	local slider = self.Settings:FindChild(control .. "Slider")
 	local text = self.Settings:FindChild(control .. "Text")
 
-	local val = Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal)
+	local val = tonumber(Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal))
 
 	-- Associate the text control with the slider.
 	slider:SetData({ 
@@ -1553,9 +1620,14 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 	-- Set the slider value.
 	slider:SetValue(val)
 
-	-- Set the text value.
-	text:SetText(val .. " " .. unit)
-
+	if value == "draw" and tonumber(val) == 0 then
+		-- Set the text value.
+		text:SetText("Every Frame")
+	else
+		-- Set the text value.
+		text:SetText(val .. " " .. unit)
+	end
+	
 	-- Set the event handler
 	slider:AddEventHandler("SliderBarChanged", "Settings_OnSliderChanged")
 end
@@ -1603,16 +1675,30 @@ function PerspectiveOptions:Settings_OnSliderChanged(handler, control, button)
 	local data = control:GetData()
 
 	-- Get the timer vale
-	local val = Apollo.FormatNumber(control:GetValue(), data.numDecimal)
+	local val = tonumber(Apollo.FormatNumber(control:GetValue(), data.numDecimal))
 
-	-- Get the control's text.
+	-- Set the control's text.
 	data.text:SetText(val .. " " .. data.unit)
 
-	-- Save the value.
-	self.db.profile[self.profile].settings[data.value] = val
+	if data.value == "draw" then
+		if tonumber(val) == 0 then
+			Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", Perspective)
+			-- Set the control's text.
+			data.text:SetText("Every Frame")
+		else
+			Apollo.RemoveEventHandler("NextFrame", "OnTimerTicked_Draw", Perspective)
+			-- Save the value.
+			self.db.profile[self.profile].settings[data.value] = val
+		end
+	else
+		-- Save the value.
+		self.db.profile[self.profile].settings[data.value] = val
+	end
 
 	-- Set the timer in Perspective
-	Perspective[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
+	if Perspective.timers[data.value] then
+		Perspective.timers[data.value]:Set(val / data.divBy, true, data.tickFunc, self)
+	end
 end
 
 function PerspectiveOptions:Settings_OnTextReturn(handler, control)

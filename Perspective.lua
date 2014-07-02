@@ -28,8 +28,6 @@ function Perspective:OnInitialize()
 	self.Overlay = Apollo.LoadForm(xmlDoc, "Overlay", "InWorldHudStratum", self)
 	self.Overlay:Show(true, true)
 
-	self.print = {}
-
 	-- Table of all units we know about.
 	self.units 		= {
 		all 		= {},
@@ -100,29 +98,6 @@ function Perspective:OnEnable()
 
 	if Apollo.GetAddon("Rover") then
 		SendVarToRover("Perspective", self)
-	end
-
-	self:ScheduleTimer("PrintPreload", .5)
-end
-
-function Perspective:PrintPreload()
-	self:Print("Printing Preloaded message")
-	self.printLoaded = true
-	-- Print our preloaded msgs
-	for i, msg in pairs(self.print) do
-		self:Print(msg, true)
-	end
-
-	self.print = {}
-end
-
-function Perspective:Print(msg, preload)
-	local head = "Perspective" .. (preload and " [Preload]:" or ": ")
-
-	if self.printLoaded then
-		Print(head .. msg)
-	else
-		table.insert(self.print, msg)
 	end
 end
 
@@ -667,81 +642,89 @@ end
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
 -- from the player.
 function Perspective:UpdateUnit(ui, unit)
-	if unit then
-		-- Check to make sure our unit's category is still valid for stuff we dont have events for.
-		if unit:GetType() == "NonPlayer" and 
-			unit:IsDead() and
-			(ui.category == "questObjective" or ui.category == "challenge") then
-			-- Unit is a npc, quest objective or challlenge, and is dead.
-			-- Would really love to to find an event for unit death.
+	local player = GameLib.GetPlayerUnit()
 
-			--Upate the category this unit
-			self:UpdateUnitCategory(ui, unit)
+	if player then
+		local position = player:GetPosition()
 
-			return
-		end
+		if position then
+			if unit then
+				-- Check to make sure our unit's category is still valid for stuff we dont have events for.
+				if unit:GetType() == "NonPlayer" and 
+					unit:IsDead() and
+					(ui.category == "questObjective" or ui.category == "challenge") then
+					-- Unit is a npc, quest objective or challlenge, and is dead.
+					-- Would really love to to find an event for unit death.
 
-		if ui.loaded then
-			-- Find the index of the ui if its not passed in.
-			if tbl and not index then
-				for i, u in pairs(self[tbl]) do
-					if u.id == ui.id then
-						index = i
-						break
+					--Upate the category this unit
+					self:UpdateUnitCategory(ui, unit)
+
+					return
+				end
+
+				if ui.loaded then
+					-- Find the index of the ui if its not passed in.
+					if tbl and not index then
+						for i, u in pairs(self[tbl]) do
+							if u.id == ui.id then
+								index = i
+								break
+							end
+						end
+					end
+
+					-- Update the players position and vector
+					local pPos = position
+					local pVec = Vector3.New(pPos.x, pPos.y, pPos.z)
+
+					-- Update the units position and vector
+					local uPos = unit:GetPosition()
+					ui.vector = Vector3.New(uPos.x, uPos.y, uPos.z)
+
+					-- Calculate z axis (really y axis) distance
+					local zVec = Vector3.New(pPos.x, uPos.y, pPos.z)
+					local zDistance = (pVec - zVec):Length()
+
+					if pPos and uPos then
+						-- Get the distance from the player.
+						ui.distance = (pVec - ui.vector):Length()
+						
+						-- Get the scale size based on distance.
+						ui.scale = math.min(1 / (ui.distance / 100), 1)
+						
+						-- Determine if the unit is in range of display.
+						ui.inRange = (ui.distance > ui.minDistance and 
+									  ui.distance < ui.maxDistance and 
+									  zDistance <= ui.zDistance)
+
+						-- Determine if the unit is in skill range.
+						ui.inRangeLimit = (ui.distance <= ui.rangeLimit)
+
+						-- Scale our icon based on the dimensions and scale factor.			  
+						ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
+						ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
+
+						-- Calculate colors based on range
+						ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor
+						ui.cFontColor = (ui.inRangeLimit and ui.rangeFont) and ui.rangeColor or ui.fontColor
+						ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
+
+						-- Prioritize or categorize based on distance.
+						if ui.distance <= ui.rangeLimit + 20 then
+							self.units.prioritized[ui.id] = ui
+							self.units.categorized[ui.id] = nil
+						else
+							self.units.categorized[ui.id] = ui
+							self.units.prioritized[ui.id] = nil
+						end
+
+						return true
 					end
 				end
-			end
-
-			-- Update the players position and vector
-			local pPos = GameLib.GetPlayerUnit():GetPosition()
-			local pVec = Vector3.New(pPos.x, pPos.y, pPos.z)
-
-			-- Update the units position and vector
-			local uPos = unit:GetPosition()
-			ui.vector = Vector3.New(uPos.x, uPos.y, uPos.z)
-
-			-- Calculate z axis (really y axis) distance
-			local zVec = Vector3.New(pPos.x, uPos.y, pPos.z)
-			local zDistance = (pVec - zVec):Length()
-
-			if pPos and uPos then
-				-- Get the distance from the player.
-				ui.distance = (pVec - ui.vector):Length()
-				
-				-- Get the scale size based on distance.
-				ui.scale = math.min(1 / (ui.distance / 100), 1)
-				
-				-- Determine if the unit is in range of display.
-				ui.inRange = (ui.distance > ui.minDistance and 
-							  ui.distance < ui.maxDistance and 
-							  zDistance <= ui.zDistance)
-
-				-- Determine if the unit is in skill range.
-				ui.inRangeLimit = (ui.distance <= ui.rangeLimit)
-
-				-- Scale our icon based on the dimensions and scale factor.			  
-				ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
-				ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
-
-				-- Calculate colors based on range
-				ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor
-				ui.cFontColor = (ui.inRangeLimit and ui.rangeFont) and ui.rangeColor or ui.fontColor
-				ui.cIconColor = (ui.inRangeLimit and ui.rangeIcon) and ui.rangeColor or ui.iconColor
-
-				-- Prioritize or categorize based on distance.
-				if ui.distance <= ui.rangeLimit + 20 then
-					self.units.prioritized[ui.id] = ui
-					self.units.categorized[ui.id] = nil
-				else
-					self.units.categorized[ui.id] = ui
-					self.units.prioritized[ui.id] = nil
-				end
-
-				return true
+			else
+				return nil
 			end
 		end
-	else
-		return nil
 	end
 end
 
@@ -1033,7 +1016,6 @@ local old, new
 		for _, tbl in pairs({ "prioritized", "categorized" }) do
 			for id, ui in pairs(self.units[tbl]) do
 				if ui.category == "target" then
-old = ui.name
 					-- Recategorize our current target.
 					self:UpdateUnitCategory(ui, GameLib.GetUnitById(id))
 					break
@@ -1045,12 +1027,11 @@ old = ui.name
 		if unit then
 			-- Get the ui for our current target, or create a new one.
 			local ui = self:GetUnitInfo(unit)
-new = unit:GetName()
+
 			-- Categorize the target unit.
 			self:UpdateUnitCategory(ui, unit, ui.isNew)
 		end
 	end	
-	self:Print("Target: "  .. (old or "nil") .. " -> " .. (new or "nil"))
 end
 
 function Perspective:OnWorldChanged()
@@ -1072,7 +1053,7 @@ function Perspective:OnQuestTrackedChanged(quest)
 end
 
 function Perspective:OnQuestObjectiveUpdated(quest, state)
-self:Print("OnQuestObjectiveUpdated: " .. state)
+Print("OnQuestObjectiveUpdated: " .. state)
 	if self.loaded then
 		-- Update our quest location markers
 		self:MarkerQuestUpdate(quest)
@@ -1084,7 +1065,7 @@ end
 
 -- Event fired when quests are abandoned, accepted, accomplished, etc..
 function Perspective:OnQuestStateChanged(quest, state)
-self:Print("OnQuestStateChanged: " .. state)
+Print("OnQuestStateChanged: " .. state)
 	if self.loaded then
 		-- Update our quest location markers
 		self:MarkerQuestUpdate(quest)

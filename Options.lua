@@ -115,6 +115,12 @@ function PerspectiveOptions:OnInitialize()
 	Apollo.RegisterSlashCommand("pti", "ShowTargetInfo", self)
 end
 
+function PerspectiveOptions:OnEnable()
+	if Apollo.GetAddon("Rover") then
+		SendVarToRover("PerspectiveOptions", self)
+	end
+end
+
 function PerspectiveOptions:ShowTargetInfo()
 	local text = ""
 
@@ -212,14 +218,6 @@ function PerspectiveOptions:OnDialogClose()
 	self.Dialog:Show(false, true)
 end
 
-function PerspectiveOptions:OnEnable()
-	self:InitializeOptions()
-
-	if Apollo.GetAddon("Rover") then
-		SendVarToRover("PerspectiveOptions", self)
-	end
-end
-
 function PerspectiveOptions:LoadDefaults()
 	return {
 		profile = {
@@ -228,7 +226,7 @@ function PerspectiveOptions:LoadDefaults()
 					disabled = false,
 					max = 10,
 					inArea = 100,
-					draw = 30,
+					draw = 0,
 					slow = 1,
 					fast = 100 },
 				names = {
@@ -506,7 +504,8 @@ function PerspectiveOptions:LoadDefaults()
 						drawLine = false,
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
-						iconHeight = 64	},
+						iconHeight = 64	,
+						iconColor = "ffffa600"},
 					eventLocation = {
 						header = L["Event Location"],
 						module = L["Quest"],
@@ -516,7 +515,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64,
-						iconColor = "ffffff00" },
+						iconColor = "ff00ff00" },
 					challengeLocation = {
 						header = L["Challenge Location"],
 						iconColor = "ffff8000",
@@ -750,35 +749,40 @@ function PerspectiveOptions:LoadControls()
 	return {
 		CategoryEditor 					= {
 			CheckButtons				= {
-				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L[""] },
-				CombatDisableCheck 		= { option = "disableInCombat",					text = L["Hide When In Combat"], 		tooltip = L[""] },
-				OccludedDisableCheck 	= { option = "disableOccluded",					text = L["Hide When Occluded"], 		tooltip = L[""] },
-				ShowIconCheck 			= { option = "showIcon",						text = L["Show Icon"], 					tooltip = L[""] },
-				ShowNameCheck 			= { option = "showName",						text = L["Show Name"], 					tooltip = L[""] },
-				ShowDistanceCheck 		= { option = "showDistance",					text = L["Show Distance"], 				tooltip = L[""] },
-				ShowLinesCheck 			= { option = "showLines",						text = L["Show Lines"], 				tooltip = L[""] },
-				ShowOutlineCheck 		= { option = "showLineOutline",					text = L["Show Line Outline"], 			tooltip = L[""] },
-				ShowOffScreenLineCheck 	= { option = "showLinesOffscreen",				text = L["Show Lines Offscreen"], 		tooltip = L[""] },
-				RangeFontCheck 			= { option = "rangeFont",						text = L["Color Font By Range Color"], 	tooltip = L[""] },
-				RangeIconCheck 			= { option = "rangeIcon",						text = L["Color Icon By Range Color"], 	tooltip = L[""] },
-				RangeLineCheck 			= { option = "rangeLine",						text = L["Color Line By Range Color"], 	tooltip = L[""] } },
+				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L["Disable this category."] },
+				CombatDisableCheck 		= { option = "disableInCombat",					text = L["Hide When In Combat"], 		tooltip = L["Hide this category while in combat."] },
+				OccludedDisableCheck 	= { option = "disableOccluded",					text = L["Hide When Occluded"], 		tooltip = L["Hide this category whhen it is occluded."] },
+				ShowIconCheck 			= { option = "showIcon",						text = L["Show Icon"], 					tooltip = L["Show the icon for this category."] },
+				ShowNameCheck 			= { option = "showName",						text = L["Show Name"], 					tooltip = L["Show the name for this category."] },
+				ShowDistanceCheck 		= { option = "showDistance",					text = L["Show Distance"], 				tooltip = L["Show the distance for this category."] },
+				ShowLinesCheck 			= { option = "showLines",						text = L["Show Lines"], 				tooltip = L["Show the line to this cateogry."] },
+				ShowOutlineCheck 		= { option = "showLineOutline",					text = L["Show Line Outline"], 			tooltip = L["Show the outline of the line to this category."] },
+				ShowOffScreenLineCheck 	= { option = "showLinesOffscreen",				text = L["Show Lines Offscreen"], 		tooltip = L["Show the line to this category even it is offscreen."] },
+				RangeFontCheck 			= { option = "rangeFont",						text = L["Color Font By Range Color"], 	tooltip = L["Use the range color for the font color."] },
+				RangeIconCheck 			= { option = "rangeIcon",						text = L["Color Icon By Range Color"], 	tooltip = L["Use the range color for the icon color."] },
+				RangeLineCheck 			= { option = "rangeLine",						text = L["Color Line By Range Color"], 	tooltip = L["Use the range color for the line color."] } },
 			TextBoxes					= {
-				DisplayText				= { option = "display",							label = L["Display As"],				tooltip = L[""] },
-				IconText				= { option = "icon",							label = L["Icon"],						tooltip = L[""] },
-				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L[""] },
-				IconWidthText			= { option = "iconWidth",	isNumber = true,	label = L["Icon Width"], 				tooltip = L[""] },
-				MinDistanceText			= { option = "minDistance",	isNumber = true,	label = L["Min Distance"], 				tooltip = L[""] },
-				MaxDistanceText			= { option = "maxDistance",	isNumber = true,	label = L["Max Distance"], 				tooltip = L[""] },
-				ZDistanceText			= { option = "zDistance",	isNumber = true,	label = L["Z Distance"], 				tooltip = L[""] },
-				LineWidthText			= { option = "lineWidth",	isNumber = true,	label = L["Line Width"], 				tooltip = L[""] },
-				MaxIconsText			= { option = "max",			isNumber = true,	label = L["Limit Icons"], 				tooltip = L[""] },
-				MaxLinesText			= { option = "maxLines",	isNumber = true,	label = L["Limit Lines"], 				tooltip = L[""] },
-				RangeLimitText			= { option = "rangeLimit",	isNumber = true,	label = L["Range Limit"], 				tooltip = L[""] } },
+				ModuleText				= { option = "module",							label = L["Module"],					tooltip = L["Edit the module for this category."] },
+				DisplayText				= { option = "display",							label = L["Display As"],				tooltip = L["Set a display name to be used instead of the unit's name."] },
+				IconText				= { option = "icon",							label = L["Icon"],						tooltip = L["Set the icon to be displayed for this category."] },
+				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L["Set the icon height for this ategory."] },
+				IconWidthText			= { option = "iconWidth",	isNumber = true,	label = L["Icon Width"], 				tooltip = L["Set the icon width for this category."] },
+				MinDistanceText			= { option = "minDistance",	isNumber = true,	label = L["Min Distance"], 				tooltip = L["Set the minimium distance for which to show this category."] },
+				MaxDistanceText			= { option = "maxDistance",	isNumber = true,	label = L["Max Distance"], 				tooltip = L["Set the maximium distance for which to show this category."] },
+				ZDistanceText			= { option = "zDistance",	isNumber = true,	label = L["Z Distance"], 				tooltip = L["Set the maximium vertical distance for which to show this category."] },
+				LineWidthText			= { option = "lineWidth",	isNumber = true,	label = L["Line Width"], 				tooltip = L["Set the line width for the category."] },
+				MaxIconsText			= { option = "max",			isNumber = true,	label = L["Limit Icons"], 				tooltip = L["Set the maximium limit of icons to be displayed on screen at once."] },
+				MaxLinesText			= { option = "maxLines",	isNumber = true,	label = L["Limit Lines"], 				tooltip = L["Set the maximium limit of lines to be displayed on screen at once."] },
+				RangeLimitText			= { option = "rangeLimit",	isNumber = true,	label = L["Range Limit"], 				tooltip = L["Set the range limit for this category.  This can be used to determine if your skills are in range of certain targets."] } },
 			ColorButtons				= {
-				FontColorButton			= { option = "fontColor",						label = L["Font Color"],				tooltip = L[""] },
-				IconColorButton			= { option = "iconColor",						label = L["Icon Color"],				tooltip = L[""] },
-				LineColorButton			= { option = "lineColor",						label = L["Line Color"],				tooltip = L[""] },
-				RangeColorButton		= { option = "rangeColor",						label = L["Range Color"],				tooltip = L[""] } },
+				FontColor				= { option = "fontColor",						label = L["Font Color"],				tooltip = L["Set the font color for this category."] },
+				IconColor				= { option = "iconColor",						label = L["Icon Color"],				tooltip = L["Set the icon color for this category."] },
+				LineColor				= { option = "lineColor",						label = L["Line Color"],				tooltip = L["Set the line color for this category."] },
+				RangeColor				= { option = "rangeColor",						label = L["Range Color"],				tooltip = L["Set the range color for this category."] } },
+			Buttons 					= { 
+				BackButton				= { 																					tooltip = L["Back to the categories list view."] },
+				DeleteButton			= { 											text = L["Delete"], 					tooltip = L["Delete this category."] },
+				DefaultButton			= { 											text = L["Default"],					tooltip = L["Reset this category to the default settings."] } }
 		},
 		Settings = {}
 	}
@@ -824,6 +828,10 @@ function PerspectiveOptions:OnInterfaceMenuListHasLoaded()
 end
 
 function PerspectiveOptions:OnInterfaceMenuClicked(arg1, arg2, arg3)
+	if not self.initialized then
+		self:InitializeOptions()
+	end
+
 	self.Options:Show(not self.Options:IsShown(), true)
 end
 
@@ -832,10 +840,18 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function PerspectiveOptions:OnConfigure()
+	if not self.initialized then
+		self:InitializeOptions()
+	end
+
 	self.Options:Show(true, true)
 end
 
-function PerspectiveOptions:OnShowOptions()
+function PerspectiveOptions:ShowOptions()
+	if not self.initialized then
+		self:InitializeOptions()
+	end
+
 	self.Options:Show(true, true)
 end
 
@@ -851,6 +867,7 @@ function PerspectiveOptions:SetPixie(window, index, options)
 	pi.crText = options.textColor or pi.crText
 	pi.strSprite = options.sprite or pi.strSprite
 	pi.cr = options.color or pi.cr
+	pi.flagsText = options.flagsText or pi.flagsText
 
 	window:UpdatePixie(index, pi)
 end
@@ -913,7 +930,6 @@ function PerspectiveOptions:InitializeOptions()
 		self.Options:FindChild("NewButton"):AddEventHandler("ButtonSignal",		"OnOptions_NewClicked")
 		self.Options:FindChild("DefaultButton"):AddEventHandler("ButtonSignal",	"OnOptions_DefaultClicked")
 
-
 		categories:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
 		categories:AddEventHandler("ButtonUncheck",	"OnOptions_HeaderButtonChecked")
 
@@ -921,7 +937,7 @@ function PerspectiveOptions:InitializeOptions()
 		settings:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
 
 		-- Initialize the category editor
-		self.CategoryEditor:FindChild("Back"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
+		--self.CategoryEditor:FindChild("BackButton"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
 
 		-- Set the categories header button as checked.
 		categories:SetCheck(true)
@@ -934,10 +950,10 @@ function PerspectiveOptions:InitializeOptions()
 	for category, cat in pairs(self.db.profile[self.profile].categories) do
 		if category ~= "default" then
 			-- Create the category buttons
-			self:CategoryItem_Init(category, cat.module)
+			self:CategoryItemInitialize(category, cat.module)
 
 			-- Create the module buttons
-			self:ModuleItem_Init(category, cat.module)
+			self:ModuleItemInitialize(category, cat.module)
 
 			-- Add the module to the list.
 			modules[cat.module] = true
@@ -975,47 +991,70 @@ function PerspectiveOptions:InitializeOptions()
 	if not self.initialized then
 		-- Set the All module as the selected module
 		self.module = L["All"]
+
+		-- Check the All button
+		self.ModuleList:FindChild("ModuleItem" .. self.module):FindChild("Button"):SetCheck(true)
+	else
 		-- Set the module button as checked.
-		self.ModuleList:FindChild("ModuleItem_" .. self.module):FindChild("Button"):SetCheck(true)
-	end
+		local module = self.ModuleList:FindChild("ModuleItem" .. self.module)
+
+		if not module then
+			module = self.ModuleList:FindChild("ModuleItem" .. L["All"])
+		end
+
+		local button = module:FindChild("Button")
+
+		self:ModuleItemChecked(nil, button, nil)
+	end	
+
+
+
+		
 
 	-- Let the addon know we are now fully initialized.
 	self.initialized = true
 end
 
-function PerspectiveOptions:ModuleItem_Init(category, module)
+function PerspectiveOptions:ModuleItemInitialize(category, module)
 	module = module or "Unknown"
 
-	local item = self.ModuleList:FindChild("ModuleItem_" .. module)
+	local item = self.ModuleList:FindChild("ModuleItem" .. module)
+	local button
 
 	if not item then
 		-- Create a new module item.
 		item = Apollo.LoadForm(self.xmlDoc, "ModuleItem", self.ModuleList, self)
-
-		-- Set the name for the item.
-		item:SetName("ModuleItem_" .. module)
-
-		-- Get the sortBy value.
-		local sortBy = module == L["All"] and "_first" or module
-
-		-- Set the data for the item.
-		item:SetData({ module = module, sortValue = sortBy })
 		
-		local button = item:FindChild("Button")
-		button:SetData(module)
-		button:AddEventHandler("ButtonCheck", "ModuleItem_Checked")
-		button:AddEventHandler("ButtonUncheck", "ModuleItem_Checked")
-
-		local text = button:GetPixieInfo(1)
-		text.strText = module
-		text.flagsText = { DT_VCENTER = true }
-		button:UpdatePixie(1, text)
+		-- Get the button
+		button = item:FindChild("Button")
+		
+		-- Setup the button event handlers
+		button:AddEventHandler("ButtonCheck", "ModuleItemChecked")
+		button:AddEventHandler("ButtonUncheck", "ModuleItemChecked")
+	else
+		-- Get the button
+		button = item:FindChild("Button")
 	end
 
-	return item
+	-- Set the module for the button
+	button:SetData(module)
+
+	-- Set the name for the item.
+	item:SetName("ModuleItem" .. module)
+
+	-- Get the sortBy value.
+	local sortBy = module == L["All"] and "_first" or module
+
+	-- Set the data for the item.
+	item:SetData({ module = module, sortValue = sortBy })
+
+	local text = button:GetPixieInfo(1)
+	text.strText = module
+	text.flagsText = { DT_VCENTER = true }
+	button:UpdatePixie(1, text)
 end
 
-function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
+function PerspectiveOptions:ModuleItemChecked(handler, control, button)
 	-- Get the module for the item
 	local module = control:GetData()
 
@@ -1034,7 +1073,11 @@ function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
 
 	if self.module and self.module ~= module then
 		-- Uncheck the previous module button
-		self.ModuleList:FindChild("ModuleItem_" .. self.module):FindChild("Button"):SetCheck(false)
+		local modItem = self.ModuleList:FindChild("ModuleItem" .. self.module)
+
+		if modItem then
+			modItem:FindChild("Button"):SetCheck(false)
+		end
 	end
 
 	-- Save the selected module for later.
@@ -1047,9 +1090,9 @@ function PerspectiveOptions:ModuleItem_Checked(handler, control, button)
 	self.CategoryList:SetVScrollPos(0)
 end
 
-function PerspectiveOptions:CategoryItem_Init(category, module)
+function PerspectiveOptions:CategoryItemInitialize(category, module)
 	
-	local item = self.CategoryList:FindChild("CategoryItem_" .. category)
+	local item = self.CategoryList:FindChild("CategoryItem" .. category)
 
 	local button
 
@@ -1057,25 +1100,28 @@ function PerspectiveOptions:CategoryItem_Init(category, module)
 		-- Create a new category item.
 		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.CategoryList, self)
 
-		-- Set the name for the item.
-		item:SetName("CategoryItem_" .. category)
-
-		-- Get the sortBy value.
-		local sortBy = category == "all" and "_first" or self:GetOptionValue(nil, "header", category)
-
-		-- Set the data for the item.
-		item:SetData({ 
-			category = category, 
-			module = module,
-			sortValue = sortBy
-		})
-
 		button = item:FindChild("Button")
-		button:SetData(category)
-		button:AddEventHandler("ButtonSignal", "CategoryItem_Clicked")
+		
+		button:AddEventHandler("ButtonSignal", "CategoryItemClicked")
 	else
 		button = item:FindChild("Button")
 	end
+
+	-- Set the category for the button
+	button:SetData(category)
+
+	-- Set the name for the item.
+	item:SetName("CategoryItem" .. category)
+
+	-- Get the sortBy value.
+	local sortBy = category == "all" and "_first" or self:GetOptionValue(nil, "header", category)
+
+	-- Set the data for the item.
+	item:SetData({ 
+		category = category, 
+		module = module,
+		sortValue = sortBy
+	})
 
 	local icon = button:GetPixieInfo(1)
 	icon.strSprite = self:GetOptionValue(nil, "icon", category)
@@ -1086,19 +1132,17 @@ function PerspectiveOptions:CategoryItem_Init(category, module)
 	text.strText = self:GetOptionValue(nil, "header", category)
 	text.flagsText = { DT_VCENTER = true }
 	button:UpdatePixie(2, text)
-
-	return item
 end
 
-function PerspectiveOptions:CategoryItem_Clicked(handler, control, button)
+function PerspectiveOptions:CategoryItemClicked(handler, control, button)
 	-- Set the currently selected category
 	self.category = control:GetData()
 
 	-- Show the category editor.
-	self:CategoryEditor_Show(self.category)
+	self:CategoryEditorInitialize(self.category)
 end
 
-function PerspectiveOptions:CategoryEditor_Show(category)
+function PerspectiveOptions:CategoryEditorInitialize(category)
 
 	local function loadDropDown(name, category, option)
 		-- Get the control by name
@@ -1139,25 +1183,6 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 		menu:SetData({ button = control })
 	end
 
-	local function loadColor(name, category, option)
-		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "Button")
-
-		-- Get the color for the control
-		local color =  self:GetOptionValue(nil, option, category)
-
-		-- Set the color for the control
-		control:SetBGColor(color)
-			
-		-- Makre sure we haven't already set the event handlers
-		if not control:GetData() then
-			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnColorClick")
-		end
-
-		-- Set the data for the control.
-		control:SetData({ category = category, option = option, color = color })
-	end
-
 	local header = 	self:GetOptionValue(nil, "header", 		category)
 	local icon = 	self:GetOptionValue(nil, "icon", 		category)
 	local color = 	self:GetOptionValue(nil, "iconColor", 	category)
@@ -1171,6 +1196,9 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 
 	-- Set the rename text
 	catEdit:SetText(header)
+
+	-- Set the module
+	self.CategoryEditor:SetData(self:GetOptionValue(nil, "module", category))
 	
 	-- Show the rename edit box if this is a whitelist item
 	if whitelist then
@@ -1180,9 +1208,11 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 		self:SetPixie(self.CategoryEditor, 2, { sprite = "" })
 		catEdit:SetStyleEx("ReadOnly", true)
 	end
-	
-	-- Show the category name if this is not a whitelist item
-	--self.CategoryEditor:FindChild("Category"):Show(not whitelist, true)
+
+	-- Initialize the buttons
+	for name, options in pairs(controls.CategoryEditor.Buttons) do
+		self:ButtonInitialize("CategoryEditor", name, category, options)
+	end
 
 	-- Initialize the checkbuttons
 	for name, options in pairs(controls.CategoryEditor.CheckButtons) do
@@ -1194,20 +1224,58 @@ function PerspectiveOptions:CategoryEditor_Show(category)
 		self:TextBoxInitialize("CategoryEditor", name, category, options)
 	end
 
-	loadColor("FontColor",			category, "fontColor")
-	loadColor("IconColor", 			category, "iconColor")
-	loadColor("LineColor", 			category, "lineColor")
-	loadColor("RangeColor", 		category, "rangeColor")
+		-- Initialize the colorbuttons
+	for name, options in pairs(controls.CategoryEditor.ColorButtons) do
+		self:ColorButtonInitialize("CategoryEditor", name, category, options)
+	end
 
-	loadDropDown("LimitBy",			category, "limitBy")
+	--[[loadDropDown("LimitBy",			category, "limitBy")
 
 	for k, v in pairs(fonts) do
 		self.CategoryEditor:FindChild("FontDropDown"):FindChild("DropDown"):AddItem(k)
-	end
+	end]]
 
 	self.ModuleList:GetParent():Show(false, true)
 	self.CategoryList:GetParent():Show(false, true)
 	self.CategoryEditor:Show(true, true)
+end
+
+-----------------------------------------------------------------------------------------
+-- Button
+-----------------------------------------------------------------------------------------
+
+function PerspectiveOptions:ButtonInitialize(parent, name, category, options)
+	-- Get the control by name
+	local control = self[parent]:FindChild(name)
+
+	-- Set the control toolip.
+	control:SetTooltip(options.tooltip)
+
+	-- category checkbutton
+	control:SetText(options.text)
+
+	-- Make sure we haven't already set the event handlers
+	if not control:GetData() then
+		--Setup the event handlers
+		control:AddEventHandler("ButtonSignal", 		"ButtonClicked" .. parent .. name)
+	end
+
+	-- Set the data for the control.
+	control:SetData({ category = category, options = options })
+end
+
+function PerspectiveOptions:ButtonClickedCategoryEditorBackButton(handler, control, button)
+	self.CategoryEditor:Show(false, true)
+	self.ModuleList:GetParent():Show(true, true)
+	self.CategoryList:GetParent():Show(true, true)
+end
+
+function PerspectiveOptions:ButtonClickedCategoryEditorDeleteButton(handler, control, button)
+	Print("TODO: Delete Click")
+end
+
+function PerspectiveOptions:ButtonClickedCategoryEditorDefaultButton(handler, control, button)
+	Print("TODO: Default Click")
 end
 
 -----------------------------------------------------------------------------------------
@@ -1281,11 +1349,16 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
 	end
 
-	-- Update all the ui options.
-	Perspective:UpdateOptions()
-
-	-- Update the markers.
-	Perspective:MarkersInit()
+	if category == "questLocation" or
+		category == "eventLocation" or
+		category == "pathLocation" or
+		category == "challengeLocation" then
+		-- Update the markers.
+		Perspective:MarkersInit()
+	else
+		-- Update all the ui options.
+		Perspective:UpdateOptions() 
+	end
 end
 
 -----------------------------------------------------------------------------------------
@@ -1295,19 +1368,18 @@ end
 function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 	-- Get the control by name
 	local control = self[parent]:FindChild(name)
-	local label = control:FindChild("Label")
-	local text = control:FindChild("TextBox")
+	local edit = control:FindChild("EditBox")
 
 	-- Set the control toolip.
 	control:SetTooltip(options.tooltip)
 
 	-- Set the textbox label.
-	label:SetText(options.label)
+	self:SetPixie(control, 1, { text = options.label, flagsText = { DT_VCENTER = true } })
 
 	-- Set the textbox value.
 	if category then
 		-- Category textbox
-		text:SetText(self:GetOptionValue(nil,  options.option, category) or "")
+		edit:SetText(self:GetOptionValue(nil,  options.option, category) or "")
 
 		-- Show the textbox
 		control:Show(true, true)
@@ -1330,19 +1402,19 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 		end
 	else
 		-- Settings checkbutton
-		text:SetText(self.db.profile[self.profile].settings[options.option])
+		edit:SetText(self.db.profile[self.profile].settings[options.option])
 	end
 
 	-- Make sure we haven't already set the event handlers
-	if not text:GetData() then
+	if not edit:GetData() then
 		--Setup the event handlers
-		text:AddEventHandler("EditBoxReturn", 	"TextBoxReturn" .. parent)
-		text:AddEventHandler("EditBoxTab", 		"TextBoxReturn" .. parent)
-		text:AddEventHandler("EditBoxEscape", 	"TextBoxEscape" .. parent)
+		edit:AddEventHandler("EditBoxReturn", 	"TextBoxReturn" .. parent)
+		edit:AddEventHandler("EditBoxTab", 		"TextBoxReturn" .. parent)
+		edit:AddEventHandler("EditBoxEscape", 	"TextBoxEscape" .. parent)
 	end
 	
 	-- Set the data for the control.
-	text:SetData({ category = category, options = options })
+	edit:SetData({ category = category, options = options })
 end
 
 function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
@@ -1384,30 +1456,145 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 		end
 	end
 
-	-- Update all the ui options.
-	Perspective:UpdateOptions()
-
-	-- Update the markers.
-	Perspective:MarkersInit()
+	if data.options.option ~= "module" then
+		if category == "questLocation" or
+			category == "eventLocation" or
+			category == "pathLocation" or
+			category == "challengeLocation" then
+			-- Update the markers.
+			Perspective:MarkersInit()
+		else
+			-- Update all the ui options.
+			Perspective:UpdateOptions() 
+		end
+	else
+		self:InitializeOptions()
+	end
 end
 
 function PerspectiveOptions:TextBoxEscapeCategoryEditor(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
-	
+
 	-- Load the previous value
-	control:SetText(self:GetOptionValue(nil, data.options.option, data.category))
+	control:SetText(self:GetOptionValue(nil, data.options.option, data.category) or "")
 end
 
+-----------------------------------------------------------------------------------------
+-- ColorButton
+-----------------------------------------------------------------------------------------
+
+function PerspectiveOptions:ColorButtonInitialize(parent, name, category, options)
+	-- Get the control by name
+	local control = self[parent]:FindChild(name)
+	local button = control:FindChild("Button")
+
+	local color
+
+	-- Set the control tooltip.
+	control:SetTooltip(options.tooltip)
+
+	-- Set the textbox label.
+	self:SetPixie(control, 1, { text = options.label, flagsText = { DT_VCENTER = true } })
+
+	-- Set the button value
+	if category then
+		-- category color button
+		color = self:GetOptionValue(nil, options.option, category)
+
+		-- Show the checkbutton
+		control:Show(true, true)
+
+		-- Disable the location checkbuttons
+		if category == "questLocation" or
+			category == "eventLocation" or
+			category == "pathLocation" or
+			category == "challengeLocation" then
+			if options.option == "lineColor" or 
+				options.option == "rangeColor" then
+				-- Hide the checkbutton
+				control:Show(false, true)
+			end
+		end
+	else
+		-- Setting color button
+		color = self.db.profile[self.profile].settings[options.option]
+	end
+
+	-- Make sure we haven't already set the event handlers
+	if not button:GetData() then
+		-- Setup the event handlers
+		button:AddEventHandler("ButtonSignal", "ColorButtonClicked" .. parent)
+	end
+
+	button:SetBGColor(color)
+
+	-- Set the data for the control.
+	button:SetData({ category = category, options = options, color = color })
+end
+
+function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, button)
+	local function setColor(data)
+		-- Convert the color back to str
+		local color = self:CColorToString(self.color)
+		
+		-- Set the control color
+		control:SetBGColor(color)
+
+		-- Update the settings
+		if data.category == "all" then
+			for category, cat in pairs(self.db.profile[self.profile].categories) do
+				if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+					cat[data.options.option] = color
+
+					if data.option == "iconColor" then
+						self:CategoryEditor_UpdateIcon(category)
+					end
+				end
+			end
+		else
+			self.db.profile[self.profile].categories[data.category][data.options.option] = color
+
+			if data.options.option == "iconColor" then
+				self:CategoryEditor_UpdateIcon(data.category)
+			end
+		end
+
+		if data.category == "questLocation" or
+			data.category == "eventLocation" or
+			data.category == "pathLocation" or
+			data.category == "challengeLocation" then
+			-- Update the markers.
+			Perspective:MarkersInit()
+		else
+			-- Update all the ui options.
+			Perspective:UpdateOptions() 
+		end
+	end
+
+	-- Get the data for the control
+	local data = control:GetData()
+
+	-- Convert the color string
+	self.color = self:StringToCColor(data.color)
+
+	-- Show the color picker.
+	if ColorPicker then
+		ColorPicker.AdjustCColor(self.color, false, setColor, data)
+	else
+		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Realm, "This option requires the ColorPicker addon to be installed.")
+	end
+end	
 
 
 
+--[[
 function PerspectiveOptions:CategoryEditor_OnBackClick(handler, control, button)
 	self.CategoryEditor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 end
---[[
+
 function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
 	-- Get the control's data
 	local data = control:GetData()
@@ -1479,7 +1666,7 @@ function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
 	Perspective:MarkersInit()
 end
 
-function PerspectiveOptions:CategoryItem_OnEscape(handler, control)
+function PerspectiveOptions:CategoryItemOnEscape(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 	
@@ -1592,7 +1779,7 @@ end
 
 function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
 	-- Get our category item button
-	local button  = self.CategoryList:FindChild("CategoryItem_" .. category):FindChild("Button")
+	local button  = self.CategoryList:FindChild("CategoryItem" .. category):FindChild("Button")
 
 	-- Get the icon and icon color.
 	local icon = self:GetOptionValue(nil, "icon", category)
@@ -1833,7 +2020,7 @@ function PerspectiveOptions:OnNewCategory_OKClicked(handler, control, button)
 		display = display
 	}
 
-	self:CategoryItem_Init(name, "Unit Name - " .. name, true)
+	self:CategoryItemInitialize(name, "Unit Name - " .. name, true)
 
 	self:CategoryItems_Arrange("header")
 

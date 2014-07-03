@@ -1264,7 +1264,7 @@ function Perspective:OnGroupChanged()
 				local ui = self:GetUnitInfo(unit)
 
 				-- Recategorize the player.
-				unit:UpdateUnitCategory(ui, unit)
+				self:UpdateUnitCategory(ui, unit)
 			end
 		end
 	end
@@ -1506,7 +1506,8 @@ end
 
 function Perspective:UpdateRewardInfo(ui, unit)
 	local rewardInfo = unit:GetRewardInfo()
-	
+	local category
+
 	-- Reset the rewards table
 	ui.rewards = {
 		quests = {},
@@ -1568,8 +1569,11 @@ function Perspective:UpdateRewardInfo(ui, unit)
 		if isValid then
 			ui.category = "questObjective"
 		end
-	elseif ui.rewards.challenges and
-		table.getn(ui.rewards.challenges) > 0 then
+	end
+
+	if ui.rewards.challenges and
+		table.getn(ui.rewards.challenges) > 0 and
+		not ui.category then
 
 		local isValid = true
 
@@ -1582,11 +1586,11 @@ function Perspective:UpdateRewardInfo(ui, unit)
 		end
 	end
 
-	if not ui.category and
+	--[[if not ui.category and
 		ui.rewards.challenges and 
 		table.getn(ui.rewards.challenges) > 0 then
 		ui.category = "challenge"
-	end
+	end]]
 
 	if not ui.category and
 		ui.rewards.scans and 

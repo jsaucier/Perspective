@@ -10,6 +10,40 @@ local Perspective = GeminiAddon:NewAddon("Perspective", false, {}, "Gemini:Timer
 
 local Options
 
+local activationStates = {
+	{ state = "QuestReward", 			category = "questReward" },
+	--{ state = "QuestReceivingTradekill",category = "questReward" },
+	{ state = "QuestNewMain", 			category = "questNew" },
+	{ state = "QuestNew", 				category = "questNew" },
+	{ state = "QuestNewRepeatable", 	category = "questNew" },
+	--{ state = "QuestGivingTradeskill", 	category = "questNew" },
+	{ state = "QuestNewTradeskill",		category = "questNew" },
+	{ state = "TalkTo", 				category = "questTalkTo" },
+	{ state = "Datacube", 				category = "lore" },
+	{ state = "ExplorerInterest", 		category = "explorer" },
+	{ state = "ExplorerActivate", 		category = "explorer" },
+	{ state = "ExplorerDoor", 			category = "explorer" },
+	{ state = "SettlerActivate", 		category = "settler" },
+	{ state = "SoldierActivate", 		category = "solider" },
+	{ state = "SoldierKill", 			category = "solider" },
+	{ state = "ScientistScannable", 	category = "scientist" },
+	{ state = "ScientistActivate", 		category = "scientist" },
+	{ state = "Public Event",			category = "questLoot" },
+	{ state = "FlightPath", 			category = "flightPath" },
+	{ state = "InstancePortal", 		category = "instancePortal" },
+	{ state = "BindPoint", 				category = "bindPoint" },
+	{ state = "CommodityMarketplace", 	category = "marketplace" },
+	{ state = "ItemAuctionhouse", 		category = "auctionHouse" },
+	{ state = "Mail", 					category = "mailBox" },
+	{ state = "TradeskillTrainer", 		category = "tradeskillTrainer" },
+	{ state = "Vendor", 				category = "vendor" },
+	{ state = "CraftingStation", 		category = "craftingStation" },
+	{ state = "Dye", 					category = "dye" },
+	{ state = "Bank", 					category = "bank" },
+	{ state = "GuildBank", 				category = "bank" },
+	{ state = "Dungeon", 				category = "dungeon" },
+}
+
 function Perspective:new(o)
     o = o or {}
     setmetatable(o, self)
@@ -896,6 +930,7 @@ function Perspective:MarkersUpdate(vector)
 end
 
 function Perspective:MarkerChallengeUpdate(challenge)
+Print("Attempting to remove: " .. challenge:GetName() .. " [" .. challenge:GetId() .. "]")
 	local id = "challenge" .. challenge:GetId()
 
 	if challenge:IsActivated() then
@@ -919,6 +954,7 @@ function Perspective:MarkerChallengeUpdate(challenge)
 			self:MarkerUpdate(self.markers[id])
 		end
 	else
+Print("Removed")
 		self.markers[id] = nil
 	end
 end
@@ -1244,14 +1280,14 @@ function Perspective:OnChallengeRemoved(challenge)
 		challenge = ChallengesLib:GetActiveChallengeList()[challenge]
 	elseif type(challenge) == "userdata" and challenge:GetId() then
 		id = challenge:GetId()
-	else
-		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
 	end
 
 	if id then
 		self.challenges[id] = nil
 		self:MarkerChallengeUpdate(challenge)
 		self:UpdateChallengeUnits(challenge, false)
+	else
+		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
 	end
 end
 
@@ -1515,7 +1551,7 @@ function Perspective:UpdateRewardInfo(ui, unit)
 
 			if unit:GetType() == "NonPlayer" then
 				-- Landing Site (Northern Wastes)
-				if quests[0] and not activation.Interact then
+				if quests[7085] and not activation.Interact then
 					isValid = false
 				end
 				--if not activation.Interact or not activation.Interact.bIsActive then

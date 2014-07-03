@@ -66,7 +66,8 @@ function Perspective:OnInitialize()
 	self.units 		= {
 		all 		= {},
 		prioritized	= {},
-		categorized	= {} }
+		categorized	= {},
+		update 		= {} }
 
 	-- Table of the sorted units, used to sort and draw by distance
 	self.sorted 	= {
@@ -80,7 +81,8 @@ function Perspective:OnInitialize()
 	self.timers 	= {
 		draw 		= nil,
 		fast 		= nil,
-		slow 		= nil }
+		slow 		= nil,
+		update 		= nil }
 
 	-- Path marker windows
 	self.markers = {}
@@ -589,7 +591,16 @@ function Perspective:UpdateUnitCategory(ui, unit)
 			if not ui.category or ui.category == "scientist" then
 				-- Determines if any rewards for this unit exist, such as quest objectvies, 
 				-- challenge objectives or scientist scan target.
-				self:UpdateRewardInfo(ui, unit) 
+				if ui.hasQuest and 
+					not Options:GetOptionValue(nil, "disabled", "questObjective") then 
+					ui.category = "questObjective"
+				elseif ui.hasChallenge and 
+					not Options:GetOptionValue(nil, "disabled", "challenge") then 
+					ui.category = "challenge"
+				elseif ui.hasScan and 
+					not Options:GetOptionValue(nil, "disabled", "scientistScans") then 
+					ui.category = "scientistScans"
+				end
 
 				if not ui.category then
 					-- Attempt to categorize the unit by type.
@@ -717,6 +728,10 @@ function Perspective:UpdateOptions(ui)
 		for id, unit in pairs(self.units.all) do
 			-- Get the ui or create a new one (in this case mostly creating)
 			local ui = self:GetUnitInfo(unit)
+
+			-- Update the rewards for the unit
+			self:UpdateRewards(ui, unit)
+
 			-- Categorize the unit
 			self:UpdateUnitCategory(ui, unit)
 		end
@@ -738,8 +753,8 @@ function Perspective:UpdateUnit(ui, unit)
 
 		if position then
 			if unit then
-				-- Clear dead units
-				if unit:IsDead() then
+				-- Check if we need to recategorize
+				if unit:IsDead() then -- Clear dead units
 					-- Clear dead npc quest / challenge objectives, but not scientist scans as
 					-- well as harvest
 					if unit:GetType() == "Harvest" or
@@ -1123,6 +1138,9 @@ function Perspective:OnUnitCreated(unit)
 		-- Get the categorized ui if it exists.
 		local ui = self:GetUnitInfo(unit)
 
+		-- Get the rewards for this unit
+		self:UpdateRewards(ui, unit)
+
 		-- Attempt to categorize the unit
 		self:UpdateUnitCategory(ui, unit)
 	end
@@ -1135,7 +1153,6 @@ function Perspective:OnUnitDestroyed(unit)
 end
 
 function Perspective:OnTargetUnitChanged(unit)
-local old, new
 	-- Ensure we have the target unit enabled.
 	if not Options.db.profile[Options.profile].categories.target.disabled then
 		-- Attempt to locate and update our current target unit
@@ -1155,7 +1172,7 @@ local old, new
 			local ui = self:GetUnitInfo(unit)
 
 			-- Categorize the target unit.
-			self:UpdateUnitCategory(ui, unit, ui.isNew)
+			self:UpdateUnitCategory(ui, unit)
 		end
 	end	
 end
@@ -1235,13 +1252,6 @@ function Perspective:OnPlayerPathMissionUpdate(mission)
 	end
 end
 
-function Perspective:OnChallengeActivated(challenge)
-	self.challenges[challenge:GetId()] = true
-	self:MarkerChallengeUpdate(challenge)
-
-	self:UpdateChallengeUnits(challenge, true)
-end
-
 function Perspective:OnUnitActivationTypeChanged(unit)
 	-- Get the unit info or create a new one
 	local ui = self:GetUnitInfo(unit)
@@ -1252,7 +1262,7 @@ end
 function Perspective:OnUnitNameChanged(unit)
 	local ui = self:GetUnitInfo(unit)
 
-	self:UpdateUnitCategory(ui, unit, ui.isNew)
+	self:UpdateUnitCategory(ui, unit)
 end
 
 function Perspective:OnGroupChanged()
@@ -1269,6 +1279,15 @@ function Perspective:OnGroupChanged()
 		end
 	end
 end
+
+
+function Perspective:OnChallengeActivated(challenge)
+	self.challenges[challenge:GetId()] = true
+	self:MarkerChallengeUpdate(challenge)
+
+	self:UpdateChallengeUnits(challenge, true)
+end
+
 
 function Perspective:OnChallengeRemoved(challenge)
 	local id
@@ -1308,12 +1327,18 @@ function Perspective:UpdateQuestUnits(quest, state)
 		-- Update all known units that have the new quest.
 		for id, unit in pairs(self.units.all) do
 			-- Make sure the unit is still valid and has a quest reward for the quest.
-			if unit:IsValid() and self:HasQuestReward(unit, quest:GetId()) then
+			if unit:IsValid() then
 				-- Get the ui for the unit or create a new one.
 				local ui = self:GetUnitInfo(unit)
 
-				-- Categorize the unit.
-				self:UpdateUnitCategory(ui, unit)
+				-- Update the rewards for this unit.
+				local canHaveReward = self:UpdateRewards(ui, unit)
+
+				-- Check to see if this unit has the new quest.
+				if canHaveReward and ui.quests[quest:GetId()] == true then
+					-- Recategorize the unit.
+					self:UpdateUnitCategory(ui, unit)
+				end
 			end
 		end
 	else
@@ -1322,14 +1347,13 @@ function Perspective:UpdateQuestUnits(quest, state)
 		-- update them.
 		for _, tbl in pairs({ "prioritized", "categorized" }) do
 			for id, ui in pairs(self.units[tbl]) do
-				local unit = GameLib.GetUnitById(id)
+				if ui.hasQuest and ui.quests[quest:GetId()] then
+					local unit = GameLib.GetUnitById(id)
 
-				if unit and 
-					ui.rewards and 
-					ui.rewards.quests then
-					
-					for _, questId in pairs(ui.rewards.quests) do
-						if questId == quest:GetId() then
+					if unit then
+						-- Update the rewards for this unit.
+						if self:UpdateRewards(ui, unit) then
+							-- Recategorize the unit
 							self:UpdateUnitCategory(ui, unit)
 						end
 					end
@@ -1344,25 +1368,31 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 		-- Update all known units that have the new quest.
 		for id, unit in pairs(self.units.all) do
 			-- Make sure the unit is still valid and has a challenge reward for the challenge.
-			if unit:IsValid() and self:HasChallengeReward(unit, challenge:GetId()) then
-				-- Get the ui for the unit or create a new one.
+			if unit:IsValid() and 				-- Valid 
+				unit:GetType() ~= "Player" and	-- Non Player
+				not unit:IsDead() then			-- Non Dead 
 				local ui = self:GetUnitInfo(unit)
-				-- Categorize the unit.
-				self:UpdateUnitCategory(ui, unit)
+
+				-- Update the rewards for this unit.
+				local canHaveReward = self:UpdateRewards(ui, unit)
+
+				if canHaveReward and ui.challenges[challenge:GetId()] then
+					-- Recategorize the unit.
+					self:UpdateUnitCategory(ui, unit)
+				end
 			end
 		end
 	else
 		-- Challenge is no longer active, just update the units that had the challenge.
 		for _, tbl in pairs({ "prioritized", "categorized" }) do
 			for id, ui in pairs(self.units[tbl]) do
-				local unit = GameLib.GetUnitById(id)
+				if ui.hasChallenge and ui.challenges[challenge:GetId()] then
+					local unit = GameLib.GetUnitById(id)
 
-				if unit and
-					ui.rewards and
-					ui.rewards.challenges then
-
-					for _, challengeId in pairs(ui.rewards.challenges) do
-						if challengeId == challenge:GetId() then
+					if unit then
+						-- Update the rewards for this unit.
+						if self:UpdateRewards(ui, unit) then
+							-- Recategorize the unit
 							self:UpdateUnitCategory(ui, unit)
 						end
 					end
@@ -1424,7 +1454,7 @@ function Perspective:UpdateHarvest(ui, unit)
 end
 
 function Perspective:UpdatePickup(ui, unit)
-	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
+	if sring.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
 		not Options.db.profile[Options.profile].categories.subdue.disabled then
 		ui.category = "subdue"
 	end
@@ -1504,101 +1534,108 @@ function Perspective:UpdateActivationState(ui, unit)
 	return false
 end
 
-function Perspective:UpdateRewardInfo(ui, unit)
-	local rewardInfo = unit:GetRewardInfo()
-	local category
-
-	-- Reset the rewards table
-	ui.rewards = {
-		quests = {},
-		challenges = {},
-		scans = {} }
-
-	-- To track quests so we can apply fixes to misunderstood quests below
-	local quests = {}
-	
-	if rewardInfo and type(rewardInfo) == "table" then
-		for i = 1, #rewardInfo do
-			local type = rewardInfo[i].strType
-			
-			if type == "Quest" and
-				not Options:GetOptionValue(nil, "disabled", "questObjective") then
-				table.insert(ui.rewards.quests, rewardInfo[i].idQuest)
-				quests[rewardInfo[i].idQuest] = true
-			elseif type == "Challenge" and
-				self.challenges[rewardInfo[i].idChallenge] and
-				not Options:GetOptionValue(nil, "disabled", "challenge") then
-				table.insert(ui.rewards.challenges, rewardInfo[i].idChallenge)
-			elseif type == "Scientist" and 
-				rewardInfo[i].pmMission and
-				not rewardInfo[i].pmMission:IsComplete() and
-				not Options:GetOptionValue(ui, "disabled", "scientistScans") then
-				table.insert(ui.rewards.scans, rewardInfo[i].pmMission:GetId())
-				ui.category = "scientistScans"
-			end
-		end
-	end
-
-	if ui.rewards.quests and 
-		table.getn(ui.rewards.quests) > 0 then
-
+function Perspective:UpdateRewards(ui, unit)
+	-- Determines if this unit is a valid quest target
+	-- This is used to target specific units for specific quests.
+	local function isValidQuestUnit(unit, questId, act)
+		-- Default all as valid.
 		local isValid = true
-		
-		-- Simple, yunowork??
-		if unit:GetMouseOverType() == "Simple" then
-			local activation = unit:GetActivationState()
 
+		if unit:GetMouseOverType() == "Simple" then
 			if unit:GetType() == "NonPlayer" then
 				-- Landing Site (Northern Wastes)
-				if quests[7085] and not activation.Interact then
+				if questId == 7085 and not act.Interact then
 					isValid = false
 				end
-				--if not activation.Interact or not activation.Interact.bIsActive then
-				--	isValid = false
-				--end
 			elseif unit:GetType() == "Simple" then
 				-- ANALYSIS: Crystal Healing (Northern Wastes)
-				if quests[7086] and not activation.ScientistRawScannable then
+				if questId == 7086 and not act.ScientistRawScannable then
 					isValid = false
 				end
 			end
-		elseif unit:GetType() == "NonPlayer" and unit:IsDead() then
-			isValid = false
+		elseif unit:Type() == "NonPlayer" then
+			if unit:IsDead() then
+				isValid = false
+			end
 		end
 
-		if isValid then
-			ui.category = "questObjective"
-		end
+		return isValid
 	end
 
-	if ui.rewards.challenges and
-		table.getn(ui.rewards.challenges) > 0 and
-		not ui.category then
-
+	local function isValidChallengeUnit(unit, challengeId)
+		-- Default all as valid.
 		local isValid = true
 
-		if unit:GetType() == "NonPlayer" and unit:IsDead() then
-			isValid = false
+		if unit:GetType() == "NonPlayer" then
+			if unit:IsDead() then
+				isValid = false
+			end
 		end
 
-		if isValid then
-			ui.category = "challenge"
+		return isValid
+	end
+
+	local uType = unit:GetType()
+
+	-- Make sure the unit will actually have a reward.
+	if type == "Player" or
+		type == "Harvest" or
+		type == "Pickup" or
+		type == "InstancePortal" or
+		unit:GetLoot() or
+		not unit:IsValid() then
+		return false
+	end
+
+	-- Track the quests, challenges, and scans for the unit info.
+	ui.hasQuest = false
+	ui.hasChallenge = false
+	ui.hasScan = false
+	ui.quests = {}
+	ui.challenges = {}
+
+	-- Gets the rewards (quest, challenge, scans) for the unit.
+	local ri = unit:GetRewardInfo()
+	
+	if ri and type(ri) == "table" then
+		-- Gets the activation state for the unit.
+		local act = unit:GetActivationState()
+
+		for i = 1, #ri do
+			local type = ri[i].strType
+			
+			if type == "Quest" then				
+				-- Get the quest id
+				local questId = ri[i].idQuest
+
+				if isValidQuestUnit(unit, questId, act) then
+					-- Add the quest id to the ui quest list
+					ui.quests[questId] = true
+
+					ui.hasQuest = true
+				end
+			elseif type == "Challenge" then
+				-- Get the challenge id
+				local challengeId = ri[i].idChallenge
+
+				-- Make sure we are actively on the challenge
+				if self.challenges[challengeId] and
+					isValidChallengeUnit(unit, challengeId) then
+					-- Add the challenge id to the ui challenge list
+					ui.challenges[challengeId] = true
+
+					ui.hasChallenge = true
+				end
+			elseif type == "Scientist" and 
+				ri[i].pmMission and
+				not ri[i].pmMission:IsComplete() then
+				-- Scan mission objective.
+				ui.hasScan = true
+			end
 		end
 	end
 
-	--[[if not ui.category and
-		ui.rewards.challenges and 
-		table.getn(ui.rewards.challenges) > 0 then
-		ui.category = "challenge"
-	end]]
-
-	if not ui.category and
-		ui.rewards.scans and 
-		table.getn(ui.rewards.scans) > 0 then
-		ui.category = "scientistScans"
-	end
-
-	return rewards
+	return true
 end
 
 function Perspective:HasQuestReward(unit, questId)

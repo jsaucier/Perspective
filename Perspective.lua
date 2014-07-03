@@ -929,11 +929,10 @@ function Perspective:MarkersUpdate(vector)
 	end
 end
 
-function Perspective:MarkerChallengeUpdate(challenge)
---Print("Attempting to remove: " .. challenge:GetName() .. " [" .. challenge:GetId() .. "]")
+function Perspective:MarkerChallengeUpdate(challenge, remove)
 	local id = "challenge" .. challenge:GetId()
 
-	if challenge:IsActivated() then
+	if challenge:IsActivated() and not remove then
 		self.markers[id] = {
 			name = challenge:GetName(),
 			type = "challenge",
@@ -954,7 +953,6 @@ function Perspective:MarkerChallengeUpdate(challenge)
 			self:MarkerUpdate(self.markers[id])
 		end
 	else
---Print("Removed")
 		self.markers[id] = nil
 	end
 end
@@ -1284,7 +1282,7 @@ function Perspective:OnChallengeRemoved(challenge)
 
 	if id then
 		self.challenges[id] = nil
-		self:MarkerChallengeUpdate(challenge)
+		self:MarkerChallengeUpdate(challenge, true)
 		self:UpdateChallengeUnits(challenge, false)
 	else
 		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))

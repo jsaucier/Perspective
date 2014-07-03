@@ -1212,7 +1212,7 @@ function Perspective:OnUnitActivationTypeChanged(unit)
 	-- Get the unit info or create a new one
 	local ui = self:GetUnitInfo(unit)
 
-	self:UpdateUnitCategory(ui, unit, ui.isNew)
+	self:UpdateUnitCategory(ui, unit)
 end
 
 function Perspective:OnUnitNameChanged(unit)
@@ -1408,50 +1408,16 @@ function Perspective:UpdateLoot(ui, unit)
 end
 
 function Perspective:UpdateActivationState(ui, unit)
-	--if not unit:IsValid() then return end
+	if not unit:IsValid() then return false end
 
 	local state = unit:GetActivationState()
-
-	local states = {
-		{ state = "QuestReward", 			category = "questReward" },
-		--{ state = "QuestReceivingTradekill",category = "questReward" },
-		{ state = "QuestNewMain", 			category = "questNew" },
-		{ state = "QuestNew", 				category = "questNew" },
-		{ state = "QuestNewRepeatable", 	category = "questNew" },
-		--{ state = "QuestGivingTradeskill", 	category = "questNew" },
-		{ state = "QuestNewTradeskill",		category = "questNew" },
-		{ state = "TalkTo", 				category = "questTalkTo" },
-		{ state = "Datacube", 				category = "lore" },
-		{ state = "ExplorerInterest", 		category = "explorer" },
-		{ state = "ExplorerActivate", 		category = "explorer" },
-		{ state = "ExplorerDoor", 			category = "explorer" },
-		{ state = "SettlerActivate", 		category = "settler" },
-		{ state = "SoldierActivate", 		category = "solider" },
-		{ state = "SoldierKill", 			category = "solider" },
-		{ state = "ScientistScannable", 	category = "scientist" },
-		{ state = "ScientistActivate", 		category = "scientist" },
-		{ state = "Public Event",			category = "questLoot" },
-		{ state = "FlightPath", 			category = "flightPath" },
-		{ state = "InstancePortal", 		category = "instancePortal" },
-		{ state = "BindPoint", 				category = "bindPoint" },
-		{ state = "CommodityMarketplace", 	category = "marketplace" },
-		{ state = "ItemAuctionhouse", 		category = "auctionHouse" },
-		{ state = "Mail", 					category = "mailBox" },
-		{ state = "TradeskillTrainer", 		category = "tradeskillTrainer" },
-		{ state = "Vendor", 				category = "vendor" },
-		{ state = "CraftingStation", 		category = "craftingStation" },
-		{ state = "Dye", 					category = "dye" },
-		{ state = "Bank", 					category = "bank" },
-		{ state = "GuildBank", 				category = "bank" },
-		{ state = "Dungeon", 				category = "dungeon" },
-	}
 
 	-- The unit is busy, nothing to do here
 	if state.Busy and state.Busy.bIsActive then return true end
 
 	local category
 
-	for k, v in pairs(states) do
+	for k, v in pairs(activationStates) do
 		if state[v.state] and 
 			state[v.state].bIsActive and
 			not Options.db.profile[Options.profile].categories[v.category].disabled then
@@ -1561,10 +1527,24 @@ function Perspective:UpdateRewardInfo(ui, unit)
 					isValid = false
 				end
 			end
+		elseif unit:GetType() == "NonPlayer" and unit:IsDead() then
+			isValid = false
 		end
 
 		if isValid then
 			ui.category = "questObjective"
+		end
+	elseif ui.rewards.challenges and
+		table.getn(ui.rewards.challenges) > 0 then
+
+		local isValid = true
+
+		if unit:GetType() == "NonPlayer" and unit:IsDead() then
+			isValid = false
+		end
+
+		if isValid then
+			ui.category = "challenge"
 		end
 	end
 

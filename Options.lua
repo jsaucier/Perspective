@@ -1894,15 +1894,17 @@ function PerspectiveOptions:Settings_OnTimerChanged(handler, control, button)
 	-- Get the timer vale
 	local val = tonumber(Apollo.FormatNumber(control:GetValue(), data.numDecimal))
 
-	-- Set the control's text.
-	data.text:SetText(val .. " " .. data.unit)
+	if val then
+		-- Set the control's text.
+		data.text:SetText(val .. " " .. data.unit)
 
-	-- Save the value.
-	self.db.profile[self.profile].settings[data.value] = val
+		-- Save the value.
+		self.db.profile[self.profile].settings[data.value] = val
 
-	-- Only create new timers if the addon isn't disabled.
-	if not self.db.profile[self.profile].settings.disabled then
-		Perspective:SetTimers()
+		-- Only create new timers if the addon isn't disabled.
+		if not self.db.profile[self.profile].settings.disabled then
+			Perspective:SetTimers()
+		end
 	end
 end
 

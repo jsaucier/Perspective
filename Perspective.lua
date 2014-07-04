@@ -794,6 +794,10 @@ function Perspective:UpdateOptions(ui, full)
 				end
 			end			
 		end
+
+		-- Causes immediate updates
+		self:OnTimerSlow()
+		self:OnTimerFast()
 	end
 end
 

@@ -778,6 +778,12 @@ end
 
 function PerspectiveOptions:LoadControls()
 	return {
+		Options 						= {
+			Buttons 					= {
+				DefaultButton 			= { 											text = L["Default ALL"],				tooltip = L["Reset ALL addon settings back to the defaults."] } },
+			CheckButtons 				= {
+				CategoriesCheck 		= {	checked = true,								text = L["Categories"],					tooltip = L[""] },
+				SettingsCheck 			= {												text = L["Settings"], 					tooltip = L[""] } } },
 		CategoryEditor 					= {
 			CheckButtons				= {
 				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L["Disable this category."] },
@@ -796,7 +802,7 @@ function PerspectiveOptions:LoadControls()
 				ModuleText				= { option = "module",							label = L["Module"],					tooltip = L["Edit the module for this category."] },
 				DisplayText				= { option = "display",							label = L["Display As"],				tooltip = L["Set a display name to be used instead of the unit's name."] },
 				IconText				= { option = "icon",							label = L["Icon"],						tooltip = L["Set the icon to be displayed for this category."] },
-				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L["Set the icon height for this ategory."] },
+				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L["Set the icon height for this category."] },
 				IconWidthText			= { option = "iconWidth",	isNumber = true,	label = L["Icon Width"], 				tooltip = L["Set the icon width for this category."] },
 				MinDistanceText			= { option = "minDistance",	isNumber = true,	label = L["Min Distance"], 				tooltip = L["Set the minimium distance for which to show this category."] },
 				MaxDistanceText			= { option = "maxDistance",	isNumber = true,	label = L["Max Distance"], 				tooltip = L["Set the maximium distance for which to show this category."] },
@@ -813,8 +819,7 @@ function PerspectiveOptions:LoadControls()
 			Buttons 					= { 
 				BackButton				= { 																					tooltip = L["Back to the categories list view."] },
 				DeleteButton			= { 											text = L["Delete"], 					tooltip = L["Delete this category."] },
-				DefaultButton			= { 											text = L["Default"],					tooltip = L["Reset this category to the default settings."] } }
-		},
+				DefaultButton			= { 											text = L["Default"],					tooltip = L["Reset this category to the default settings."] } }	},
 		Settings = {}
 	}
 end
@@ -941,11 +946,6 @@ function PerspectiveOptions:ArrangeChildren(window, type)
 end
 
 function PerspectiveOptions:InitializeOptions()
-
-	-- Options header buttons
-	local categories = self.Options:FindChild("CategoriesButton")
-	local settings = self.Options:FindChild("SettingsButton")
-
 	-- Only run these actions on the first initialize
 	if not self.initialized then
 		-- Load the window position
@@ -958,20 +958,16 @@ function PerspectiveOptions:InitializeOptions()
 		-- Setup the event handlers for the options window
 		self.Options:AddEventHandler("WindowMoved", 		"OnOptions_AnchorsChanged")
 		self.Options:AddEventHandler("WindowSizeChanged", 	"OnOptions_AnchorsChanged")
-		self.Options:FindChild("NewButton"):AddEventHandler("ButtonSignal",		"OnOptions_NewClicked")
-		self.Options:FindChild("DefaultButton"):AddEventHandler("ButtonSignal",	"OnOptions_DefaultClicked")
+	end
 
-		categories:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		categories:AddEventHandler("ButtonUncheck",	"OnOptions_HeaderButtonChecked")
+	-- Initialize Options Buttons
+	for name, options in pairs(controls.Options.Buttons) do
+		self:ButtonInitialize("Options", name, nil, options)
+	end
 
-		settings:AddEventHandler("ButtonCheck", 	"OnOptions_HeaderButtonChecked")
-		settings:AddEventHandler("ButtonUncheck", 	"OnOptions_HeaderButtonChecked")
-
-		-- Initialize the category editor
-		--self.CategoryEditor:FindChild("BackButton"):AddEventHandler("ButtonSignal", "CategoryEditor_OnBackClick")
-
-		-- Set the categories header button as checked.
-		categories:SetCheck(true)
+	-- Initialize Options CheckButtons
+	for name, options in pairs(controls.Options.CheckButtons) do
+		self:CheckButtonInitialize("Options", name, nil, options)
 	end
 
 	-- List of modules to check against
@@ -1295,6 +1291,22 @@ function PerspectiveOptions:ButtonInitialize(parent, name, category, options)
 	control:SetData({ category = category, options = options })
 end
 
+function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)
+	self.db:ResetDB()
+
+	self:InitializeOptions()
+
+	self.CategoryEditor:Show(false, true)
+	self.ModuleList:GetParent():Show(true, true)
+	self.CategoryList:GetParent():Show(true, true)
+
+	-- Update all the uis
+	Perspective:UpdateOptions(nil, true)
+
+	-- Update the markers.
+	Perspective:MarkersInit()
+end
+
 function PerspectiveOptions:ButtonClickedCategoryEditorBackButton(handler, control, button)
 	self.CategoryEditor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
@@ -1347,15 +1359,19 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 		end
 
 	else
-		-- Setting checkbutton
-		control:SetCheck(self.db.profile[self.profile].settings[options.option])
+		control:SetCheck(options.checked or self.db.profile[self.profile].settings[options.option])
 	end
 
 	-- Make sure we haven't already set the event handlers
 	if not control:GetData() then
-		--Setup the event handlers
-		control:AddEventHandler("ButtonCheck", 		"CheckButtonClicked" .. parent)
-		control:AddEventHandler("ButtonUncheck", 	"CheckButtonClicked" .. parent)
+		if category then
+			--Setup the event handlers
+			control:AddEventHandler("ButtonCheck", 		"CheckButtonClicked" .. parent)
+			control:AddEventHandler("ButtonUncheck", 	"CheckButtonClicked" .. parent)
+		else
+			control:AddEventHandler("ButtonCheck", 		"CheckButtonClicked" .. parent .. name)
+			control:AddEventHandler("ButtonUncheck", 	"CheckButtonClicked" .. parent .. name)
+		end
 	end
 
 	-- Set the data for the control.
@@ -1390,6 +1406,19 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 		-- Update all the ui options.
 		Perspective:UpdateOptions(nil, (data.options.option == "disabled")) 
 	end
+end
+
+
+function PerspectiveOptions:CheckButtonClickedOptionsCategoriesCheck(handler, control, button)
+	self:OnHeaderButtonClicked("Categories")
+
+	control:SetCheck(true)
+end
+
+function PerspectiveOptions:CheckButtonClickedOptionsSettingsCheck(handler, control, button)
+	self:OnHeaderButtonClicked("Settings")
+
+	control:SetCheck(true)
 end
 
 -----------------------------------------------------------------------------------------
@@ -1911,35 +1940,17 @@ function PerspectiveOptions:OnOptions_AnchorsChanged()
 	}
 end
 
-function PerspectiveOptions:OnOptions_DefaultClicked(handler, control, button)
-	self.db:ResetDB()
-
-	self.CategoryEditor:Show(false, true)
-	self.ModuleList:GetParent():Show(true, true)
-	self.CategoryList:GetParent():Show(true, true)
-
-	self:InitializeOptions()
-
-	-- Update all the uis
-	Perspective:UpdateOptions()
-
-	-- Update the markers.
-	Perspective:MarkersInit()
-end
-
-function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, button)
+function PerspectiveOptions:OnHeaderButtonClicked(panel)
 	local panels = {
 		"Categories",
 		"Settings"
 	}
 
 	for k, v in pairs(panels) do
-		if v .. "Button" == control:GetName() then
+		if v == panel then
 			self.Options:FindChild(v):Show(true, true)
 		else
 			self.Options:FindChild(v):Show(false, true)
 		end
 	end
-
-	control:SetCheck(true)
 end

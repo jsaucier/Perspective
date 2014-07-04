@@ -600,9 +600,6 @@ function Perspective:OnTimerFast(forced)
 end
 
 function Perspective:UpdateUnitCategory(ui, unit)
-	-- Determines if the unit is busy and we want to track this unit
-	local busy = false
-	
 	-- Reset the ui category
 	ui.category = nil
 
@@ -610,25 +607,26 @@ function Perspective:UpdateUnitCategory(ui, unit)
 		-- Get the unit name
 		ui.name = unit:GetName()
 
-		if unit == GameLib.GetTargetUnit() and
-			not Options.db.profile[Options.profile].categories.target.disabled then
-			ui.category = "target"
-		elseif Options.db.profile[Options.profile].categories[ui.name] and
-			not Options.db.profile[Options.profile].categories[ui.name].disabled then
-			-- This is a custom category, it has priority over all other category types except
-			-- target and focus.
-			ui.category = ui.name
-		elseif Options.db.profile[Options.profile].names[ui.name] then
-			ui.category = Options.db.profile[Options.profile].names[ui.name].category
-			ui.named = ui.name
-		else
-			-- Updates the activation state for the unit and determines if it is busy, if it is
-			-- busy then we do not care for this unit at this time.
-			busy = self:UpdateActivationState(ui, unit)
-		end
-
-		-- We only care about non busy units.
-		if not busy then
+		-- Determines if the unit is busy
+		if not self:IsUnitBusy(unit) then
+			-- Targetted unit
+			if unit == GameLib.GetTargetUnit() and
+				not Options.db.profile[Options.profile].categories.target.disabled then
+				ui.category = "target"
+			elseif Options.db.profile[Options.profile].categories[ui.name] and
+				not Options.db.profile[Options.profile].categories[ui.name].disabled then
+				-- This is a custom category, it has priority over all other category types except
+				-- target and focus.
+				ui.category = ui.name
+			elseif Options.db.profile[Options.profile].names[ui.name] then
+				ui.category = Options.db.profile[Options.profile].names[ui.name].category
+				ui.named = ui.name
+			else
+				-- Updates the activation state for the unit and determines if it is busy, if it is
+				-- busy then we do not care for this unit at this time.
+				self:UpdateActivationState(ui, unit)
+			end
+		
 			-- Only continue looking for a category if it has not be found by now, unless its a 
 			-- scientist item, then we'll further check the rewards to see if its an active scan
 			-- mission target, it will then be reclassified as such.
@@ -1500,13 +1498,23 @@ function Perspective:UpdateLoot(ui, unit)
 	end
 end
 
+function Perspective:IsUnitBusy(unit)
+	local state = unit:GetActivationState()
+
+	if state.Busy and state.Busy.bIsActive then 
+		return true 
+	else
+		return false
+	end
+end
+
 function Perspective:UpdateActivationState(ui, unit)
 	if not unit:IsValid() then return false end
 
 	local state = unit:GetActivationState()
 
 	-- The unit is busy, nothing to do here
-	if state.Busy and state.Busy.bIsActive then return true end
+	if state.Busy and state.Busy.bIsActive then return end
 
 	local category
 
@@ -1559,8 +1567,6 @@ function Perspective:UpdateActivationState(ui, unit)
 	end
 
 	ui.category = category
-
-	return false
 end
 
 function Perspective:UpdateRewards(ui, unit)

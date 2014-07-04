@@ -709,6 +709,15 @@ function Perspective:UpdateUnitCategory(ui, unit)
 					ui.category = npcType
 				end	
 			end
+
+			if unit:IsDead() then
+				-- Clear dead npc quest / challenge objectives and harvests, but not scientist scans
+				if unit:GetType() == "Harvest" or
+					ui.category == "questObjective" or
+					ui.category == "challenge" then
+					ui.category = nil
+				end
+			end
 		end
 	end
 

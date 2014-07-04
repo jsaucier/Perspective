@@ -740,6 +740,27 @@ function PerspectiveOptions:LoadDefaults()
 						showName = false,
 						showDistance = false,
 						iconColor = "ff00ff00" },
+					[L["Food Table"]] = {
+						header = L["Food Table"],
+						module = L["Harvest"],
+						iconHeight = 32,
+						iconWidth = 32,
+						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
+						showLines = false },
+					[L["Butcher Block"]] = {
+						header = L["Butcher Block"],
+						module = L["Harvest"],
+						icon = "IconSprites:Icon_Guild_UI_Guild_Steak",
+						iconHeight = 32,
+						iconWidth = 32,
+						showLines = false },
+					[L["Tanning Rack"]] = {
+						header = L["Tanning Rack"],
+						module = L["Harvest"],
+						icon = "IconSprites:Icon_Guild_UI_Guild_Skull",
+						iconHeight = 32,
+						iconWidth = 32,
+						showLines = false },
 				}
 			}
 		}

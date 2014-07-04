@@ -184,6 +184,9 @@ function PerspectiveLocale:LoadLocalization()
 			["Ship to Farside"] = true,
 			["Ship to Whitevale"] = true,
 			["Ship to Northern Wastes"] = true,
+			["Food Table"] = true,
+			["Butcher Block"] = true,
+			["Tanning Rack"] = true,
 		}
 
 		for k, v in pairs(locale) do

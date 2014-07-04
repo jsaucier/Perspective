@@ -44,6 +44,8 @@ local activationStates = {
 	{ state = "Dungeon", 				category = "dungeon" },
 }
 
+local unitTypes = {}
+
 function Perspective:new(o)
     o = o or {}
     setmetatable(o, self)
@@ -82,10 +84,14 @@ function Perspective:OnInitialize()
 
 	-- Table of our update timers
 	self.timers 	= {
-		draw 		= { elapsed = 0, func = "OnTimerDraw" },
-		fast 		= { elapsed = 0, func = "OnTimerFast" },
-		slow 		= { elapsed = 0, func = "OnTimerSlow" },
-		queue 		= { elapsed = 0, func = "OnTimerQueue", time = .01 } }
+		draw 		= { elapsed = 0, divisor = 1000, 	func = "OnTimerDraw" },
+		fast 		= { elapsed = 0, divisor = 1000, 	func = "OnTimerFast" },
+		slow 		= { elapsed = 0, divisor = 1,		func = "OnTimerSlow" },
+		queue 		= { elapsed = 0, divisor = 1000,	func = "OnTimerQueue", time = 10 } }
+
+	for index, state in pairs(activationStates) do
+		unitTypes[state.state] = true
+	end
 
 	-- Path marker windows
 	self.markers = {}
@@ -144,27 +150,6 @@ function Perspective:OnEnable()
 	end
 end
 
---[[function Perspective:CreateTimer(timer)
-	-- Cancel the current timer
-	self:CancelTimer(self.timers[timer], true)
-
-	local func, divBy
-	
-	if timer == "draw" then 
-		func = "OnTimerTicked_Draw"
-		divBy = 1000
-	elseif timer == "slow" then 
-		func = "OnTimerTicked_Slow"
-		divBy = 1
-	elseif timer == "fast" then 
-		func = "OnTimerTicked_Fast"
-		divBy = 1000
-	end
-
-	-- Create a new timer
-	self.timers[timer] = self:ScheduleTimer(func, Options.db.profile[Options.profile].settings[timer] / divBy)
-end]]
-
 function Perspective:Start()
 	-- Cancel all current timers as a precaution
 	self:CancelAllTimers()
@@ -180,23 +165,8 @@ function Perspective:Start()
 			end
 		end
 		
-		for name, timer in pairs(self.timers) do
-			timer.elapsed = 0
-			timer.time = Options.db.profile[Options.profile].settings[name]
-			timer.enabled = true
-		end
-		-- Create our update timers.
-		--self:CreateTimer("fast")
-		--self:CreateTimer("slow")
-		
-		-- Only start the draw timer if we aren't updating every frame
-		if Options.db.profile[Options.profile].settings.draw > 0 then
-			-- Create the draw timer
-			--self:CreateTimer("draw")
-		else
-			-- Redraw the screen on every frame
-			--Apollo.RegisterEventHandler("NextFrame", "OnNextFrame", self)
-		end
+		-- Load the timers
+		self:SetTimers()
 	end
 
 	Apollo.RegisterEventHandler("NextFrame", "OnNextFrame", self)
@@ -208,11 +178,7 @@ function Perspective:Stop()
 		timer.enabled = nil
 		timer.elapsed = 0
 	end
-	--self:CancelAllTimers()
 
-	-- Remove the event handler for next frame
-	--Apollo.RemoveEventHandler("NextFrame", self)
-	
 	self.units.prioritized = {}
 	self.units.categorized = {}
 
@@ -221,6 +187,14 @@ function Perspective:Stop()
 
 	-- Destroy all our pixies
 	self.Overlay:DestroyAllPixies()
+end
+
+function Perspective:SetTimers()
+	for name, timer in pairs(self.timers) do
+		timer.elapsed = 0
+		timer.time = Options.db.profile[Options.profile].settings[name] / timer.divisor
+		timer.enabled = true
+	end
 end
 
 function Perspective:GetUnitById(id)
@@ -240,8 +214,10 @@ function Perspective:GetUnitInfo(unit)
 end
 
 function Perspective:DestroyUnitInfo(unit)
-	self.units.prioritized[unit:GetId()] = nil
-	self.units.categorized[unit:GetId()] = nil
+	if unit and unit:IsValid() then
+		self.units.prioritized[unit:GetId()] = nil
+		self.units.categorized[unit:GetId()] = nil
+	end
 end
 
 function Perspective:OnNextFrame()
@@ -284,18 +260,22 @@ function Perspective:OnTimerQueue(elapsed)
 		for i = table.getn(self.units.queue), 1, -1 do
 			local update = self.units.queue[i]
 
-			-- Update the rewards for this unit.
-			local canHaveReward = self:UpdateRewards(update.ui, update.unit)
+			if update.recategorize then
+				self:UpdateUnitCategory(update.ui, update.unit)
+			else
+				-- Update the rewards for this unit.
+				local canHaveReward = self:UpdateRewards(update.ui, update.unit)
 
-			if canHaveReward then
-				-- If this is a new quest or challenge, first make sure the
-				-- unit has the quest/challenge
-				if new and update.ui[update.table][update.id] then
-					-- Recategorize the unit.
-					self:UpdateUnitCategory(update.ui, update.unit)
-				elseif not new then
-					-- Recategorize the unit.
-					self:UpdateUnitCategory(update.ui, update.unit)
+				if canHaveReward then
+					-- If this is a new quest or challenge, first make sure the
+					-- unit has the quest/challenge
+					if new and update.ui[update.table][update.id] then
+						-- Recategorize the unit.
+						self:UpdateUnitCategory(update.ui, update.unit)
+					elseif not new then
+						-- Recategorize the unit.
+						self:UpdateUnitCategory(update.ui, update.unit)
+					end
 				end
 			end
 
@@ -311,7 +291,7 @@ function Perspective:OnTimerQueue(elapsed)
 	end
 end
 
-function Perspective:OnTimerDraw(forced)
+function Perspective:OnTimerDraw()
 	-- Determines if we are allowed to draw the unit
 	local function addPixies(ui, pPos, pixies, items, lines)
 		local unit = self:GetUnitById(ui.id)
@@ -550,7 +530,7 @@ end
 
 -- Updates all the units we know about as well as loading options if its needed.
 -- Categorizes and prioritizes our units.
-function Perspective:OnTimerSlow(forced)
+function Perspective:OnTimerSlow()
 	-- Perspective is disabled
 	if Options.db.profile[Options.profile].settings.disabled then return end
 
@@ -586,13 +566,6 @@ function Perspective:OnTimerSlow(forced)
 
 		end
 	end
-
-	--[[if not Options.db.profile[Options.profile].settings.disabled and not forced then
-		-- Create a new timer
-		self.timers.slow = self:ScheduleTimer(
-							"OnTimerTicked_Slow", 
-							Options.db.profile[Options.profile].settings.slow)
-	end]]
 end
 
 -- Updates our prioritized (close) units faster than the farther ones.
@@ -834,9 +807,9 @@ function Perspective:UpdateOptions(ui, full)
 	--self.timers.slow.elapsed = 10
 	--self.timers.fast.elapsed = 10
 	--self.timers.draw.elapsed = 10
-	self:OnTimerSlow(true)
-	self:OnTimerFast(true)	
-	self:OnTimerDraw(true)
+	--self:OnTimerSlow(true)
+	--self:OnTimerFast(true)	
+	--self:OnTimerDraw(true)
 end
 
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
@@ -856,8 +829,10 @@ function Perspective:UpdateUnit(ui, unit)
 					if unit:GetType() == "Harvest" or
 						ui.category == "questObjective" or
 						ui.category == "challenge" then
+						-- Queue the unit to be recategorized.
+						table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
 						-- Recategorize the unit
-						self:UpdateUnitCategory(ui, unit)
+						--self:UpdateUnitCategory(ui, unit)
 						return
 					end
 				end
@@ -1219,15 +1194,15 @@ end
 function Perspective:OnUnitCreated(unit)
 	local type = unit:GetType()
 
-	if type == "Player" or 
+	--[[if type == "Player" or 
 		type == "NonPlayer" or
 		type == "Simple" or
 		type == "SimpleCollidable" or
 		type == "Collectible" or
 		type == "Harvest" or
 		type == "Pickup" or
-		type == "InstancePortal" or
-		unit:GetLoot() then
+		unitTypes[type] or 
+		unit:GetLoot() then]]
 		
 		self.units.all[unit:GetId()] = unit
 
@@ -1239,7 +1214,7 @@ function Perspective:OnUnitCreated(unit)
 
 		-- Attempt to categorize the unit
 		self:UpdateUnitCategory(ui, unit)
-	end
+	--end
 end
 
 function Perspective:OnUnitDestroyed(unit)
@@ -1569,7 +1544,7 @@ function Perspective:UpdateHarvest(ui, unit)
 end
 
 function Perspective:UpdatePickup(ui, unit)
-	if sring.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
+	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
 		not Options.db.profile[Options.profile].categories.subdue.disabled then
 		ui.category = "subdue"
 	end
@@ -1668,7 +1643,7 @@ function Perspective:UpdateRewards(ui, unit)
 					isValid = false
 				end
 			end
-		elseif unit:Type() == "NonPlayer" then
+		elseif unit:GetType() == "NonPlayer" then
 			if unit:IsDead() then
 				isValid = false
 			end

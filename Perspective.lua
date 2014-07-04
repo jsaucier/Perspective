@@ -52,6 +52,9 @@ function Perspective:new(o)
     return o
 end
 
+local tick = 0
+local elapsed = 0
+
 function Perspective:OnInitialize()
 	Options = GeminiAddon:GetAddon("PerspectiveOptions")
 
@@ -67,7 +70,7 @@ function Perspective:OnInitialize()
 		all 		= {},
 		prioritized	= {},
 		categorized	= {},
-		update 		= {} }
+		queue 		= {} }
 
 	-- Table of the sorted units, used to sort and draw by distance
 	self.sorted 	= {
@@ -79,16 +82,17 @@ function Perspective:OnInitialize()
 
 	-- Table of our update timers
 	self.timers 	= {
-		draw 		= nil,
-		fast 		= nil,
-		slow 		= nil,
-		update 		= nil }
+		draw 		= { elapsed = 0, func = "OnTimerDraw" },
+		fast 		= { elapsed = 0, func = "OnTimerFast" },
+		slow 		= { elapsed = 0, func = "OnTimerSlow" },
+		queue 		= { elapsed = 0, func = "OnTimerQueue", time = .01 } }
 
 	-- Path marker windows
 	self.markers = {}
 	self.markersInitialized = false
 	
 	-- Register our addon events	
+	--Apollo.RegisterEventHandler("NextFrame", 							"OnNextFrame", self)
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("ChangeWorld", 							"OnWorldChanged", self)	
@@ -140,8 +144,7 @@ function Perspective:OnEnable()
 	end
 end
 
-
-function Perspective:CreateTimer(timer)
+--[[function Perspective:CreateTimer(timer)
 	-- Cancel the current timer
 	self:CancelTimer(self.timers[timer], true)
 
@@ -160,7 +163,7 @@ function Perspective:CreateTimer(timer)
 
 	-- Create a new timer
 	self.timers[timer] = self:ScheduleTimer(func, Options.db.profile[Options.profile].settings[timer] / divBy)
-end
+end]]
 
 function Perspective:Start()
 	-- Cancel all current timers as a precaution
@@ -177,27 +180,38 @@ function Perspective:Start()
 			end
 		end
 		
+		for name, timer in pairs(self.timers) do
+			timer.elapsed = 0
+			timer.time = Options.db.profile[Options.profile].settings[name]
+			timer.enabled = true
+		end
 		-- Create our update timers.
-		self:CreateTimer("fast")
-		self:CreateTimer("slow")
+		--self:CreateTimer("fast")
+		--self:CreateTimer("slow")
 		
 		-- Only start the draw timer if we aren't updating every frame
 		if Options.db.profile[Options.profile].settings.draw > 0 then
 			-- Create the draw timer
-			self:CreateTimer("draw")
+			--self:CreateTimer("draw")
 		else
 			-- Redraw the screen on every frame
-			Apollo.RegisterEventHandler("NextFrame", "OnTimerTicked_Draw", self)
+			--Apollo.RegisterEventHandler("NextFrame", "OnNextFrame", self)
 		end
 	end
+
+	Apollo.RegisterEventHandler("NextFrame", "OnNextFrame", self)
 end
 
 function Perspective:Stop()
-	-- Cancel all current timers
-	self:CancelAllTimers()
+	-- Disable all timers
+	for name, timer in pairs(self.timers) do
+		timer.enabled = nil
+		timer.elapsed = 0
+	end
+	--self:CancelAllTimers()
 
 	-- Remove the event handler for next frame
-	Apollo.RemoveEventHandler("NextFrame", self)
+	--Apollo.RemoveEventHandler("NextFrame", self)
 	
 	self.units.prioritized = {}
 	self.units.categorized = {}
@@ -230,7 +244,74 @@ function Perspective:DestroyUnitInfo(unit)
 	self.units.categorized[unit:GetId()] = nil
 end
 
-function Perspective:OnTimerTicked_Draw(forced)
+function Perspective:OnNextFrame()
+	if not Options.db.profile[Options.profile].settings.disabled then 
+		self:UpdateTimers()
+	end
+end
+
+function Perspective:UpdateTimers()
+	-- Get the amount of time since last update
+	elapsed = (os.clock() - tick)
+
+	for name, timer in pairs(self.timers) do
+		-- Only update the timer if it's enabled.
+		if timer.enabled then
+			-- Update the elapsed time for the timer.
+			timer.elapsed = timer.elapsed + elapsed
+
+			-- Check if its time to fire our timer
+			if timer.elapsed >= timer.time then
+				-- Make sure our func exists before attempting to fire it
+				if self[timer.func] and type(self[timer.func] == "function") then
+					-- Fire the timers func
+					self[timer.func](self, elapsed)
+				end
+				-- Reset the timers elapsed time
+				timer.elapsed = 0
+			end
+		end
+	end
+
+	-- Save the last tick.
+	tick = os.clock()
+end
+
+function Perspective:OnTimerQueue(elapsed)
+	if table.getn(self.units.queue) > 0 then
+		local count = 1
+		-- Iterrate backwards so we can remove them from the table as we go
+		for i = table.getn(self.units.queue), 1, -1 do
+			local update = self.units.queue[i]
+
+			-- Update the rewards for this unit.
+			local canHaveReward = self:UpdateRewards(update.ui, update.unit)
+
+			if canHaveReward then
+				-- If this is a new quest or challenge, first make sure the
+				-- unit has the quest/challenge
+				if new and update.ui[update.table][update.id] then
+					-- Recategorize the unit.
+					self:UpdateUnitCategory(update.ui, update.unit)
+				elseif not new then
+					-- Recategorize the unit.
+					self:UpdateUnitCategory(update.ui, update.unit)
+				end
+			end
+
+			table.remove(self.units.queue, i)
+
+			count = count + 1
+
+			-- Limit to only twenty at a time.
+			if count >= 20 then
+				break
+			end
+		end
+	end
+end
+
+function Perspective:OnTimerDraw(forced)
 	-- Determines if we are allowed to draw the unit
 	local function addPixies(ui, pPos, pixies, items, lines)
 		local unit = self:GetUnitById(ui.id)
@@ -457,19 +538,19 @@ function Perspective:OnTimerTicked_Draw(forced)
 
 	end
 
-	if not Options.db.profile[Options.profile].settings.disabled and
+	--[[if not Options.db.profile[Options.profile].settings.disabled and
 		Options.db.profile[Options.profile].settings.draw > 0 and
 		not forced then
 		-- Create a new timer
 		self.timers.draw = self:ScheduleTimer(
 							"OnTimerTicked_Draw", 
 							Options.db.profile[Options.profile].settings.draw / 1000)
-	end
+	end]]
 end
 
 -- Updates all the units we know about as well as loading options if its needed.
 -- Categorizes and prioritizes our units.
-function Perspective:OnTimerTicked_Slow(forced)
+function Perspective:OnTimerSlow(forced)
 	-- Perspective is disabled
 	if Options.db.profile[Options.profile].settings.disabled then return end
 
@@ -506,17 +587,17 @@ function Perspective:OnTimerTicked_Slow(forced)
 		end
 	end
 
-	if not Options.db.profile[Options.profile].settings.disabled and not forced then
+	--[[if not Options.db.profile[Options.profile].settings.disabled and not forced then
 		-- Create a new timer
 		self.timers.slow = self:ScheduleTimer(
 							"OnTimerTicked_Slow", 
 							Options.db.profile[Options.profile].settings.slow)
-	end
+	end]]
 end
 
 -- Updates our prioritized (close) units faster than the farther ones.
 -- We'll keep this as light weight as possible, only updating the distance and relevant info.
-function Perspective:OnTimerTicked_Fast(forced)
+function Perspective:OnTimerFast(forced)
 	-- Perspective is disabled
 	if Options.db.profile[Options.profile].settings.disabled then return end
 
@@ -547,12 +628,12 @@ function Perspective:OnTimerTicked_Fast(forced)
 		end
 	end
 
-	if not Options.db.profile[Options.profile].settings.disabled and not forced then
+	--[[if not Options.db.profile[Options.profile].settings.disabled and not forced then
 		-- Create a new timer
 		self.timers.fast = self:ScheduleTimer(
 							"OnTimerTicked_Fast", 
 							Options.db.profile[Options.profile].settings.fast / 1000)
-	end
+	end]]
 end
 
 function Perspective:UpdateUnitCategory(ui, unit)
@@ -696,7 +777,7 @@ function Perspective:UpdateUnitInfo(ui, unit)
 	end
 end
 
-function Perspective:UpdateOptions(ui)
+function Perspective:UpdateOptions(ui, full)
 	local function updateOptions(ui)
 		if ui.category then
 			-- Loads the options for the ui
@@ -719,28 +800,43 @@ function Perspective:UpdateOptions(ui)
 		updateOptions(ui)
 	else
 		-- Updating all options
-
 		-- First lets destroy all units
-		self.units.prioritized = {}
-		self.units.categorized = {}
+		--self.units.prioritized = {}
+		--self.units.categorized = {}
 
-		-- Now we can recategorize all units we know about
-		for id, unit in pairs(self.units.all) do
-			-- Get the ui or create a new one (in this case mostly creating)
-			local ui = self:GetUnitInfo(unit)
+		if full then
+			-- Now we can recategorize all units we know about
+			for id, unit in pairs(self.units.all) do
+				-- Get the ui or create a new one (in this case mostly creating)
+				local ui = self:GetUnitInfo(unit)
 
-			-- Update the rewards for the unit
-			self:UpdateRewards(ui, unit)
+				-- Update the rewards for the unit
+				self:UpdateRewards(ui, unit)
 
-			-- Categorize the unit
-			self:UpdateUnitCategory(ui, unit)
+				-- Categorize the unit
+				self:UpdateUnitCategory(ui, unit)
+			end
+		else
+			for _, tbl in pairs({ "prioritized", "categorized" }) do
+				for id, ui in pairs(self.units[tbl]) do
+					-- Get the ui
+					local unit = GameLib.GetUnitById(ui.id)
+
+					if unit then
+						updateOptions(ui)
+					end
+				end
+			end			
 		end
 	end
 
 	-- Force our timers to tick now, to update the screen immediately
-	self:OnTimerTicked_Slow(true)
-	self:OnTimerTicked_Fast(true)	
-	self:OnTimerTicked_Draw(true)
+	--self.timers.slow.elapsed = 10
+	--self.timers.fast.elapsed = 10
+	--self.timers.draw.elapsed = 10
+	self:OnTimerSlow(true)
+	self:OnTimerFast(true)	
+	self:OnTimerDraw(true)
 end
 
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
@@ -1280,14 +1376,12 @@ function Perspective:OnGroupChanged()
 	end
 end
 
-
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
 	self:MarkerChallengeUpdate(challenge)
 
 	self:UpdateChallengeUnits(challenge, true)
 end
-
 
 function Perspective:OnChallengeRemoved(challenge)
 	local id
@@ -1303,8 +1397,6 @@ function Perspective:OnChallengeRemoved(challenge)
 		self.challenges[id] = nil
 		self:MarkerChallengeUpdate(challenge, true)
 		self:UpdateChallengeUnits(challenge, false)
-	else
-		Print("Perspective: Unexpected challenge failure - type: " .. type(challenge))
 	end
 end
 
@@ -1331,14 +1423,20 @@ function Perspective:UpdateQuestUnits(quest, state)
 				-- Get the ui for the unit or create a new one.
 				local ui = self:GetUnitInfo(unit)
 
+				table.insert(self.units.queue, { 
+					ui = ui, 
+					unit = unit, 
+					table = "quests", 
+					new = true,
+					id = quest:GetId() })
 				-- Update the rewards for this unit.
-				local canHaveReward = self:UpdateRewards(ui, unit)
+				--[[local canHaveReward = self:UpdateRewards(ui, unit)
 
 				-- Check to see if this unit has the new quest.
 				if canHaveReward and ui.quests[quest:GetId()] == true then
 					-- Recategorize the unit.
 					self:UpdateUnitCategory(ui, unit)
-				end
+				end]]
 			end
 		end
 	else
@@ -1350,13 +1448,18 @@ function Perspective:UpdateQuestUnits(quest, state)
 				if ui.hasQuest and ui.quests[quest:GetId()] then
 					local unit = GameLib.GetUnitById(id)
 
-					if unit then
+					table.insert(self.units.queue, { 
+						ui = ui, 
+						unit = unit, 
+						table = "quests", 
+						id = quest:GetId() })
+					--[[if unit then
 						-- Update the rewards for this unit.
 						if self:UpdateRewards(ui, unit) then
 							-- Recategorize the unit
 							self:UpdateUnitCategory(ui, unit)
 						end
-					end
+					end]]
 				end
 			end
 		end
@@ -1371,15 +1474,22 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 			if unit:IsValid() and 				-- Valid 
 				unit:GetType() ~= "Player" and	-- Non Player
 				not unit:IsDead() then			-- Non Dead 
+				-- Get the ui for the unit.
 				local ui = self:GetUnitInfo(unit)
 
+				table.insert(self.units.queue, { 
+					ui = ui, 
+					unit = unit, 
+					table = "challenges", 
+					new = true,
+					id = challenge:GetId() })
 				-- Update the rewards for this unit.
-				local canHaveReward = self:UpdateRewards(ui, unit)
+				--[[local canHaveReward = self:UpdateRewards(ui, unit)
 
 				if canHaveReward and ui.challenges[challenge:GetId()] then
 					-- Recategorize the unit.
 					self:UpdateUnitCategory(ui, unit)
-				end
+				end]]
 			end
 		end
 	else
@@ -1390,11 +1500,16 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 					local unit = GameLib.GetUnitById(id)
 
 					if unit then
+						table.insert(self.units.queue, { 
+							ui = ui, 
+							unit = unit, 
+							table = "challenges", 
+							id = challenge:GetId() })
 						-- Update the rewards for this unit.
-						if self:UpdateRewards(ui, unit) then
+						--[[if self:UpdateRewards(ui, unit) then
 							-- Recategorize the unit
 							self:UpdateUnitCategory(ui, unit)
-						end
+						end]]
 					end
 				end
 			end

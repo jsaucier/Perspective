@@ -228,7 +228,8 @@ function PerspectiveOptions:LoadDefaults()
 					inArea = 100,
 					draw = 0,
 					slow = 1,
-					fast = 100 },
+					fast = .1,
+					queue = 0 },
 				names = {
 					[L["Return Teleporter"]]			= { category = "instancePortal" },
 					[L["Bruxen"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
@@ -1357,7 +1358,7 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 		Perspective:MarkersInit()
 	else
 		-- Update all the ui options.
-		Perspective:UpdateOptions() 
+		Perspective:UpdateOptions(nil, (data.options.option == "disabled")) 
 	end
 end
 

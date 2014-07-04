@@ -148,9 +148,6 @@ function Perspective:OnEnable()
 end
 
 function Perspective:Start()
-	-- Cancel all current timers as a precaution
-	self:CancelAllTimers()
-
 	-- Remove the event handler for next frame, again as a precaution
 	Apollo.RemoveEventHandler("NextFrame", self)
 
@@ -514,15 +511,6 @@ function Perspective:OnTimerDraw()
 		end
 
 	end
-
-	--[[if not Options.db.profile[Options.profile].settings.disabled and
-		Options.db.profile[Options.profile].settings.draw > 0 and
-		not forced then
-		-- Create a new timer
-		self.timers.draw = self:ScheduleTimer(
-							"OnTimerTicked_Draw", 
-							Options.db.profile[Options.profile].settings.draw / 1000)
-	end]]
 end
 
 -- Updates all the units we know about as well as loading options if its needed.

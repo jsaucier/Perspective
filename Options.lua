@@ -1601,6 +1601,9 @@ function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, b
 			-- Update all the ui options.
 			Perspective:UpdateOptions() 
 		end
+
+		-- Set the data for the control.
+		control:SetData({ category = data.category, options = data.options, color = color })
 	end
 
 	-- Get the data for the control
@@ -1619,91 +1622,9 @@ end
 
 
 
---[[
-function PerspectiveOptions:CategoryEditor_OnBackClick(handler, control, button)
-	self.CategoryEditor:Show(false, true)
-	self.ModuleList:GetParent():Show(true, true)
-	self.CategoryList:GetParent():Show(true, true)
-end
 
-function PerspectiveOptions:CategoryEditor_OnChecked(handler, control, button)
-	-- Get the control's data
-	local data = control:GetData()
-	
-	-- Get the control's value
-	local val = control:IsChecked()
 
-	-- Check to see if we need to set the value for all categories
-	if data.category == "all" then
-		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
-				cat[data.option] = val
-			end
-		end
-	else
-		self.db.profile[self.profile].categories[data.category][data.option] = val	
-	end
 
-	-- Update all the ui options.
-	Perspective:UpdateOptions()
-
-	-- Update the markers.
-	Perspective:MarkersInit()
-end
-
-function PerspectiveOptions:CategoryEditor_OnReturn(handler, control)
-	-- Get the control's data
-	local data = control:GetData()
-
-	-- Get the control's value
-	local val = control:GetText()
-
-	-- Check to see if the textbox is expecting a number
-	if data.isNumber then
-		if not tonumber(val) then
-			val = self:GetOptionValue(nil, data.option, data.category)
-		else
-			val = tonumber(val)
-		end
-	end
-
-	-- If the option is blank, load the default setting.
-	if val == "" then 
-		val = self:GetOptionValue(nil, data.option, data.category)
-	end
-
-	-- Check to see if we need to set the value for all categories
-	if data.category == "all" then
-		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
-				cat[data.option] = val
-				if data.option == "icon" then
-					self:CategoryEditor_UpdateIcon(category)
-				end
-			end
-		end
-	else
-		self.db.profile[self.profile].categories[data.category][data.option] = val	
-
-		if data.option == "icon" then
-			self:CategoryEditor_UpdateIcon(data.category)
-		end
-	end
-
-	-- Update all the ui options.
-	Perspective:UpdateOptions()
-
-	-- Update the markers.
-	Perspective:MarkersInit()
-end
-
-function PerspectiveOptions:CategoryItemOnEscape(handler, control)
-	-- Get the control's data
-	local data = control:GetData()
-	
-	-- Load the previous value
-	control:SetText(self:GetOptionValue(nil, data.option, data.category))
-end]]
 
 function PerspectiveOptions:CategoryEditor_OnDropDown(handler, control, button)
 	-- Get the control's data.
@@ -1975,8 +1896,6 @@ function PerspectiveOptions:Settings_OnTextEscape(handler, control)
 	control:SetText(self.db.profile[self.profile].settings[data.option])
 end
 
-
-
 ---------------------------------------------------------------------------------------------------
 -- Options Events
 ---------------------------------------------------------------------------------------------------
@@ -2024,42 +1943,3 @@ function PerspectiveOptions:OnOptions_HeaderButtonChecked(handler, control, butt
 
 	control:SetCheck(true)
 end
-
----------------------------------------------------------------------------------------------------
--- NewCategory Events
----------------------------------------------------------------------------------------------------
---[[
-function PerspectiveOptions:OnNewCategory_OKClicked(handler, control, button)
-	local name = self.NewCategory:FindChild("NameText"):GetText()
-	local display = self.NewCategory:FindChild("DisplayText"):GetText()
-
-	if display == "" then
-		display = nil
-	end
-
-	self.db.profile[self.profile].categories[name] = self.db.profile[self.profile].categories[name] or {
-		header = "Unit Name - " .. name,
-		whitelist = true,
-		display = display
-	}
-
-	self:CategoryItemInitialize(name, "Unit Name - " .. name, true)
-
-	self:CategoryItems_Arrange("header")
-
-	self.NewCategory:Show(false, true)
-end
-
-function PerspectiveOptions:OnNewCategory_CancelClicked(handler, control, button)
-	self.NewCategory:Show(false, true)
-end
-]]
----------------------------------------------------------------------------------------------------
--- CategoryItem Events
----------------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
--- Settings Events
----------------------------------------------------------------------------------------------------
-
-

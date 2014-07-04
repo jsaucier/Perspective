@@ -1829,13 +1829,8 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 	-- Set the slider value.
 	slider:SetValue(val)
 
-	if value == "draw" and tonumber(val) == 0 then
-		-- Set the text value.
-		text:SetText("Every Frame")
-	else
-		-- Set the text value.
-		text:SetText(val .. " " .. unit)
-	end
+	-- Set the text value.
+	text:SetText(val .. " " .. unit)
 	
 	-- Make sure we haven't already set the event handlers
 	if not slider:GetData() then
@@ -1902,17 +1897,12 @@ function PerspectiveOptions:Settings_OnTimerChanged(handler, control, button)
 	-- Set the control's text.
 	data.text:SetText(val .. " " .. data.unit)
 
-	if data.value == "draw" and tonumber(val) == 0 then
-		-- Set the control's text.
-		data.text:SetText("Every Frame")
-	end
-
 	-- Save the value.
 	self.db.profile[self.profile].settings[data.value] = val
 
 	-- Only create new timers if the addon isn't disabled.
 	if not self.db.profile[self.profile].settings.disabled then
-		Perspective:CreateTimer(data.value)
+		Perspective:SetTimers()
 	end
 end
 

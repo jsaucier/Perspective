@@ -284,7 +284,7 @@ function Perspective:OnTimerQueue(elapsed)
 			count = count + 1
 
 			-- Limit to only twenty at a time.
-			if count >= 20 then
+			if count >= 5 then
 				break
 			end
 		end
@@ -600,13 +600,6 @@ function Perspective:OnTimerFast(forced)
 			table.sort(self.sorted.prioritized, function(a, b) return (a.distance or 0) < (b.distance or 0) end)
 		end
 	end
-
-	--[[if not Options.db.profile[Options.profile].settings.disabled and not forced then
-		-- Create a new timer
-		self.timers.fast = self:ScheduleTimer(
-							"OnTimerTicked_Fast", 
-							Options.db.profile[Options.profile].settings.fast / 1000)
-	end]]
 end
 
 function Perspective:UpdateUnitCategory(ui, unit)
@@ -782,10 +775,6 @@ function Perspective:UpdateOptions(ui, full)
 		updateOptions(ui)
 	else
 		-- Updating all options
-		-- First lets destroy all units
-		--self.units.prioritized = {}
-		--self.units.categorized = {}
-
 		if full then
 			-- Now we can recategorize all units we know about
 			for id, unit in pairs(self.units.all) do
@@ -811,14 +800,6 @@ function Perspective:UpdateOptions(ui, full)
 			end			
 		end
 	end
-
-	-- Force our timers to tick now, to update the screen immediately
-	--self.timers.slow.elapsed = 10
-	--self.timers.fast.elapsed = 10
-	--self.timers.draw.elapsed = 10
-	--self:OnTimerSlow(true)
-	--self:OnTimerFast(true)	
-	--self:OnTimerDraw(true)
 end
 
 -- Updates the unit to determine category, loads its setttings, and calculates its current distance
@@ -840,8 +821,6 @@ function Perspective:UpdateUnit(ui, unit)
 						ui.category == "challenge" then
 						-- Queue the unit to be recategorized.
 						table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
-						-- Recategorize the unit
-						--self:UpdateUnitCategory(ui, unit)
 						return
 					end
 				end
@@ -1077,8 +1056,6 @@ function Perspective:MarkerEventUpdate(event)
 				self:MarkerUpdate(self.markers[id])
 			end
 		end
-	else
-		self.markers[id] = nil
 	end
 end
 
@@ -1203,27 +1180,16 @@ end
 function Perspective:OnUnitCreated(unit)
 	local type = unit:GetType()
 
-	--[[if type == "Player" or 
-		type == "NonPlayer" or
-		type == "Simple" or
-		type == "SimpleCollidable" or
-		type == "Collectible" or
-		type == "Harvest" or
-		type == "Pickup" or
-		unitTypes[type] or 
-		unit:GetLoot() then]]
-		
-		self.units.all[unit:GetId()] = unit
+	self.units.all[unit:GetId()] = unit
 
-		-- Get the categorized ui if it exists.
-		local ui = self:GetUnitInfo(unit)
+	-- Get the categorized ui if it exists.
+	local ui = self:GetUnitInfo(unit)
 
-		-- Get the rewards for this unit
-		self:UpdateRewards(ui, unit)
+	-- Get the rewards for this unit
+	self:UpdateRewards(ui, unit)
 
-		-- Attempt to categorize the unit
-		self:UpdateUnitCategory(ui, unit)
-	--end
+	-- Attempt to categorize the unit
+	self:UpdateUnitCategory(ui, unit)
 end
 
 function Perspective:OnUnitDestroyed(unit)
@@ -1413,14 +1379,6 @@ function Perspective:UpdateQuestUnits(quest, state)
 					table = "quests", 
 					new = true,
 					id = quest:GetId() })
-				-- Update the rewards for this unit.
-				--[[local canHaveReward = self:UpdateRewards(ui, unit)
-
-				-- Check to see if this unit has the new quest.
-				if canHaveReward and ui.quests[quest:GetId()] == true then
-					-- Recategorize the unit.
-					self:UpdateUnitCategory(ui, unit)
-				end]]
 			end
 		end
 	else
@@ -1437,13 +1395,6 @@ function Perspective:UpdateQuestUnits(quest, state)
 						unit = unit, 
 						table = "quests", 
 						id = quest:GetId() })
-					--[[if unit then
-						-- Update the rewards for this unit.
-						if self:UpdateRewards(ui, unit) then
-							-- Recategorize the unit
-							self:UpdateUnitCategory(ui, unit)
-						end
-					end]]
 				end
 			end
 		end
@@ -1467,13 +1418,6 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 					table = "challenges", 
 					new = true,
 					id = challenge:GetId() })
-				-- Update the rewards for this unit.
-				--[[local canHaveReward = self:UpdateRewards(ui, unit)
-
-				if canHaveReward and ui.challenges[challenge:GetId()] then
-					-- Recategorize the unit.
-					self:UpdateUnitCategory(ui, unit)
-				end]]
 			end
 		end
 	else
@@ -1489,11 +1433,6 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 							unit = unit, 
 							table = "challenges", 
 							id = challenge:GetId() })
-						-- Update the rewards for this unit.
-						--[[if self:UpdateRewards(ui, unit) then
-							-- Recategorize the unit
-							self:UpdateUnitCategory(ui, unit)
-						end]]
 					end
 				end
 			end

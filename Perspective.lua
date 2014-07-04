@@ -130,10 +130,7 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitActivationTypeChanged", self)
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
-	Apollo.RegisterEventHandler("Group_Join",							"OnGroupChanged", self)
-	Apollo.RegisterEventHandler("Group_Add",							"OnGroupChanged", self)
-	Apollo.RegisterEventHandler("Group_Remove",							"OnGroupChanged", self)
-	Apollo.RegisterEventHandler("Group_Left",							"OnGroupChanged", self)
+	Apollo.RegisterEventHandler("UnitGroupChanged",						"OnUnitGroupChanged", self)
 end
 
 function Perspective:OnEnable()
@@ -1311,18 +1308,12 @@ function Perspective:OnUnitNameChanged(unit)
 	self:UpdateUnitCategory(ui, unit)
 end
 
-function Perspective:OnGroupChanged()
+function Perspective:OnUnitGroupChanged(unit)
 	if not Options.db.profile[Options.profile].categories.group.disabled then
-		-- This could probably be done better if I wasn't lazy and had a group member on which to test
-		for id, unit in pairs(self.units.all) do
-			if unit:GetType() == "Player" then
-				-- Get the ui for this player
-				local ui = self:GetUnitInfo(unit)
+		local ui = self:GetUnitInfo(unit)
 
-				-- Recategorize the player.
-				self:UpdateUnitCategory(ui, unit)
-			end
-		end
+		-- Recategorize the player.
+		self:UpdateUnitCategory(ui, unit)
 	end
 end
 

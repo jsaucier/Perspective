@@ -6,7 +6,7 @@ require "QuestLib"
 
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local Perspective = GeminiAddon:NewAddon("Perspective", false, {}, "Gemini:Timer-1.0")
+local Perspective = GeminiAddon:NewAddon("Perspective", false, {})
 
 local Options
 

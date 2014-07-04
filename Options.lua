@@ -743,24 +743,33 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Food Table"]] = {
 						header = L["Food Table"],
 						module = L["Harvest"],
+						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
+						iconColor = "ff9d8734",
+						lineColor = "ff9d8734",
+						fontColor = "ff9d8734",
 						iconHeight = 32,
 						iconWidth = 32,
-						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
-						showLines = false },
+						max = 1 },
 					[L["Butcher Block"]] = {
 						header = L["Butcher Block"],
 						module = L["Harvest"],
 						icon = "IconSprites:Icon_Guild_UI_Guild_Steak",
+						iconColor = "ff9d3838",
+						lineColor = "ff9d3838",
+						fontColor = "ff9d3838",
 						iconHeight = 32,
 						iconWidth = 32,
-						showLines = false },
+						max = 1 },
 					[L["Tanning Rack"]] = {
 						header = L["Tanning Rack"],
 						module = L["Harvest"],
 						icon = "IconSprites:Icon_Guild_UI_Guild_Skull",
+						iconColor = "ffb2aa73",
+						lineColor = "ffb2aa73",
+						fontColor = "ffb2aa73",
 						iconHeight = 32,
 						iconWidth = 32,
-						showLines = false },
+						max = 1 },
 				}
 			}
 		}

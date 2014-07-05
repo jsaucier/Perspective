@@ -1492,7 +1492,7 @@ function Perspective:UpdatePlayer(ui, unit)
 						not Options.db.profile[Options.profile].categories.dps.disabled then
 						return "dps"
 					else
-						return nil
+						return "raid"
 					end
 				end
 			end

@@ -12,11 +12,9 @@ local Options
 
 local activationStates = {
 	{ state = "QuestReward", 			category = "questReward" },
-	--{ state = "QuestReceivingTradekill",category = "questReward" },
 	{ state = "QuestNewMain", 			category = "questNew" },
 	{ state = "QuestNew", 				category = "questNew" },
 	{ state = "QuestNewRepeatable", 	category = "questNew" },
-	--{ state = "QuestGivingTradeskill", 	category = "questNew" },
 	{ state = "QuestNewTradeskill",		category = "questNew" },
 	{ state = "TalkTo", 				category = "questTalkTo" },
 	{ state = "Datacube", 				category = "lore" },
@@ -131,6 +129,7 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitActivationTypeChanged", self)
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
 	Apollo.RegisterEventHandler("UnitGroupChanged",						"OnUnitGroupChanged", self)
+	Apollo.RegisterEventHandler("Group_MemberFlagsChanged",				"OnGroup_MemberFlagsChanged", self)
 end
 
 function Perspective:OnEnable()
@@ -293,7 +292,10 @@ function Perspective:OnTimerDraw()
 		if unit then				
 			local isOccluded = unit:IsOccluded()
 
-			if table.getn(pixies) < Options.db.profile[Options.profile].settings.max
+			if not ui.disabled and 
+				ui.inRange and
+				not (ui.disableInCombat and GameLib.GetPlayerUnit():IsInCombat()) and
+				table.getn(pixies) < Options.db.profile[Options.profile].settings.max
 				and (not isOccluded or (isOccluded and not ui.disableOccluded)) then
 
 				-- Update the units position
@@ -1049,7 +1051,7 @@ end
 function Perspective:MarkerPathUpdate(mission, deactivated)
 	local id = "path" .. mission:GetId()
 
-	if mission:IsStarted() and not mission:IsComplete() and not deactivated then
+	if not mission:IsComplete() and not deactivated then
 		if table.getn(mission:GetMapRegions()) > 0 then
 			self.markers[id] = {
 				name = mission:GetName(),
@@ -1307,6 +1309,42 @@ function Perspective:OnUnitGroupChanged(unit)
 	end
 end
 
+function Perspective:OnGroup_MemberFlagsChanged(index, arg2, flags)
+	local unit = GroupLib.GetUnitForGroupMember(index)
+
+	if unit:IsValid() then
+		local ui = self:GetUnitInfo(unit)
+		
+		--[[if (flags.bHealer and 
+			ui.category ~= "healer" and
+			not Options.db.profile[Options.profile].categories.healer.disabled) or
+			
+			(flags.bDPS and 
+			ui.category ~= "dps" and
+			not Options.db.profile[Options.profile].categories.dps.disabled) or
+
+			(flags.bTank and 
+			ui.category ~= "tank" and
+			not Options.db.profile[Options.profile].categories.tank.disabled) or
+
+			(flags.bMainTank and 
+			ui.category ~= "mainTank" and
+			not Options.db.profile[Options.profile].categories.mainTank.disabled) or
+
+			(flags.bMainAssist and 
+			ui.category ~= "mainAssist" and
+			not Options.db.profile[Options.profile].categories.mainAssist.disabled) then
+
+			-- Recategorize the player.
+			self:UpdateUnitCategory(ui, unit)
+		else]]
+			-- Recategorize the player.
+			self:UpdateUnitCategory(ui, unit)
+		--end
+	end
+
+end
+
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
 	self:MarkerChallengeUpdate(challenge)
@@ -1422,15 +1460,53 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 end
 
 function Perspective:UpdatePlayer(ui, unit)
+	local function getRaidFlags(unit)
+		for i = 1, GroupLib.GetMemberCount(), 1 do
+			if unit == GroupLib.GetUnitForGroupMember(i) then
+				local member = GroupLib.GetGroupMember(i)
+
+				if member.bIsOnline then
+					if member.bMainTank and 
+						not Options.db.profile[Options.profile].categories.mainTank.disabled then
+						return "mainTank"
+					elseif	member.bMainAssist and
+						not Options.db.profile[Options.profile].categories.mainAssist.disabled then
+						return "mainAssist"
+					elseif member.bTank and 
+						not Options.db.profile[Options.profile].categories.tank.disabled then
+						return "tank"
+					elseif member.bHealer and 
+						not Options.db.profile[Options.profile].categories.healer.disabled then
+						return "healer"
+					elseif	member.bDPS and
+						not Options.db.profile[Options.profile].categories.dps.disabled then
+						return "dps"
+					else
+						return nil
+					end
+				end
+			end
+		end
+
+		return nil
+	end
+
+
 	local player = GameLib.GetPlayerUnit()
 	
 	-- We don't care about ourselves
 	if unit:IsThePlayer() then return end
 	
 	-- Check to see if the unit is in our group
-	if 	unit:IsInYourGroup() and 
-		not Options.db.profile[Options.profile].categories.group.disabled then
-		ui.category = "group"			
+	if 	unit:IsInYourGroup() then
+		local raidFlag = getRaidFlags(unit)
+
+		if raidFlag then
+			ui.category  = raidFlag
+Print(tostring(raidFlag))
+		elseif not Options.db.profile[Options.profile].categories.group.disabled then
+			ui.category = "group"
+		end
 	-- Check to see if the unit is in our guild
 	elseif 	player and player:GetGuildName() and 
 			unit:GetGuildName() == player:GetGuildName() and

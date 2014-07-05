@@ -246,7 +246,21 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Zappo"]]						= { category = "wotwChampion" },
 					[L["Ignacio"]]						= { category = "wotwChampion" },
 					[L["Police Patrolman"]]				= { category = "cowPolice" },
-					[L["Police Constable"]]				= { category = "cowPolice" }
+					[L["Police Constable"]]				= { category = "cowPolice" },
+					[L["Water"]]						= { category = "mtWater" },
+					[L["Water Barrel"]]					= { category = "mtWater" },
+					[L["Invisible Water Dowsing Unit"]]	= { category = "mtWater" },
+					[L["Cheese"]]						= { category = "mtFood" },
+					[L["Chicken"]]						= { category = "mtFood" },
+					[L["Roan Steak"]]					= { category = "mtFood" },
+					[L["Fruit"]]						= { category = "mtFood" },
+					[L["Food Crate"]]					= { category = "mtFood" },
+					[L["Large Feed Sack"]]				= { category = "mtFeed" },
+					[L["Feed Sack"]]					= { category = "mtFeed" },
+					[L["Hay Bale"]]						= { category = "mtFeed" },
+					[L["Roving Chompacabra"]]			= { category = "mtEnemy" },
+					[L["Dustback Gnasher"]]				= { category = "mtEnemy" },
+					[L["Dustback Gnawer"]]				= { category = "mtEnemy" },
 				},
 				categories = {
 					default = {
@@ -770,6 +784,55 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32,
 						max = 1 },
+					mtWater = {
+						header = L["Water"],
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Water" },
+					[L["Caravan Member"]] = {
+						header = L["Caravan Member"],
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Fatigue" },
+					mtFood = {
+						header = L["Food"],
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Food" },
+					mtFeed = {
+						header = L["Feed"],
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Feed" },
+					mtEnemy = {
+						header = L["Enemy"],
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert" },
+					[L["Cactus Fruit"]] = {
+						header = L["Cactus Fruit"],
+						module = L["The Malgrave Trail"] },
+					[L["Medical Grenade"]] = {
+						header = L["Medical Grenade"],
+						module = L["The Malgrave Trail"] },
+					[L["Bug Bomb"]] = {
+						header = L["Bug Bomb"],
+						module = L["The Malgrave Trail"] },
+					mainTank = {
+						header = L["Main Tank"],
+						module = L["Player"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_DeflectCritical" },
+					mainAssist = {
+						header = L["Main Assist"],
+						module = L["Player"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_BruteForce" },
+					tank = {
+						header = L["Tank"],
+						module = L["Player"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Deflect" },
+					healer = {
+						header = L["Healer"],
+						module = L["Player"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Health" },
+					dps = {
+						header = L["DPS"],
+						module = L["Player"],
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_CriticalSeverity" },
 				}
 			}
 		}
@@ -983,7 +1046,7 @@ function PerspectiveOptions:InitializeOptions()
 			self:ModuleItemInitialize(category, cat.module)
 
 			-- Add the module to the list.
-			modules[cat.module] = true
+			modules[cat.module or L["Unknown"]] = true
 		end
 	end
 
@@ -1043,7 +1106,7 @@ function PerspectiveOptions:InitializeOptions()
 end
 
 function PerspectiveOptions:ModuleItemInitialize(category, module)
-	module = module or "Unknown"
+	module = module or L["Unknown"]
 
 	local item = self.ModuleList:FindChild("ModuleItem" .. module)
 	local button

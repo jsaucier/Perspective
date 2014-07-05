@@ -116,6 +116,7 @@ function PerspectiveLocale:LoadLocalization()
 		["Hostile Elite"] = true,
 		["Quest"] = true,
 		["Objective"] = true,
+		["Interactable"] = true,
 		["Start"] = true,
 		["Talk To"] = true,
 		["Complete"] = true,

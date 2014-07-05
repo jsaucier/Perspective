@@ -641,7 +641,11 @@ function Perspective:UpdateUnitCategory(ui, unit)
 				-- challenge objectives or scientist scan target.
 				if ui.hasQuest and 
 					not Options:GetOptionValue(nil, "disabled", "questObjective") then 
-					ui.category = "questObjective"
+					if ui.hasActivation then
+						ui.category = "questInteractable"
+					else
+						ui.category = "questObjective"
+					end
 				elseif ui.hasChallenge and 
 					not Options:GetOptionValue(nil, "disabled", "challenge") then 
 					ui.category = "challenge"
@@ -1645,6 +1649,14 @@ function Perspective:UpdateActivationState(ui, unit)
 	if state.Busy and state.Busy.bIsActive then return end
 
 	local category
+
+	for _, __ in pairs(state) do
+		if not ui.hasActivation then
+			-- This is an interactive object.
+			ui.hasActivation = true
+			break;
+		end
+	end
 
 	for k, v in pairs(activationStates) do
 		if state[v.state] and 

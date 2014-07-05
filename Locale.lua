@@ -24,6 +24,15 @@ end
 function PerspectiveLocale:LoadLocalization()
 	local locale = {
 		[""] = true,
+		["Perspective Target Information"] = true,
+		["Perspective Settings Export"] = true,
+		["Perspective Settings Import"] = true,
+		["Perspective Target Information"] = true,
+		["Import"] = true,
+		["Import your current settings."] = true,
+		["Export"] = true,
+		["Export your current settings."] = true,
+		["Close"] = true,
 		["Please select a target first."] = true,
 		["Module"] = true,
 		["Edit the module for this category."] = true,

@@ -8,6 +8,8 @@ local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", "Perspecti
 
 local Perspective
 
+local JSON
+
 local L = {}
 	
 local fonts = {
@@ -72,6 +74,8 @@ function PerspectiveOptions:OnInitialize()
 	-- Load our localization
 	L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
 
+	JSON = Apollo.GetPackage("Lib:dkJSON-2.5").tPackage
+
 	Perspective = GeminiAddon:GetAddon("Perspective")
 
 	-- Load our default values
@@ -88,8 +92,7 @@ function PerspectiveOptions:OnInitialize()
 
 	-- Dialog window
     self.Dialog = Apollo.LoadForm(self.xmlDoc, "Dialog", nil, self)
-    self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "OnDialogClose")
-    self.Dialog:FindChild("TargetButton"):AddEventHandler("ButtonSignal", "ShowTargetInfo")
+    self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "CloseDialog")
 
 	-- Options window
     self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
@@ -211,11 +214,7 @@ function PerspectiveOptions:ShowTargetInfo()
 		text = L["Please select a target first."]
 	end
 
-	self.Dialog:FindChild("CopyButton"):SetActionData(
-    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
-
-	self.Dialog:FindChild("TextBox"):SetText(text)
-	self.Dialog:Show(true, true)
+	self:ShowDialog(L["Perspective Target Information"], text, true, true, L["Get Current Target"], "ShowTargetInfo")
 end
 
 function PerspectiveOptions:OnDialogClose()
@@ -914,7 +913,9 @@ function PerspectiveOptions:LoadControls()
 	return {
 		Options 						= {
 			Buttons 					= {
-				DefaultButton 			= { 											text = L["Default ALL"],				tooltip = L["Reset ALL addon settings back to the defaults."] } },
+				DefaultButton 			= { 											text = L["Default ALL"],				tooltip = L["Reset ALL addon settings back to the defaults."] },
+				ExportButton			= {												text = L["Export"],						tooltip = L["Export your current settings."] },
+				ImportButton			= {												text = L["Import"],						tooltip = L["Import your current settings."] } },
 			CheckButtons 				= {
 				CategoriesCheck 		= {	checked = true,								text = L["Categories"],					tooltip = L[""] },
 				SettingsCheck 			= {												text = L["Settings"], 					tooltip = L[""] } } },
@@ -1091,7 +1092,7 @@ function PerspectiveOptions:InitializeOptions()
 	-- Only run these actions on the first initialize
 	if not self.initialized then
 		-- Load the window position
-		local pos = self.db.profile.position
+		local pos = self.db.profile[self.profile].position
 
 		if pos ~= nil then
 			self.Options:SetAnchorOffsets(pos.left, pos.top, pos.right, pos.bottom)
@@ -1153,7 +1154,7 @@ function PerspectiveOptions:InitializeOptions()
 	self:Settings_TimerInit("SlowUpdate", 	"slow", 1, "secs", 1,	"OnTimerTicked_Slow")
 
 	self:Settings_TextInit("Max", 			"max", 		true)
-	self:Settings_TextInit("InArea", 		"inArea", 	true)
+	--self:Settings_TextInit("InArea", 		"inArea", 	true)
 
 		-- Sort the lists.
 	self:ArrangeChildren(self.CategoryList)
@@ -1412,6 +1413,60 @@ function PerspectiveOptions:CategoryEditorInitialize(category)
 end
 
 -----------------------------------------------------------------------------------------
+-- Dialog
+-----------------------------------------------------------------------------------------
+
+function PerspectiveOptions:ShowDialog(title, text, readOnly, hasCopy, buttonText, buttonFunc)
+	local copyButton = self.Dialog:FindChild("CopyButton")
+	local textBox = self.Dialog:FindChild("TextBox")
+	local mainButton = self.Dialog:FindChild("MainButton")
+
+	self:SetPixie(self.Dialog, 5, { text = title, flagsText = { DT_CENTER = true, DT_VCENTER = true } })
+
+	mainButton:SetText(buttonText)
+
+	if buttonFunc then
+		mainButton:AddEventHandler("ButtonSignal", buttonFunc)
+	else
+		mainButton:FindChild("MainButton"):RemoveEventHandler("ButtonSignal")
+	end
+
+	textBox:SetText(text)
+
+	if hasCopy then
+		copyButton:Show(true, true)
+		copyButton:SetActionData(GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
+	else
+		copyButton:Show(false, true)
+	end
+
+	textBox:SetStyleEx("ReadOnly", readOnly)
+
+	self.Dialog:Show(true, true)
+
+	self.Dialog:ToFront()
+end
+
+function PerspectiveOptions:CloseDialog()
+	self.Dialog:Show(false, false)
+end
+
+function PerspectiveOptions:ImportSettings()
+	-- Parse the dialog text.
+	local profile = JSON.decode(self.Dialog:FindChild("TextBox"):GetText())
+	
+	-- Save the import to your profile.
+	self.db.profile = profile
+
+	-- Do a full update on the uis
+	Perspective:UpdateOptions(nil, true)
+
+	self:InitializeOptions()
+
+	self.Dialog:Show(false, false)
+end
+
+-----------------------------------------------------------------------------------------
 -- Button
 -----------------------------------------------------------------------------------------
 
@@ -1449,6 +1504,15 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 
 	-- Update the markers.
 	Perspective:MarkersInit()
+end
+
+function PerspectiveOptions:ButtonClickedOptionsImportButton(handler, control, button)
+	self:ShowDialog(L["Perspective Settings Import"], "", false, false, L["Import"], "ImportSettings")
+end
+
+function PerspectiveOptions:ButtonClickedOptionsExportButton(handler, control, button)
+	local profile = JSON.encode(self.db.profile)
+	self:ShowDialog(L["Perspective Settings Export"], profile, true, true, L["Close"], "CloseDialog")
 end
 
 function PerspectiveOptions:ButtonClickedCategoryEditorBackButton(handler, control, button)

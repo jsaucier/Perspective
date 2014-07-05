@@ -122,96 +122,100 @@ function PerspectiveOptions:OnEnable()
 end
 
 function PerspectiveOptions:ShowTargetInfo()
-	local text = ""
-
-	local function appendLine(txt, bNoReturn)
-		text = text .. txt .. (not bNoReturn and "\n" or "")
-	end
-
-	local function getIndent(indent)
-		local txt = ""
-
-		for i = 1, indent do
-			txt = txt .. "    "
-		end
-
-		return txt
-	end
-
-	local function deepPrint(key, value, indent)
-		local txt = ""
-
-		if type(value) == "table" then
-			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
-			for k, v in pairs(value) do
-				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
-			end
-			txt = txt .. " }"
-		else
-			txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
-		end
-
-		return txt
-	end
-
-	local indent = 1
 	local target = GameLib.GetTargetUnit()
 
-	local rewards = target:GetRewardInfo()
-	local state = target:GetActivationState()
-	local zone = GameLib.GetCurrentZoneMap()
+	if target then
+		local text = ""
 
-	appendLine("Name: " .. target:GetName())
-	appendLine("ID: " .. target:GetId())
-	appendLine("IsDead: " .. tostring(target:IsDead()))
-	appendLine("IsValid: " .. tostring(target:IsValid()))
-	appendLine("Disposition: " .. tostring(target:GetDispositionTo(GameLib.GetPlayerUnit())))
-	appendLine("Difficulty: " .. tostring(target:GetDifficulty()))
-	appendLine("Eliteness: " .. tostring(target:GetEliteness()))
-	appendLine("Faction: " .. tostring(target:GetFaction()))
-	appendLine("Title: " .. tostring(target:GetTitle()))
-	appendLine("IsPvpFlagged: " .. tostring(target:IsPvpFlagged()))
-	appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
-	appendLine("Type: " .. target:GetType())
-	appendLine("MouseOverType: " .. target:GetMouseOverType())
-
-	if rewards then
-		local txt = ""
-		for k, v in pairs(rewards) do
-			txt = txt .. deepPrint(k, v, indent + 1)
+		local function appendLine(txt, bNoReturn)
+			text = text .. txt .. (not bNoReturn and "\n" or "")
 		end
 
-		if txt ~= "" then
-			appendLine("RewardInfo: {", true)
-			appendLine(txt .. " }")
+		local function getIndent(indent)
+			local txt = ""
+
+			for i = 1, indent do
+				txt = txt .. "    "
+			end
+
+			return txt
+		end
+
+		local function deepPrint(key, value, indent)
+			local txt = ""
+
+			if type(value) == "table" then
+				txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
+				for k, v in pairs(value) do
+					txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
+				end
+				txt = txt .. " }"
+			else
+				txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
+			end
+
+			return txt
+		end
+
+		local indent = 1
+		local target = GameLib.GetTargetUnit()
+
+		local rewards = target:GetRewardInfo()
+		local state = target:GetActivationState()
+		local zone = GameLib.GetCurrentZoneMap()
+
+		appendLine("Name: " .. target:GetName())
+		appendLine("ID: " .. target:GetId())
+		appendLine("IsDead: " .. tostring(target:IsDead()))
+		appendLine("IsValid: " .. tostring(target:IsValid()))
+		appendLine("Disposition: " .. tostring(target:GetDispositionTo(GameLib.GetPlayerUnit())))
+		appendLine("Difficulty: " .. tostring(target:GetDifficulty()))
+		appendLine("Eliteness: " .. tostring(target:GetEliteness()))
+		appendLine("Faction: " .. tostring(target:GetFaction()))
+		appendLine("Title: " .. tostring(target:GetTitle()))
+		appendLine("IsPvpFlagged: " .. tostring(target:IsPvpFlagged()))
+		appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
+		appendLine("Type: " .. target:GetType())
+		appendLine("MouseOverType: " .. target:GetMouseOverType())
+
+		if rewards then
+			local txt = ""
+			for k, v in pairs(rewards) do
+				txt = txt .. deepPrint(k, v, indent + 1)
+			end
+
+			if txt ~= "" then
+				appendLine("RewardInfo: {", true)
+				appendLine(txt .. " }")
+			else
+				appendLine("RewardInfo: {}")
+			end
 		else
-			appendLine("RewardInfo: {}")
-		end
-	else
-		appendLine("RewardInfo: nil")
-	end
-
-	if state then
-		local txt = ""
-		for k, v in pairs(state) do
-			txt = txt .. deepPrint(k, v, indent + 1)
+			appendLine("RewardInfo: nil")
 		end
 
-		if txt ~= "" then
-			appendLine("ActivationState: {", true)
-			appendLine(txt .. " }")
+		if state then
+			local txt = ""
+			for k, v in pairs(state) do
+				txt = txt .. deepPrint(k, v, indent + 1)
+			end
+
+			if txt ~= "" then
+				appendLine("ActivationState: {", true)
+				appendLine(txt .. " }")
+			else
+				appendLine("ActivationState: {}")
+			end
 		else
-			appendLine("ActivationState: {}")
+			appendLine("ActivationState: nil")
 		end
-	else
-		appendLine("ActivationState: nil")
+
+		self.Dialog:FindChild("CopyButton"):SetActionData(
+	    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
+
+		self.Dialog:FindChild("TextBox"):SetText(text)
+		self.Dialog:Show(true, true)
 	end
-
-	self.Dialog:FindChild("CopyButton"):SetActionData(
-    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
-
-	self.Dialog:FindChild("TextBox"):SetText(text)
-	self.Dialog:Show(true, true)
 end
 
 function PerspectiveOptions:OnDialogClose()

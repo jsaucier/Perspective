@@ -101,6 +101,7 @@ function PerspectiveLocale:LoadLocalization()
 			["All"] = true,
 			["Set All"] = true,
 			["Target"] = true,
+			["Focus"] = true,
 			["Miscellaneous"] = true,
 			["Player"] = true,
 			["Group"] = true,

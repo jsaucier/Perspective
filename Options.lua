@@ -288,7 +288,7 @@ function PerspectiveOptions:LoadDefaults()
 						showLineOutline = true,
 						showLines = true,
 						showLinesOffscreen = true,
-						rangeColor = "ffffffff",
+						rangeColor = "ff00ff00",
 						rangeIcon = false,
 						rangeFont = false,
 						rangeLine = false,
@@ -300,16 +300,23 @@ function PerspectiveOptions:LoadDefaults()
 						header = L["Target"],
 						module = L["Miscellaneous"],
 						disabled = true,				
-						lineColor = "ffff00ff",
-						iconColor = "ffff00ff",
-						icon = "PerspectiveSprites:Circle-Outline",
+						lineColor = "ff00ffff",
+						iconColor = "ffffffff",
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_ShieldCap",
 						maxIcons = 1,
 						maxLines = 1,
-						iconHeight = 24,
-						iconWidth = 24,
-						rangeColor = "ffffccff",
-						rangeLine = true,
-						rangeIcon = true },
+						iconHeight = 48,
+						iconWidth = 48 },
+					focus = {
+						header = L["Focus"],
+						module = L["Miscellaneous"],
+						lineColor = "ffff7dda",
+						iconColor = "ffff7dda",
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Grit",
+						maxIcons = 1,
+						maxLines = 1,
+						iconHeight = 48,
+						iconWidth = 48 },
 					group = {
 						header = L["Group"],
 						module = L["Player"],
@@ -787,55 +794,68 @@ function PerspectiveOptions:LoadDefaults()
 					mtWater = {
 						header = L["Water"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Water" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Water",
+						showLines = false },
 					[L["Caravan Member"]] = {
 						header = L["Caravan Member"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Fatigue" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Survivor",
+						showLines = false },
 					mtFood = {
 						header = L["Food"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Food" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Food",
+						showLines = false },
 					mtFeed = {
 						header = L["Feed"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Feed" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Feed",
+						showLines = false },
 					mtEnemy = {
 						header = L["Enemy"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert" },
+						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
+						showLines = false },
 					[L["Cactus Fruit"]] = {
 						header = L["Cactus Fruit"],
 						module = L["The Malgrave Trail"], 
-						icon = "IconSprites:Icon_Mission_Scientist_ScanPlant" },
+						icon = "IconSprites:Icon_Mission_Scientist_ScanPlant",
+						showLines = false },
 					[L["Medical Grenade"]] = {
 						header = L["Medical Grenade"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Mission_Soldier_Demolition" },
+						icon = "IconSprites:Icon_Mission_Soldier_Demolition",
+						showLines = false },
 					[L["Bug Bomb"]] = {
 						header = L["Bug Bomb"],
 						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Mission_Scientist_ScanCreature" },
+						icon = "IconSprites:Icon_Mission_Scientist_ScanCreature",
+						showLines = false },
 					mainTank = {
 						header = L["Main Tank"],
 						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_DeflectCritical" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_DeflectCritical",
+						showLines = false },
 					mainAssist = {
 						header = L["Main Assist"],
 						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_BruteForce" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_BruteForce",
+						showLines = false },
 					tank = {
 						header = L["Tank"],
 						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Deflect" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Deflect",
+						showLines = false },
 					healer = {
 						header = L["Healer"],
 						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Health" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Health",
+						showLines = false },
 					dps = {
 						header = L["DPS"],
 						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_CriticalSeverity" },
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_CriticalSeverity",
+						showLines = false },
 				}
 			}
 		}
@@ -1042,14 +1062,16 @@ function PerspectiveOptions:InitializeOptions()
 	-- Initialize the categories
 	for category, cat in pairs(self.db.profile[self.profile].categories) do
 		if category ~= "default" then
-			-- Create the category buttons
-			self:CategoryItemInitialize(category, cat.module)
+			if cat.module then
+				-- Create the category buttons
+				self:CategoryItemInitialize(category, cat.module)
 
-			-- Create the module buttons
-			self:ModuleItemInitialize(category, cat.module)
+				-- Create the module buttons
+				self:ModuleItemInitialize(category, cat.module)
 
-			-- Add the module to the list.
-			modules[cat.module or L["Unknown"]] = true
+				-- Add the module to the list.
+				modules[cat.module] = true
+			end
 		end
 	end
 
@@ -1109,7 +1131,7 @@ function PerspectiveOptions:InitializeOptions()
 end
 
 function PerspectiveOptions:ModuleItemInitialize(category, module)
-	module = module or L["Unknown"]
+	--module = module or L["Unknown"]
 
 	local item = self.ModuleList:FindChild("ModuleItem" .. module)
 	local button

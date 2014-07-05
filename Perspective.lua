@@ -116,7 +116,8 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 			"OnPlayerPathMissionDeactivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUnlocked", 			"OnPlayerPathMissionUnlocked", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 				"OnPlayerPathMissionUpdate", self)
-	Apollo.RegisterEventHandler("TargetUnitChanged",					"OnTargetUnitChanged", self)	
+	Apollo.RegisterEventHandler("TargetUnitChanged",					"OnTargetUnitChanged", self)
+	Apollo.RegisterEventHandler("AlternateTargetUnitChanged",			"OnAlternateTargetUnitChanged", self)
 	Apollo.RegisterEventHandler("PublicEventStart", 					"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveUpdate", 			"OnPublicEventUpdate", self)	
 	Apollo.RegisterEventHandler("PublicEventLocationAdded", 			"OnPublicEventUpdate", self)
@@ -603,6 +604,9 @@ function Perspective:UpdateUnitCategory(ui, unit)
 			if unit == GameLib.GetTargetUnit() and
 				not Options.db.profile[Options.profile].categories.target.disabled then
 				ui.category = "target"
+			elseif self.focus and unit == self.focus and
+				not Options.db.profile[Options.profile].categories.focus.disabled then
+				ui.category = "focus"
 			elseif Options.db.profile[Options.profile].categories[ui.name] and
 				not Options.db.profile[Options.profile].categories[ui.name].disabled then
 				-- This is a custom category, it has priority over all other category types except
@@ -1194,6 +1198,34 @@ function Perspective:OnTargetUnitChanged(unit)
 		for _, tbl in pairs({ "prioritized", "categorized" }) do
 			for id, ui in pairs(self.units[tbl]) do
 				if ui.category == "target" then
+					-- Recategorize our current target.
+					self:UpdateUnitCategory(ui, GameLib.GetUnitById(id))
+					break
+				end
+			end
+		end
+
+		-- Ensure we actually have a target and didn't just untarget our current target.
+		if unit then
+			-- Get the ui for our current target, or create a new one.
+			local ui = self:GetUnitInfo(unit)
+
+			-- Categorize the target unit.
+			self:UpdateUnitCategory(ui, unit)
+		end
+	end	
+end
+
+function Perspective:OnAlternateTargetUnitChanged(unit)
+	-- Save the focus target.
+	self.focus = unit
+
+	-- Ensure we have the focus unit enabled.
+	if not Options.db.profile[Options.profile].categories.focus.disabled then
+		-- Attempt to locate and update our current focus unit
+		for _, tbl in pairs({ "prioritized", "categorized" }) do
+			for id, ui in pairs(self.units[tbl]) do
+				if ui.category == "focus" then
 					-- Recategorize our current target.
 					self:UpdateUnitCategory(ui, GameLib.GetUnitById(id))
 					break

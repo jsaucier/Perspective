@@ -24,6 +24,7 @@ end
 function PerspectiveLocale:LoadLocalization()
 	local locale = {
 		[""] = true,
+		["Please select a target first."] = true,
 		["Module"] = true,
 		["Edit the module for this category."] = true,
 		["Disable"] = true,

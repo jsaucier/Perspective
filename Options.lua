@@ -122,44 +122,42 @@ function PerspectiveOptions:OnEnable()
 end
 
 function PerspectiveOptions:ShowTargetInfo()
+	local text = ""
+
+	local function appendLine(txt, bNoReturn)
+		text = text .. txt .. (not bNoReturn and "\n" or "")
+	end
+
+	local function getIndent(indent)
+		local txt = ""
+
+		for i = 1, indent do
+			txt = txt .. "    "
+		end
+
+		return txt
+	end
+
+	local function deepPrint(key, value, indent)
+		local txt = ""
+
+		if type(value) == "table" then
+			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
+			for k, v in pairs(value) do
+				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
+			end
+			txt = txt .. " }"
+		else
+			txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
+		end
+
+		return txt
+	end
+
+	local indent = 1
 	local target = GameLib.GetTargetUnit()
 
 	if target then
-		local text = ""
-
-		local function appendLine(txt, bNoReturn)
-			text = text .. txt .. (not bNoReturn and "\n" or "")
-		end
-
-		local function getIndent(indent)
-			local txt = ""
-
-			for i = 1, indent do
-				txt = txt .. "    "
-			end
-
-			return txt
-		end
-
-		local function deepPrint(key, value, indent)
-			local txt = ""
-
-			if type(value) == "table" then
-				txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
-				for k, v in pairs(value) do
-					txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
-				end
-				txt = txt .. " }"
-			else
-				txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
-			end
-
-			return txt
-		end
-
-		local indent = 1
-		local target = GameLib.GetTargetUnit()
-
 		local rewards = target:GetRewardInfo()
 		local state = target:GetActivationState()
 		local zone = GameLib.GetCurrentZoneMap()
@@ -209,13 +207,15 @@ function PerspectiveOptions:ShowTargetInfo()
 		else
 			appendLine("ActivationState: nil")
 		end
-
-		self.Dialog:FindChild("CopyButton"):SetActionData(
-	    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
-
-		self.Dialog:FindChild("TextBox"):SetText(text)
-		self.Dialog:Show(true, true)
+	else
+		text = L["Please select a target first."]
 	end
+
+	self.Dialog:FindChild("CopyButton"):SetActionData(
+    	GameLib.CodeEnumConfirmButtonType.CopyToClipboard, text)
+
+	self.Dialog:FindChild("TextBox"):SetText(text)
+	self.Dialog:Show(true, true)
 end
 
 function PerspectiveOptions:OnDialogClose()
@@ -335,10 +335,25 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff7482c1",
 						lineColor = "ff7482c1",
 						iconColor = "ff7482c1",
-						icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Character",
+						icon = "PerspectiveSprites:guild",
 						showLines = false,
 						maxLines = 4,
 						max = 4,
+						useRange = true,
+						rangeColor = "ff00ff00",
+						rangeIcon = true,
+						rangeLine = true,
+						rangeFont = true },
+					raid = {
+						header = L["Raid"],
+						module = L["Player"],
+						fontColor = "ffff8000",
+						lineColor = "ffff8000",
+						iconColor = "ffff8000",
+						icon = "PerspectiveSprites:guild",
+						showLines = false,
+						maxLines = 40,
+						max = 40,
 						useRange = true,
 						rangeColor = "ff00ff00",
 						rangeIcon = true,
@@ -350,7 +365,7 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
 						iconColor = "ff00ff00",
-						icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_GroupFinder",
+						icon = "PerspectiveSprites:guild",
 						showLines = false },
 					exile = {
 						header = L["Exile"],
@@ -1007,15 +1022,22 @@ function PerspectiveOptions:SetPixie(window, index, options)
 end
 
 function PerspectiveOptions:CColorToString(color)
-	return string.format("FF%02X%02X%02X", 
+	return string.format("%02X%02X%02X%02X", 
+		math.floor(color.a * 255 + 0.5),
 		math.floor(color.r * 255 + 0.5), 
 		math.floor(color.g * 255 + 0.5), 
 		math.floor(color.b * 255 + 0.5))
 end
 
 function PerspectiveOptions:StringToCColor(str)
-	local r, g, b = 0, 0, 0
-	
+	local r, g, b, a = 0, 0, 0, 0
+
+	-- Get the alpha values.
+	local alpha = string.sub(str, 1, 2)
+
+	-- Convert to hex
+	alpha = tonumber(alpha, 16)
+
 	str = string.sub(str, 3)
 
 	local val = tonumber(str, 16)
@@ -1024,9 +1046,10 @@ function PerspectiveOptions:StringToCColor(str)
 		r = math.floor(val / 65536) 
 		g = math.floor(val / 256) % 256
 		b = val % 256
+		a = alpha % 256
 	end
 
-	return CColor.new(r / 255, g / 255, b / 255, 1)
+	return CColor.new(r / 255, g / 255, b / 255, a / 255)
 end
 
 function PerspectiveOptions:ArrangeChildren(window, type)
@@ -1695,9 +1718,10 @@ end
 
 function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, button)
 	local function setColor(data)
+
 		-- Convert the color back to str
 		local color = self:CColorToString(self.color)
-		
+
 		-- Set the control color
 		control:SetBGColor(color)
 
@@ -1743,7 +1767,7 @@ function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, b
 
 	-- Show the color picker.
 	if ColorPicker then
-		ColorPicker.AdjustCColor(self.color, false, setColor, data)
+		ColorPicker.AdjustCColor(self.color, true, setColor, data)
 	else
 		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Realm, "This option requires the ColorPicker addon to be installed.")
 	end

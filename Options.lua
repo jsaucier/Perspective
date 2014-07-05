@@ -567,6 +567,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64	,
+						maxDistance = 9999,
 						iconColor = "ffffa600"},
 					eventLocation = {
 						header = L["Event Location"],
@@ -577,6 +578,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64,
+						maxDistance = 9999,
 						iconColor = "ff00ff00" },
 					challengeLocation = {
 						header = L["Challenge Location"],
@@ -585,6 +587,7 @@ function PerspectiveOptions:LoadDefaults()
 						limitBy = "challenge",
 						max = 1,
 						drawLine = false,
+						maxDistance = 9999,
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64	},
@@ -602,7 +605,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
 						lineColor = "ffffff00" },
 					miner = {
-						header = L["Miner"],
+						header = L["Mining"],
 						module = L["Harvest"],
 						max = 5,
 						fontColor = "ff0078ce",
@@ -712,6 +715,7 @@ function PerspectiveOptions:LoadDefaults()
 						drawLine = false,
 						iconHeight = 64,
 						iconWidth = 64,
+						maxDistance = 9999,
 						max = 1 },
 					scientist = {
 						header = L["Scientist"],
@@ -1544,7 +1548,6 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 	end
 end
 
-
 function PerspectiveOptions:CheckButtonClickedOptionsCategoriesCheck(handler, control, button)
 	self:OnHeaderButtonClicked("Categories")
 
@@ -1588,8 +1591,6 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 			if options.option == "maxLines" or 
 				options.option == "lineWidth" or
 				options.option == "zDistance" or
-				options.option == "minDistance" or
-				options.option == "maxDistance" or
 				options.option == "display" or
 				options.option == "rangeLimit" then
 				-- Hide the textbox
@@ -1653,10 +1654,10 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 	end
 
 	if data.options.option ~= "module" then
-		if category == "questLocation" or
-			category == "eventLocation" or
-			category == "pathLocation" or
-			category == "challengeLocation" then
+		if data.category == "questLocation" or
+			data.category == "eventLocation" or
+			data.category == "pathLocation" or
+			data.category == "challengeLocation" then
 			-- Update the markers.
 			Perspective:MarkersInit()
 		else

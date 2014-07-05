@@ -98,6 +98,7 @@ function PerspectiveLocale:LoadLocalization()
 		["Miscellaneous"] = true,
 		["Player"] = true,
 		["Group"] = true,
+		["Raid"] = true,
 		["Guild"] = true,
 		["Exile"] = true,
 		["Dominion"] = true,

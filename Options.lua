@@ -806,13 +806,16 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert" },
 					[L["Cactus Fruit"]] = {
 						header = L["Cactus Fruit"],
-						module = L["The Malgrave Trail"] },
+						module = L["The Malgrave Trail"], 
+						icon = "IconSprites:Icon_Mission_Scientist_ScanPlant" },
 					[L["Medical Grenade"]] = {
 						header = L["Medical Grenade"],
-						module = L["The Malgrave Trail"] },
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Mission_Soldier_Demolition" },
 					[L["Bug Bomb"]] = {
 						header = L["Bug Bomb"],
-						module = L["The Malgrave Trail"] },
+						module = L["The Malgrave Trail"],
+						icon = "IconSprites:Icon_Mission_Scientist_ScanCreature" },
 					mainTank = {
 						header = L["Main Tank"],
 						module = L["Player"],
@@ -1574,7 +1577,7 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 	else
 		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
 
-		if data.option == "icon" then
+		if data.options.option == "icon" then
 			self:CategoryEditor_UpdateIcon(data.category)
 		end
 	end

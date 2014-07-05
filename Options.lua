@@ -242,7 +242,7 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Captain Karaka"]]				= { category = "instancePortal", 	display = L["Ship to Crimson Badlands"] },
 					[L["Captain Mazonia"]]				= { category = "instancePortal",	display = L["Ship to Wilderrun"] },
 					[L["Captain Pallas"]]				= { category = "instancePortal",	display = L["Ship to Malgrave"] },
-					[L["Captain Cryzin"]]				= { category = "instancePortal",	display = L["Ship to Grivault"] },
+					[L["Captain Cryzin"]]				= { category = "instancePortal",	display = L["Ship to Grimvault"] },
 					[L["Captain Petronia"]]				= { category = "instancePortal",	display = L["Ship to Farside"] },
 					[L["Captain Visia"]]				= { category = "instancePortal",	display = L["Ship to Whitevale"] },
 					[L["Captain Zanaar"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
@@ -1492,10 +1492,10 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
 	end
 
-	if category == "questLocation" or
-		category == "eventLocation" or
-		category == "pathLocation" or
-		category == "challengeLocation" then
+	if data.category == "questLocation" or
+		data.category == "eventLocation" or
+		data.category == "pathLocation" or
+		data.category == "challengeLocation" then
 		-- Update the markers.
 		Perspective:MarkersInit()
 	else

@@ -943,6 +943,8 @@ function Perspective:MarkersInit()
 	-- Set the markers as no longer initialized
 	self.markersInitialized = false
 
+	self.markers = {}
+
 	-- Destroy any current makers
 	for _, id in pairs(self.markers) do
 		--self:MarkerDestroy(id)

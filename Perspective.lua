@@ -1315,32 +1315,8 @@ function Perspective:OnGroup_MemberFlagsChanged(index, arg2, flags)
 	if unit:IsValid() then
 		local ui = self:GetUnitInfo(unit)
 		
-		--[[if (flags.bHealer and 
-			ui.category ~= "healer" and
-			not Options.db.profile[Options.profile].categories.healer.disabled) or
-			
-			(flags.bDPS and 
-			ui.category ~= "dps" and
-			not Options.db.profile[Options.profile].categories.dps.disabled) or
-
-			(flags.bTank and 
-			ui.category ~= "tank" and
-			not Options.db.profile[Options.profile].categories.tank.disabled) or
-
-			(flags.bMainTank and 
-			ui.category ~= "mainTank" and
-			not Options.db.profile[Options.profile].categories.mainTank.disabled) or
-
-			(flags.bMainAssist and 
-			ui.category ~= "mainAssist" and
-			not Options.db.profile[Options.profile].categories.mainAssist.disabled) then
-
-			-- Recategorize the player.
-			self:UpdateUnitCategory(ui, unit)
-		else]]
-			-- Recategorize the player.
-			self:UpdateUnitCategory(ui, unit)
-		--end
+		-- Recategorize the player.
+		self:UpdateUnitCategory(ui, unit)
 	end
 
 end
@@ -1503,7 +1479,6 @@ function Perspective:UpdatePlayer(ui, unit)
 
 		if raidFlag then
 			ui.category  = raidFlag
-Print(tostring(raidFlag))
 		elseif not Options.db.profile[Options.profile].categories.group.disabled then
 			ui.category = "group"
 		end

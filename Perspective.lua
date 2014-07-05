@@ -10,6 +10,8 @@ local Perspective = GeminiAddon:NewAddon("Perspective", false, {})
 
 local Options
 
+local L = {}
+
 local activationStates = {
 	{ state = "QuestReward", 			category = "questReward" },
 	{ state = "QuestNewMain", 			category = "questNew" },
@@ -56,6 +58,9 @@ local tick = 0
 local elapsed = 0
 
 function Perspective:OnInitialize()
+	-- Load our localization
+	L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
+
 	Options = GeminiAddon:GetAddon("PerspectiveOptions")
 
 	Apollo.LoadSprites("PerspectiveSprites.xml")
@@ -865,8 +870,8 @@ function Perspective:UpdateUnit(ui, unit)
 						ui.scale = math.min(1 / (ui.distance / 100), 1)
 						
 						-- Determine if the unit is in range of display.
-						ui.inRange = (ui.distance > ui.minDistance and 
-									  ui.distance < ui.maxDistance and 
+						ui.inRange = (ui.distance >= ui.minDistance and 
+									  ui.distance <= ui.maxDistance and 
 									  zDistance <= ui.zDistance)
 
 						-- Determine if the unit is in skill range.
@@ -913,41 +918,53 @@ function Perspective:MarkersDraw()
 			if not marker.disabled and
 				marks < marker.max and
 				uPos.z > 0 and
+				(region.distance >= marker.minDistance and
+				region.distance <= marker.maxDistance) and
 				not region.inArea then
-				self.Overlay:AddPixie({
-					strSprite = marker.icon,
-					cr = marker.iconColor,
-					loc = {
-						fPoints = { 0, 0, 0, 0 },
-						nOffsets = {
-							uPos.x - (marker.iconWidth / 2), 
-							uPos.y - (marker.iconHeight / 2), 
-							uPos.x + (marker.iconWidth / 2),
-							uPos.y + (marker.iconHeight / 2)
-						}
-					}
-				})
 
-				self.Overlay:AddPixie({
-					strText = marker.name .. " (" .. (region.distance or 99999) .. "m)",
-					strFont = marker.font,
-					crText = marker.fontColor,
-					loc = {
-						fPoints = { 0, 0, 0, 0 },
-						nOffsets = {
-							uPos.x - (marker.iconWidth), 
-							uPos.y + (marker.iconHeight / 2), 
-							uPos.x + (marker.iconWidth),
-							uPos.y + (100)
-						}
-					},
-					flagsText = {
-						DT_CENTER = true,
-						DT_WORDBREAK = true
-					}
-				})
+				if marker.showIcon then
+					self.Overlay:AddPixie({
+						strSprite = marker.icon,
+						cr = marker.iconColor,
+						loc = {
+							fPoints = { 0, 0, 0, 0 },
+							nOffsets = {
+								uPos.x - (marker.iconWidth / 2), 
+								uPos.y - (marker.iconHeight / 2), 
+								uPos.x + (marker.iconWidth / 2),
+								uPos.y + (marker.iconHeight / 2) } } })
+				end
 
-				marks = marks + 1
+				if marker.showName or marker.showDistance then
+					local text = ""
+
+					if marker.showName then
+						text = marker.display or marker.name or ""
+					end
+
+					text = marker.showDistance and text .. " (" .. math.ceil(region.distance) .. "m)" or text
+
+					self.Overlay:AddPixie({
+						strText = text,
+						strFont = marker.font,
+						crText = marker.fontColor,
+						loc = {
+							fPoints = { 0, 0, 0, 0 },
+							nOffsets = {
+								uPos.x - (marker.iconWidth), 
+								uPos.y + (marker.iconHeight / 2), 
+								uPos.x + (marker.iconWidth),
+								uPos.y + (100) } },
+						flagsText = {
+							DT_CENTER = true,
+							DT_WORDBREAK = true	} })
+				end
+
+				if marker.showIcon or 
+					marker.showName or 
+					marker.showDistance then
+					marks = marks + 1
+				end
 			end
 		end
 	end
@@ -959,13 +976,8 @@ function Perspective:MarkersInit()
 	-- Set the markers as no longer initialized
 	self.markersInitialized = false
 
-	self.markers = {}
-
 	-- Destroy any current makers
-	for _, id in pairs(self.markers) do
-		--self:MarkerDestroy(id)
-		self.markers = {}
-	end
+	self.markers = {}
 
 	local episodes = PlayerPathLib:GetPathEpisodeForZone()
 
@@ -1021,16 +1033,11 @@ function Perspective:MarkerChallengeUpdate(challenge, remove)
 		self.markers[id] = {
 			name = challenge:GetName(),
 			type = "challenge",
-			regions = {},
-			disabled = Options:GetOptionValue(nil, "disabled", "challengeLocation"),
-			icon = Options:GetOptionValue(nil, "icon", "challengeLocation"),
-			iconColor = Options:GetOptionValue(nil, "iconColor", "challengeLocation"),
-			iconWidth = Options:GetOptionValue(nil, "iconWidth", "challengeLocation"),
-			iconHeight = Options:GetOptionValue(nil, "iconHeight", "challengeLocation"),
-			font = Options:GetOptionValue(nil, "font", "challengeLocation"),
-			fontColor = Options:GetOptionValue(nil, "fontColor", "challengeLocation"),
-			max = Options:GetOptionValue(nil, "max", "challengeLocation"),
-		}
+			regions = {} }
+
+		-- Update the marker options
+		self:MarkerUpdateOptions(self.markers[id], "challengeLocation")
+
 		for index, region in pairs(challenge:GetMapRegions()) do
 			self.markers[id].regions[index] = {
 				vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
@@ -1049,16 +1056,11 @@ function Perspective:MarkerEventUpdate(event)
 		self.markers[id] = {
 			name = event:GetName(),
 			type = "event",
-			regions = {},
-			disabled = Options:GetOptionValue(nil, "disabled", "eventLocation"),
-			icon = Options:GetOptionValue(nil, "icon", "eventLocation"),
-			iconColor = Options:GetOptionValue(nil, "iconColor", "eventLocation"),
-			iconWidth = Options:GetOptionValue(nil, "iconWidth", "eventLocation"),
-			iconHeight = Options:GetOptionValue(nil, "iconHeight", "eventLocation"),
-			font = Options:GetOptionValue(nil, "font", "eventLocation"),
-			fontColor = Options:GetOptionValue(nil, "fontColor", "eventLocation"),
-			max = Options:GetOptionValue(nil, "max", "eventLocation"),
-		}
+			regions = {} }
+
+			-- Update the marker options
+			self:MarkerUpdateOptions(self.markers[id], "eventLocation")
+
 		for index, objective in pairs(event:GetObjectives()) do
 			for index, region in pairs(objective:GetMapRegions()) do
 				self.markers[id].regions[index] = {
@@ -1078,17 +1080,11 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 			self.markers[id] = {
 				name = mission:GetName(),
 				type = "path",
-				regions = {},
-				mission = mission,
-				disabled = Options:GetOptionValue(nil, "disabled", "pathLocation"),
-				icon = Options:GetOptionValue(nil, "icon", "pathLocation"),
-				iconColor = Options:GetOptionValue(nil, "iconColor", "pathLocation"),
-				iconWidth = Options:GetOptionValue(nil, "iconWidth", "pathLocation"),
-				iconHeight = Options:GetOptionValue(nil, "iconHeight", "pathLocation"),
-				font = Options:GetOptionValue(nil, "font", "pathLocation"),
-				fontColor = Options:GetOptionValue(nil, "fontColor", "pathLocation"),
-				max = Options:GetOptionValue(nil, "max", "pathLocation"),
-			}
+				regions = {} }
+
+			-- Update the marker options
+			self:MarkerUpdateOptions(self.markers[id], "pathLocation")
+
 			for index, region in pairs(mission:GetMapRegions()) do
 				self.markers[id].regions[index] = {
 					vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
@@ -1113,16 +1109,11 @@ function Perspective:MarkerQuestUpdate(quest)
 		  	self.markers[id] = {
 		  		name = quest:GetTitle(),
 		  		type = "quest",
-		  		regions = {},
-		  		disabled = Options:GetOptionValue(nil, "disabled", "questLocation"),
-		  		icon = Options:GetOptionValue(nil, "icon", "questLocation"),
-				iconColor = Options:GetOptionValue(nil, "iconColor", "questLocation"),
-				iconWidth = Options:GetOptionValue(nil, "iconWidth", "questLocation"),
-				iconHeight = Options:GetOptionValue(nil, "iconHeight", "questLocation"),
-				font = Options:GetOptionValue(nil, "font", "questLocation"),
-				fontColor = Options:GetOptionValue(nil, "fontColor", "questLocation"),
-				max = Options:GetOptionValue(nil, "max", "questLocation"),
-		  	}
+		  		regions = {} }
+
+			-- Update the marker options
+			self:MarkerUpdateOptions(self.markers[id], "questLocation")
+
 			-- Create a marker for every quest region
 			for index, region in pairs(quest:GetMapRegions()) do
 				self.markers[id].regions[index] = {
@@ -1136,8 +1127,26 @@ function Perspective:MarkerQuestUpdate(quest)
 	end
 end
 
-function Perspective:MarkerDestroy(id)
-	self.markers[id] = nil
+function Perspective:MarkerUpdateOptions(marker, category)
+	local options = { 
+		"disabled", 
+		"showIcon",
+		"showName",
+		"showDistance",
+		"icon", 
+		"iconColor",
+		"iconWidth",
+		"iconHeight",
+		"maxDistance",
+		"minDistance",
+		"font",
+		"fontColor",
+		"max",
+		"limitBy" }
+
+	for _, option in pairs(options) do
+		marker[option] = Options:GetOptionValue(nil, option, category)
+	end
 end
 
 -- Updates the marker information
@@ -1546,8 +1555,10 @@ function Perspective:UpdatePlayer(ui, unit)
 					elseif	member.bDPS and
 						not Options.db.profile[Options.profile].categories.dps.disabled then
 						return "dps"
-					else
+					elseif GroupLib.InRaid() then
 						return "raid"
+					else
+						return nil
 					end
 				end
 			end
@@ -1596,13 +1607,13 @@ function Perspective:UpdateHarvest(ui, unit)
 	local category
 	
 	if not unit:IsDead() then
-		if skill == "Farmer" then
+		if skill == L["Farmer"] then
 			category = "farmer"
-		elseif skill == "Mining" then
+		elseif skill == L["Mining"] then
 			category = "miner"
-		elseif skill == "Relic Hunter" then
+		elseif skill == L["Relic Hunter"] then
 			category = "relichunter"
-		elseif skill == "Survivalist" then
+		elseif skill == L["Survivalist"] then
 			category = "survivalist" 
 		end
 		

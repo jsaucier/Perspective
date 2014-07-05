@@ -377,10 +377,11 @@ function Perspective:OnTimerDraw()
 
 			-- Draw the background line to give the outline if required
 			if ui.showLineOutline then
+				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
 				self.Overlay:AddPixie({
 					bLine = true,
 					fWidth = ui.lineWidth + 2,
-					cr = "ff000000",
+					cr = lineAlpha .. "000000",
 					loc = {
 						fPoints = {0, 0, 0, 0},
 						nOffsets = {

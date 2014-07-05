@@ -1081,6 +1081,7 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 			self.markers[id] = {
 				name = mission:GetName(),
 				type = "path",
+				mission = mission,
 				regions = {} }
 
 			-- Update the marker options

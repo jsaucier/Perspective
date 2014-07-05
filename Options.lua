@@ -273,7 +273,11 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Roving Chompacabra"]]			= { category = "mtEnemy" },
 					[L["Dustback Gnasher"]]				= { category = "mtEnemy" },
 					[L["Dustback Gnawer"]]				= { category = "mtEnemy" },
+					
 				},
+				challengeUnits = {
+					-- Challenge specific fixes
+					[L["Roan Skull"]]					= { challenge = 576 } },
 				categories = {
 					default = {
 						disabled = false,

@@ -227,6 +227,7 @@ function PerspectiveLocale:LoadLocalization()
 		["Healer"] = true,
 		["DPS"] = true,
 		["Unknown"] = true,
+		["Roan Skull"] = true,
 	}
 
 	local cancel = Apollo.GetString(1);
@@ -270,6 +271,7 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Mining"] = "Bergbau"
 		locale["Relic Hunter"] = "Reliktjäger"
 		locale["Survivalist"] = "Überlebenskünstler"
+		locale["Roan Skull"] = "Roonschädel"
 	elseif cancel == "Annuler" then 	
 		-- French
 		locale["Energy Node"] = "Terminal d'énergie"
@@ -308,6 +310,7 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Mining"] = "Mineur"
 		locale["Relic Hunter"] = "Chasseur de reliques"
 		locale["Survivalist"] = "Adepte de la survie"
+		locale["Roan Skull"] = "Crâne de Roan"
 	end
 
 	for k, v in pairs(locale) do

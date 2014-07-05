@@ -1783,7 +1783,8 @@ function Perspective:UpdateRewards(ui, unit)
 
 	-- Gets the rewards (quest, challenge, scans) for the unit.
 	local ri = unit:GetRewardInfo()
-	
+	local i = 0
+
 	if ri and type(ri) == "table" then
 		-- Gets the activation state for the unit.
 		local act = unit:GetActivationState()
@@ -1822,33 +1823,18 @@ function Perspective:UpdateRewards(ui, unit)
 		end
 	end
 
+	-- No rewards, lets check for fixes.
+	if i == 0 then
+		-- Challenge fixes by name.
+		if Options.db.profile[Options.profile].challengeUnits[unit:GetName()] then
+			local challengeId = Options.db.profile[Options.profile].challengeUnits[unit:GetName()].challenge
+
+			if self.challenges[challengeId] and isValidChallengeUnit(unit, challengeId) then
+				ui.hasChallenge = true
+				ui.challenges[challengeId] = true
+			end
+		end
+	end
+
 	return true
-end
-
-function Perspective:HasQuestReward(unit, questId)
-	local rewardInfo = unit:GetRewardInfo()
-
-	if rewardInfo and type(rewardInfo) == "table" then
-		for i = 1, #rewardInfo do
-			if rewardInfo[i].strType == "Quest" and rewardInfo[i].idQuest == questId then
-				return true
-			end
-		end
-	end
-
-	return false
-end
-
-function Perspective:HasChallengeReward(unit, challengeId)
-	local rewardInfo = unit:GetRewardInfo()
-
-	if rewardInfo and type(rewardInfo) == "table" then
-		for i = 1, #rewardInfo do
-			if rewardInfo[i].strType == "Challenge" and rewardInfo[i].idChallenge == challengeId then
-				return true
-			end
-		end
-	end
-
-	return false
 end

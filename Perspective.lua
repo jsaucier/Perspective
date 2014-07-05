@@ -103,7 +103,6 @@ function Perspective:OnInitialize()
 	self.inRaid = false
 
 	-- Register our addon events	
-	--Apollo.RegisterEventHandler("NextFrame", 							"OnNextFrame", self)
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("ChangeWorld", 							"OnWorldChanged", self)	

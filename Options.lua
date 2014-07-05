@@ -347,9 +347,9 @@ function PerspectiveOptions:LoadDefaults()
 					raid = {
 						header = L["Raid"],
 						module = L["Player"],
-						fontColor = "ffff8000",
-						lineColor = "ffff8000",
-						iconColor = "ffff8000",
+						fontColor = "ff00ffff",
+						lineColor = "ff00ffff",
+						iconColor = "ff00ffff",
 						icon = "PerspectiveSprites:guild",
 						showLines = false,
 						maxLines = 40,

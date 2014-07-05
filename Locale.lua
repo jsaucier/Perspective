@@ -126,7 +126,7 @@ function PerspectiveLocale:LoadLocalization()
 		["Challenge Location"] = true,
 		["Harvest"] = true,
 		["Farmer"] = true,
-		["Miner"] = true,
+		["Mining"] = true,
 		["Relic Hunter"] = true,
 		["Survivalist"] = true,
 		["Travel"] = true,
@@ -266,9 +266,12 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Bug Bomb"] = "Käferbombe"
 		locale["Cactus Fruit"] = "Kaktusfrucht"
 		locale["Hay Bale"] = "Heuballen"
+		locale["Farmer"] = "Bauer"
+		locale["Mining"] = "Bergbau"
+		locale["Relic Hunter"] = "Reliktjäger"
+		locale["Survivalist"] = "Überlebenskünstler"
 	elseif cancel == "Annuler" then 	
 		-- French
-		locale[""] = ""
 		locale["Energy Node"] = "Terminal d'énergie"
 		locale["Moodie Totem"] = "Totem moodie"
 		locale["Skeech Totem"] = "Totem skeech"
@@ -301,6 +304,10 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Bug Bomb"] = "Bombe insecticide"
 		locale["Cactus Fruit"] = "Fruit de cactus"
 		locale["Hay Bale"] = "Botte de foin"
+		locale["Farmer"] = "Agriculture"
+		locale["Mining"] = "Mineur"
+		locale["Relic Hunter"] = "Chasseur de reliques"
+		locale["Survivalist"] = "Adepte de la survie"
 	end
 
 	for k, v in pairs(locale) do

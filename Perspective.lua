@@ -918,6 +918,7 @@ function Perspective:MarkersDraw()
 			if not marker.disabled and
 				marks < marker.max and
 				uPos.z > 0 and
+				region.distance and 
 				(region.distance >= marker.minDistance and
 				region.distance <= marker.maxDistance) and
 				not region.inArea then

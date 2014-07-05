@@ -1344,7 +1344,7 @@ end
 function Perspective:OnGroup_MemberFlagsChanged(index, arg2, flags)
 	local unit = GroupLib.GetUnitForGroupMember(index)
 
-	if unit:IsValid() then
+	if unit and unit:IsValid() then
 		local ui = self:GetUnitInfo(unit)
 		
 		-- Recategorize the player.

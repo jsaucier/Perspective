@@ -228,7 +228,7 @@ function PerspectiveOptions:LoadDefaults()
 					inArea = 100,
 					draw = 0,
 					slow = 1,
-					fast = .1,
+					fast = 100,
 					queue = 0 },
 				names = {
 					[L["Return Teleporter"]]			= { category = "instancePortal" },
@@ -239,6 +239,14 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Transportation Expert Conner"]]	= { category = "instancePortal",	display = L["Ship to Farside"] },
 					[L["Warrant Officer Burke"]]		= { category = "instancePortal",	display = L["Ship to Whitevale"] },
 					[L["Venyanna Skywind"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
+					[L["Captain Karaka"]]				= { category = "instancePortal", 	display = L["Ship to Crimson Badlands"] },
+					[L["Captain Mazonia"]]				= { category = "instancePortal",	display = L["Ship to Wilderrun"] },
+					[L["Captain Pallas"]]				= { category = "instancePortal",	display = L["Ship to Malgrave"] },
+					[L["Captain Cryzin"]]				= { category = "instancePortal",	display = L["Ship to Grivault"] },
+					[L["Captain Petronia"]]				= { category = "instancePortal",	display = L["Ship to Farside"] },
+					[L["Captain Visia"]]				= { category = "instancePortal",	display = L["Ship to Whitevale"] },
+					[L["Captain Zanaar"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
+					[L["Servileia Uticeia"]]			= { category = "instancePortal",	display = L["Ship to Ilium"] },
 					[L["Empirius"]]						= { category = "wotwChampion" },
 					[L["Sagittaurus"]]					= { category = "wotwChampion" },
 					[L["Lectro"]]						= { category = "wotwChampion" },
@@ -1894,27 +1902,29 @@ function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit,
 
 	local val = tonumber(Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal))
 
-	-- Set the slider value.
-	slider:SetValue(val)
+	if val then
+		-- Set the slider value.
+		slider:SetValue(val)
 
-	-- Set the text value.
-	text:SetText(val .. " " .. unit)
-	
-	-- Make sure we haven't already set the event handlers
-	if not slider:GetData() then
-		-- Set the event handler
-		slider:AddEventHandler("SliderBarChanged", "Settings_OnTimerChanged")
+		-- Set the text value.
+		text:SetText(val .. " " .. unit)
+		
+		-- Make sure we haven't already set the event handlers
+		if not slider:GetData() then
+			-- Set the event handler
+			slider:AddEventHandler("SliderBarChanged", "Settings_OnTimerChanged")
+		end
+
+		-- Associate the text control with the slider.
+		slider:SetData({ 
+			text = text, 
+			value = value, 
+			numDecimal = numDecimal, 
+			unit = unit,
+			divBy = divBy,
+			tickFunc = tickFunc 
+		})
 	end
-
-	-- Associate the text control with the slider.
-	slider:SetData({ 
-		text = text, 
-		value = value, 
-		numDecimal = numDecimal, 
-		unit = unit,
-		divBy = divBy,
-		tickFunc = tickFunc 
-	})
 end
 
 function PerspectiveOptions:Settings_TextInit(name, option, isNumber)

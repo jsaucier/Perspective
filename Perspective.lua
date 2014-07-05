@@ -95,6 +95,8 @@ function Perspective:OnInitialize()
 	self.markers = {}
 	self.markersInitialized = false
 	
+	self.inRaid = false
+
 	-- Register our addon events	
 	--Apollo.RegisterEventHandler("NextFrame", 							"OnNextFrame", self)
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
@@ -131,6 +133,9 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
 	Apollo.RegisterEventHandler("UnitGroupChanged",						"OnUnitGroupChanged", self)
 	Apollo.RegisterEventHandler("Group_MemberFlagsChanged",				"OnGroup_MemberFlagsChanged", self)
+	Apollo.RegisterEventHandler("Group_Left",							"OnGroup_Left", self)
+	Apollo.RegisterEventHandler("Group_Join",							"OnGroup_Updated", self)
+	Apollo.RegisterEventHandler("Group_Updated",						"OnGroup_Updated", self)
 end
 
 function Perspective:OnEnable()
@@ -148,6 +153,9 @@ function Perspective:OnEnable()
 end
 
 function Perspective:Start()
+	-- Check to see if we are in a raid
+	self.inRaid = GroupLib.InRaid()
+
 	-- Remove the event handler for next frame, again as a precaution
 	Apollo.RemoveEventHandler("NextFrame", self)
 
@@ -255,6 +263,9 @@ function Perspective:OnTimerQueue(elapsed)
 			local update = self.units.queue[i]
 
 			if update.recategorize then
+				-- Update the rewards for this unit.
+				local canHaveReward = self:UpdateRewards(update.ui, update.unit)
+
 				self:UpdateUnitCategory(update.ui, update.unit)
 			else
 				-- Update the rewards for this unit.
@@ -1353,7 +1364,26 @@ function Perspective:OnGroup_MemberFlagsChanged(index, arg2, flags)
 		-- Recategorize the player.
 		self:UpdateUnitCategory(ui, unit)
 	end
+end
 
+function Perspective:OnGroup_Left()
+	if self.inRaid then
+		-- Player is no longer in a raid
+		self.inRaid = false
+
+		-- Recategorize the units using the queue.
+		self:RecategorizeAllUnits(true)
+	end
+end
+
+function Perspective:OnGroup_Updated()
+	if GroupLib.InRaid() and not self.inRaid then
+		-- Player is now in raid.
+		self.inRaid = true
+
+		-- Recategorize the units using the queue.
+		self:RecategorizeAllUnits(true)
+	end
 end
 
 function Perspective:OnChallengeActivated(challenge)
@@ -1391,6 +1421,26 @@ function Perspective:OnPublicEventEnd(event)
 	-- Check for the GetName() function, it can cause an error if not found on the event.
 	if self.loaded and event["GetName"] then
 		self.markers["event" .. event:GetName()] = nil
+	end
+end
+
+function Perspective:RecategorizeAllUnits(queue)
+	-- User left or joined a group, update all units
+	for id, unit in pairs(self.units.all) do
+		-- Make sure the unit is still valid and has a quest reward for the quest.
+		if unit:IsValid() then
+			-- Get the ui for the unit or create a new one.
+			local ui = self:GetUnitInfo(unit)
+
+			if queue then
+				table.insert(self.units.queue, { 
+					ui = ui, 
+					unit = unit, 
+					recategorize = true })
+			else
+				self:UpdateUnitCategory(ui, unit)
+			end
+		end
 	end
 end
 

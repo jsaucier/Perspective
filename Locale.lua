@@ -188,8 +188,6 @@ function PerspectiveLocale:LoadLocalization()
 		["Police Patrolman"] = true,
 		["Police Constable"] = true,
 		["Captain Karaka"] = true,
-		["Captain Mazonia"] = true,
-		["Captain Pallas"] = true,
 		["Captain Cryzin"] = true,
 		["Captain Petronia"] = true,
 		["Captain Visia"] = true,

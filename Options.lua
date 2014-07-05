@@ -243,8 +243,6 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Warrant Officer Burke"]]		= { category = "instancePortal",	display = L["Ship to Whitevale"] },
 					[L["Venyanna Skywind"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
 					[L["Captain Karaka"]]				= { category = "instancePortal", 	display = L["Ship to Crimson Badlands"] },
-					[L["Captain Mazonia"]]				= { category = "instancePortal",	display = L["Ship to Wilderrun"] },
-					[L["Captain Pallas"]]				= { category = "instancePortal",	display = L["Ship to Malgrave"] },
 					[L["Captain Cryzin"]]				= { category = "instancePortal",	display = L["Ship to Grimvault"] },
 					[L["Captain Petronia"]]				= { category = "instancePortal",	display = L["Ship to Farside"] },
 					[L["Captain Visia"]]				= { category = "instancePortal",	display = L["Ship to Whitevale"] },

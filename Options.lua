@@ -1463,6 +1463,9 @@ function PerspectiveOptions:ImportSettings()
 
 	self:InitializeOptions()
 
+	Perspective:Stop()
+	Perspective:Start()
+
 	self.Dialog:Show(false, false)
 end
 
@@ -1501,6 +1504,10 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 
 	-- Update all the uis
 	Perspective:UpdateOptions(nil, true)
+
+	-- Restart Perspective
+	Perspective:Stop()
+	Perspective:Start()
 
 	-- Update the markers.
 	Perspective:MarkersInit()

@@ -1079,6 +1079,7 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 		if table.getn(mission:GetMapRegions()) > 0 then
 			self.markers[id] = {
 				name = mission:GetName(),
+				mission = mission,
 				type = "path",
 				regions = {} }
 

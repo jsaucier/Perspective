@@ -1675,9 +1675,18 @@ function PerspectiveOptions:ButtonClickedCategoryEditorDefaultButton(handler, co
 	self.db.profile[self.profile].categories[data.category] = {}
 	for k, v in pairs(self.db.defaults.profile[self.profile].categories[data.category]) do
 		self.db.profile[self.profile].categories[data.category][k] = v
+SendVarToRover(k, v)
 	end
 
+	for k, v in pairs(self.db.profile[self.profile].categories[data.category]) do
+SendVarToRover("New: " .. k, v)
+	end
+	self:InitializeOptions()
+
 	self:CategoryEditorInitialize(data.category)
+
+	-- Update all the uis
+	Perspective:UpdateOptions(nil, true)	
 end
 
 -----------------------------------------------------------------------------------------

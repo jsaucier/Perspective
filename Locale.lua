@@ -243,7 +243,31 @@ function PerspectiveLocale:LoadLocalization()
 		["Healer"] = true,
 		["DPS"] = true,
 		["Roan Skull"] = true,
+		["Guild Bank"] = true,
+		["Guild Registrar"] = true,
+		["City Guards"] = true,	
 	}
+
+	-- English 
+	-- I'm not touching your big true/false collection, just putting english version of new stuff I do here. 
+
+	-- New strings (for stuff that did not exist)
+	-- Options UI - Globals (Titles and top menu)
+	locale["Global_Title"] = "Options de Perspective"
+	locale["Global_Settings"] = "Settings"
+	locale["Global_Categories"] = "Categories"
+	-- Settings page 
+	locale["Settings_DisablePerspective"] = "Disable Perspective"
+	locale["Settings_DisablePerspective_Tooltip"] = "Disabling Perspective turns it completely off but preserves all settings."
+	locale["Settings_RedrawDelay"] = "Redraw Delay Time:"
+	locale["Settings_RedrawDelay_Tooltip"] = "The amount of time between screen redraws."
+	locale["Settings_FastUpdatesDelay"] = "Update delay at close range"
+	locale["Settings_FastUpdatesDelay_Tooltip"] = "The amount of time between updates for units close to the player."
+	locale["Settings_SlowUpdatesDelay"] = "Update delay at long range"
+	locale["Settings_SlowUpdatesDelay_Tooltip"] = "The amount of time between updates for units far from the player."
+	locale["Settings_MaxUnitsOnScreen"] = "Max Total Units Onscreen"
+
+
 
 	local cancel = Apollo.GetString(1);
 
@@ -288,7 +312,114 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Survivalist"] = "Überlebenskünstler"
 		locale["Roan Skull"] = "Roonschädel"
 	elseif cancel == "Annuler" then 	
+
 		-- French
+		-- New strings (for stuff that did not exist)
+		-- Options UI - Globals (Titles and top menu)
+		locale["Global_Title"] = "Options de Perspective"
+		locale["Global_Settings"] = "Configuration"
+		locale["Global_Categories"] = "Catégories"
+		-- Settings page 
+		locale["Settings_DisablePerspective"] = "Désactiver Perspective"
+		locale["Settings_DisablePerspective_Tooltip"] = "Désactiver Perspective suspend les fonctionnalités mais préserve toutes les options de configuration."
+		locale["Settings_RedrawDelay"] = "Délai minimal avant de redessiner"
+		locale["Settings_RedrawDelay_Tooltip"] = "Controle le délai minimal avant que les lignes et icones soient redessinnées. Délai minimal avant de redessiner"
+		locale["Settings_FastUpdatesDelay"] = "Délai de mise à jour à courte portéee"
+		locale["Settings_FastUpdatesDelay_Tooltip"] = "Le délai entre les mises à jour aux unités qui sont près du joueur."
+		locale["Settings_SlowUpdatesDelay"] = "Délai de mise à jour à longue portée"
+		locale["Settings_SlowUpdatesDelay_Tooltip"] = "Le délai entre les mises à jour aux unités qui sont loin du joueur."
+		locale["Settings_MaxUnitsOnScreen"] = "Max d'unités à l'écran"
+
+
+-- 		locale[""] = 
+
+		locale["Unknown"] = "Inconnu"	
+-- 		["Perspective Target Information"] = true,
+		locale["Perspective Settings Export"] = "Export de configuration de Perspective"
+		locale["Perspective Settings Import"] = "Import de configuration de Perspective"
+		locale["Perspective Target Information"] = true
+		locale["Get Current Target"] = true
+		locale["Import"] = true
+		locale["Import your current settings."] = true
+		locale["Export"] = true
+		locale["Export your current settings."] = true
+		locale["Close"] = true
+		locale["Please select a target first."] = true
+		locale["Module"] = true
+		locale["Edit the module for this category."] = true
+		locale["Disable"] = true
+		locale["Disable this category."] = true
+		locale["Hide When In Combat"] = true
+		locale["Hide this category while in combat."] = true
+		locale["Hide When Occluded"] = true
+		locale["Hide this category whhen it is occluded."] = true
+		locale["Show Icon"] = true
+		locale["Show the icon for this category."] = true
+		locale["Show Name"] = true
+		locale["Show the name for this category."] = true
+		locale["Show Distance"] = true
+		locale["Show the distance for this category."] = true
+		locale["Show Lines"] = true
+		locale["Show the line to this cateogry."] = true
+		locale["Show Line Outline"] = true
+		locale["Show the outline of the line to this category."] = true
+		locale["Show Lines Offscreen"] = true
+		locale["Show the line to this category even it is offscreen."] = true
+		locale["Color Font By Range Color"] = true
+		locale["Use the range color for the font color."] = true
+		locale["Color Icon By Range Color"] = true
+		locale["Use the range color for the icon color."] = true
+		locale["Color Line By Range Color"] = true
+		locale["Use the range color for the line color."] = true
+		locale["Display As"] = true
+		locale["Set a display name to be used instead of the unit's name."] = true
+		locale["Icon"] = true
+		locale["Set the icon to be displayed for this category."] = true
+		locale["Icon Height"] = true
+		locale["Set the icon height for this category."] = true
+		locale["Icon Width"] = true
+		locale["Set the icon width for this category."] = true
+		locale["Min Distance"] = true
+		locale["Set the minimium distance for which to show this category."] = true
+		locale["Max Distance"] = true
+		locale["Set the maximium distance for which to show this category."] = true
+		locale["Z Distance"] = true
+		locale["Set the maximium vertical distance for which to show this category."] = true
+		locale["Line Width"] = true
+		locale["Set the line width for the category."] = true
+		locale["Limit Icons"] = true
+		locale["Set the maximium limit of icons to be displayed on screen at once."] = true
+		locale["Limit Lines"] = true
+		locale["Set the maximium limit of lines to be displayed on screen at once."] = true
+		locale["Range Limit"] = true
+		locale["Set the range limit for this category.  This can be used to determine if your skills are in range of certain targets."] = true
+		locale["Font Color"] = true
+		locale["Set the font color for this category."] = true
+		locale["Icon Color"] = true
+		locale["Set the icon color for this category."] = true
+		locale["Line Color"] = true
+		locale["Set the line color for this category."] = true
+		locale["Range Color"] = true
+		locale["Set the range color for this category."] = true
+		locale["Back"] = true
+		locale["Back to the categories list view."] = true
+		locale["Delete"] = true
+		locale["Delete this category."] = true
+		locale["Default"] = true
+		locale["Reset this category to the default settings."] = true
+		locale["Default ALL"] = true
+		locale["Reset ALL addon settings back to the defaults."] = true
+		locale["New Category"] = true
+		locale["Create a new category."] = true
+		locale["Press enter to save the new value."] = true
+		locale["Custom Unit"] = true
+		locale["Custom"] = true
+
+
+
+
+
+
 		locale["Energy Node"] = "Terminal d'énergie"
 		locale["Moodie Totem"] = "Totem moodie"
 		locale["Skeech Totem"] = "Totem skeech"
@@ -326,6 +457,9 @@ function PerspectiveLocale:LoadLocalization()
 		locale["Relic Hunter"] = "Chasseur de reliques"
 		locale["Survivalist"] = "Adepte de la survie"
 		locale["Roan Skull"] = "Crâne de Roan"
+		locale["Guild Bank"] = "Banque de guilde"
+		locale["Guild Registrar"] = "Officier de guilde"
+		locale["City Guards"] = "Garde"
 	end
 
 	for k, v in pairs(locale) do

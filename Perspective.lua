@@ -44,6 +44,19 @@ local activationStates = {
 	{ state = "Dungeon", 				category = "dungeon" },
 }
 
+-- Lookup table to save ourselves a lot of work and fake an oval dead zone around character
+local LineOffsetReference = {
+	{ Deg = -90, Rad = -1.5707963267949, NextRad = -1.30899693899575, Length = 250, DeltaRad = 0.261799387799149, DeltaLength = -35 }, 
+	{ Deg = -75, Rad = -1.30899693899575, NextRad = -1.13446401379631, Length = 215, DeltaRad = 0.174532925199433, DeltaLength = -45 }, 
+	{ Deg = -65, Rad = -1.13446401379631, NextRad = -0.959931088596881, Length = 170, DeltaRad = 0.174532925199433, DeltaLength = -35 }, 
+	{ Deg = -55, Rad = -0.959931088596881, NextRad = -0.785398163397448, Length = 135, DeltaRad = 0.174532925199433, DeltaLength = -30 }, 
+	{ Deg = -45, Rad = -0.785398163397448, NextRad = -0.523598775598299, Length = 105, DeltaRad = 0.261799387799149, DeltaLength = -30 }, 
+	{ Deg = -30, Rad = -0.523598775598299, NextRad = 0, Length = 75, DeltaRad = 0.523598775598299, DeltaLength = -30 }, 
+	{ Deg = 0, Rad = 0, NextRad = 0.785398163397448, Length = 45, DeltaRad = 0.785398163397448, DeltaLength = -10 }, 
+	{ Deg = 45, Rad = 0.785398163397448, NextRad = 1.5707963267949, Length = 35, DeltaRad = 0.785398163397448, DeltaLength = 0 }, 
+	{ Deg = 90, Rad = 1.5707963267949, NextRad = 2.35619449019234, Length = 35, DeltaRad = 0.785398163397448, DeltaLength = 0 }
+}
+
 local unitTypes = {}
 
 function Perspective:new(o)
@@ -378,7 +391,28 @@ function Perspective:AddPixie(ui, pPos, pixies, items, lines)
 	end
 end
 
-function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
+local function getLineOffsetFromCenter (yDist, vectorLength)
+	-- Avoid divide by 0
+	if (vectorLength == 0) then return 0 end
+
+	-- Get angle in radians: arcsin of opposite(yDist) / hypothenuse(vectorLength)
+	local angle = math.asin(yDist / vectorLength)
+
+	for index, item in pairs(LineOffsetReference) do
+		if (angle >= item.Rad and angle < item.NextRad) then
+			local DeltaRatio = (angle - item.Rad) / item.DeltaRad
+			local Offset = item.Length + (item.DeltaLength * DeltaRatio)
+			-- Print (	"a:" .. angle .. ", " .. " | item.Rad: " .. item.Rad .. " | item.Length: " .. item.Length .. " | dRatio: " .. DeltaRatio .. " | Offset: " .. Offset)
+			return Offset
+		end
+	end
+
+	return 0
+end
+
+
+function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzone)
+
 	-- Draw the line first, if it needs to be drawn
 	if showLine then
 		-- Get the unit's position and vector
@@ -388,41 +422,65 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 		-- Get the screen position of the unit by it's vector
         local lPos = GameLib.WorldLocToScreenPoint(vec)
 
-		-- Draw the background line to give the outline if required
-		if ui.showLineOutline then
-			local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+        -- Get the length of the vector
+		local xDist = lPos.x - pPos.nX
+		local yDist = lPos.y - pPos.nY
+		local vectorLength = math.sqrt(xDist * xDist + yDist * yDist)
 
+		-- Get line distance offset based on angle, scale for camera position 
+		local lineOffsetFromCenter = getLineOffsetFromCenter(yDist, vectorLength)
+		if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
+		-- Print (	"O:" .. math.floor(pPos.nX) .. ", " .. math.floor(pPos.nY) .. " | T: " .. math.floor(lPos.x) .. "," .. math.floor(lPos.y) .. " | D: " .. math.floor(xDist) .. "," .. math.floor(yDist) .. " | VL: " .. math.floor(vectorLength) )
+		-- Print (	"DZ.nameplateY: " .. math.floor(deadzone.nameplateY) .. ", DZ.feetY: " .. math.floor(deadzone.feetY) .. ", Height: " .. math.floor(deadzone.feetY - deadzone.nameplateY) .. ", DZ.scale : " .. deadzone.scale )
+
+		-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
+		-- TODO 
+
+		-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
+		if (lineOffsetFromCenter + 10 < vectorLength) then 
+			-- Get the ratio of the line distance from the center of the screen to the vector length
+			local lengthRatio = lineOffsetFromCenter / vectorLength
+
+			-- Get the x and y offsets for the line starting point
+			local xOffset = lengthRatio * xDist
+			local yOffset = lengthRatio * yDist
+
+			-- Draw the background line to give the outline if required
+			if ui.showLineOutline then
+				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+
+				self.Overlay:AddPixie({
+					bLine = true,
+					fWidth = ui.lineWidth + 2,
+					cr = lineAlpha .. "000000",
+					loc = {
+						fPoints = {0, 0, 0, 0},
+						nOffsets = {
+							lPos.x, 
+							lPos.y, 
+							pPos.nX + xOffset, 
+							pPos.nY + yOffset
+						}
+					}
+				})
+			end
+
+			-- Draw the actual line to the unit's vector
 			self.Overlay:AddPixie({
 				bLine = true,
-				fWidth = ui.lineWidth + 2,
-				cr = lineAlpha .. "000000",
+				fWidth = ui.lineWidth,
+				cr = ui.cLineColor,
 				loc = {
 					fPoints = {0, 0, 0, 0},
 					nOffsets = {
 						lPos.x, 
-						lPos.y, 
-						pPos.nX, 
-						pPos.nY
+						lPos.y,
+						pPos.nX + xOffset, 
+						pPos.nY + yOffset					
 					}
 				}
 			})
 		end
-
-		-- Draw the actual line to the unit's vector
-		self.Overlay:AddPixie({
-			bLine = true,
-			fWidth = ui.lineWidth,
-			cr = ui.cLineColor,
-			loc = {
-				fPoints = {0, 0, 0, 0},
-				nOffsets = {
-					lPos.x, 
-					lPos.y,
-					pPos.nX, 
-					pPos.nY					
-				}
-			}
-		})
 	end
 
 	-- Draw the icon and text if it needs to be drawn.
@@ -476,6 +534,9 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 	end
 end
 
+function Perspective:SetPlayerReference()
+end
+
 function Perspective:OnTimerDraw()
 	-- Perspective is disabled
 	if Options.db.profile[Options.profile].settings.disabled then return end
@@ -483,8 +544,12 @@ function Perspective:OnTimerDraw()
 	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
+	-- Save player unit 
+	if (self.Player == nil) then self.Player = GameLib.GetPlayerUnit() end
+
 	-- Get the player's current screen position
-	local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
+	-- local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
+	local pPos = GameLib.GetUnitScreenPosition(self.Player)
 
 	-- We want to make sure we can get the unit's screen position	
 	if pPos then
@@ -512,6 +577,20 @@ function Perspective:OnTimerDraw()
 		-- so we want them "behind" our other units.
 		self:MarkersDraw()
 
+		-- Drawing pixies want to measure a deadzone. This will be based on character size onscreen
+		-- (i.e. camera distance/angle). Get the proper information 
+		local deadzone = nil
+		
+		if (self.Player ~= nil) then
+			deadzone = {
+				["nameplateY"] = self.Player:GetOverheadAnchor().y, 
+				["feetY"] = pPos.nY, 
+				["scale"] = nil
+			}
+			deadzone.scale = (deadzone.feetY - deadzone.nameplateY) / 300
+
+		end
+
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
 		-- distance, closest to farthest.  This will ensure our farthers are drawn first and 
 		-- "behind" our closer pixies.
@@ -526,7 +605,8 @@ function Perspective:OnTimerDraw()
 				pixie.uPos, 
 				pixie.pPos, 
 				pixie.showItem, 
-				pixie.showLine)
+				pixie.showLine, 
+				deadzone)
 		end
 
 	end

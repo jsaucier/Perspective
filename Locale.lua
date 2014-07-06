@@ -152,6 +152,7 @@ function PerspectiveLocale:LoadLocalization()
 		["Mailbox"] = true,
 		["Vendor"] = true,
 		["Crafting Station"] = true,
+		["Engraving Station"] = true,
 		["Tradeskill Trainer"] = true,
 		["Appearance Modifier"] = true,
 		["Bank"] = true,

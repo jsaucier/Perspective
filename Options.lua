@@ -678,6 +678,12 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ffabf8cb",
 						icon = "IconSprites:Icon_MapNode_Map_Tradeskill",
 						showLines = false },
+					engravingStation = {
+						header = L["Engraving Station"],
+						module = L["Town"],
+						fontColor = "ffabf8cb",
+						icon = "PerspectiveSprites:Town-Engrave",
+						showLines = false },
 					tradeskillTrainer = {
 						header = L["Tradeskill Trainer"],
 						module = L["Town"],

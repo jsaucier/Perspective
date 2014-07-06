@@ -38,6 +38,7 @@ local activationStates = {
 	{ state = "TradeskillTrainer", 		category = "tradeskillTrainer" },
 	{ state = "Vendor", 				category = "vendor" },
 	{ state = "CraftingStation", 		category = "craftingStation" },
+	{ state = "EngravingStation", 		category = "engravingStation" },
 	{ state = "Dye", 					category = "dye" },
 	{ state = "Bank", 					category = "bank" },
 	{ state = "GuildBank", 				category = "bank" },

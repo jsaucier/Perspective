@@ -104,7 +104,7 @@ function PerspectiveOptions:OnInitialize()
     self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules")
 
     -- Options category editor
-    self.CategoryEditor = self.Options:FindChild("CategoryEditor")
+    self.Editor = self.Options:FindChild("Editor")
 
     -- Options settings
     self.Settings = self.Options:FindChild("Settings")
@@ -211,10 +211,10 @@ function PerspectiveOptions:ShowTargetInfo()
 			appendLine("ActivationState: nil")
 		end
 	else
-		text = L["Please select a target first."]
+		text = L.UI_Dialog_PTI_Error
 	end
 
-	self:ShowDialog(L["Perspective Target Information"], text, true, true, L["Get Current Target"], "ShowTargetInfo")
+	self:ShowDialog(L.UI_Dialog_PTI_Header, text, true, true, L.UI_Dialog_PTI_Button_Text, "ShowTargetInfo")
 end
 
 function PerspectiveOptions:OnDialogClose()
@@ -223,56 +223,56 @@ end
 
 function PerspectiveOptions:LoadDefaults()
 	return {
-		profile = {
-			default = {
-				settings = { 
-					disabled = false,
-					max = 10,
-					offsetLines = true,
-					draw = 0,
-					slow = 1,
-					fast = 100,
-					queue = 0 },
-				names = {
-					[L["Return Teleporter"]]			= { category = "instancePortal" },
-					[L["Bruxen"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
-					[L["Tanxox"]]						= { category = "instancePortal",	display = L["Ship to Thayd"] },
-					[L["Gus Oakby"]]					= { category = "instancePortal",	display = L["Ship to Crimson Badlands"] },
-					[L["Lilly Startaker"]]				= { category = "instancePortal",	display = L["Ship to Grimvault"] },
-					[L["Transportation Expert Conner"]]	= { category = "instancePortal",	display = L["Ship to Farside"] },
-					[L["Warrant Officer Burke"]]		= { category = "instancePortal",	display = L["Ship to Whitevale"] },
-					[L["Venyanna Skywind"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
-					[L["Captain Karaka"]]				= { category = "instancePortal", 	display = L["Ship to Crimson Badlands"] },
-					[L["Captain Cryzin"]]				= { category = "instancePortal",	display = L["Ship to Grimvault"] },
-					[L["Captain Petronia"]]				= { category = "instancePortal",	display = L["Ship to Farside"] },
-					[L["Captain Visia"]]				= { category = "instancePortal",	display = L["Ship to Whitevale"] },
-					[L["Captain Zanaar"]]				= { category = "instancePortal",	display = L["Ship to Northern Wastes"] },
-					[L["Servileia Uticeia"]]			= { category = "instancePortal",	display = L["Ship to Ilium"] },
-					[L["Empirius"]]						= { category = "wotwChampion" },
-					[L["Sagittaurus"]]					= { category = "wotwChampion" },
-					[L["Lectro"]]						= { category = "wotwChampion" },
-					[L["Krule"]]						= { category = "wotwChampion" },
-					[L["Zappo"]]						= { category = "wotwChampion" },
-					[L["Ignacio"]]						= { category = "wotwChampion" },
-					[L["Police Patrolman"]]				= { category = "cowPolice" },
-					[L["Police Constable"]]				= { category = "cowPolice" },
-					[L["Water"]]						= { category = "mtWater" },
-					[L["Water Barrel"]]					= { category = "mtWater" },
-					[L["Invisible Water Dowsing Unit"]]	= { category = "mtWater" },
-					[L["Cheese"]]						= { category = "mtFood" },
-					[L["Chicken"]]						= { category = "mtFood" },
-					[L["Roan Steak"]]					= { category = "mtFood" },
-					[L["Fruit"]]						= { category = "mtFood" },
-					[L["Food Crate"]]					= { category = "mtFood" },
-					[L["Large Feed Sack"]]				= { category = "mtFeed" },
-					[L["Feed Sack"]]					= { category = "mtFeed" },
-					[L["Hay Bale"]]						= { category = "mtFeed" },
-					[L["Roving Chompacabra"]]			= { category = "mtEnemy" },
-					[L["Dustback Gnasher"]]				= { category = "mtEnemy" },
-					[L["Dustback Gnawer"]]				= { category = "mtEnemy" } },
-				challengeUnits = {
+		profile 											= {
+			default 										= {
+				settings 									= { 
+					disabled  								= false,
+					max 									= 10,
+					offsetLines  							= true,
+					draw 									= 0,
+					slow 									= 1,
+					fast  									= 100,
+					queue 									= 0 },
+				names 										= {
+					[L.Unit_Return_Teleporter]				= { category = "instancePortal" },
+					[L.Unit_Bruxen]							= { category = "instancePortal",	display = L.Unit_Traval_Thayd },
+					[L.Unit_Tanxox]							= { category = "instancePortal",	display = L.Unit_Traval_Thayd },
+					[L.Unit_Gus_Oakby]						= { category = "instancePortal",	display = L.Unit_Travel_Crimson_Badlands },
+					[L.Unit_Lilly_Startaker]				= { category = "instancePortal",	display = L.Unit_Travel_Grimvault },
+					[L.Unit_Transportation_Expert_Conner]	= { category = "instancePortal",	display = L.Unit_Travel_Farside },
+					[L.Unit_Warrant_Officer_Burke]			= { category = "instancePortal",	display = L.Unit_Travel_Whitevale },
+					[L.Unit_Venyanna_Skywind]				= { category = "instancePortal",	display = L.Unit_Travel_Northern_Wastes },
+					[L.Unit_Captain_Karaka]					= { category = "instancePortal", 	display = L.Unit_Travel_Crimson_Badlands },
+					[L.Unit_Captain_Cryzin]					= { category = "instancePortal",	display = L.Unit_Travel_Grimvault },
+					[L.Unit_Captain_Petronia]				= { category = "instancePortal",	display = L.Unit_Travel_Farside },
+					[L.Unit_Captain_Visia]					= { category = "instancePortal",	display = L.Unit_Travel_Whitevale },
+					[L.Unit_Captain_Zanaar]					= { category = "instancePortal",	display = L.Unit_Travel_Northern_Wastes },
+					[L.Unit_Servileia_Uticeia]				= { category = "instancePortal",	display = L.Unit_Travel_Ilium },
+					[L.Unit_Empirius]						= { category = "wotwChampion" },
+					[L.Unit_Sagittaurus]					= { category = "wotwChampion" },
+					[L.Unit_Lectro]							= { category = "wotwChampion" },
+					[L.Unit_Krule]							= { category = "wotwChampion" },
+					[L.Unit_Zappo]							= { category = "wotwChampion" },
+					[L.Unit_Ignacio]						= { category = "wotwChampion" },
+					[L.Unit_Police_Patrolman]				= { category = "cowPolice" },
+					[L.Unit_Police_Constable]				= { category = "cowPolice" },
+					[L.Unit_Water]							= { category = "mtWater" },
+					[L.Unit_Water_Barrel]					= { category = "mtWater" },
+					[L.Unit_Invisible_Water_Dowsing_Unit]	= { category = "mtWater" },
+					[L.Unit_Cheese]							= { category = "mtFood" },
+					[L.Unit_Chicken]						= { category = "mtFood" },
+					[L.Unit_Roan_Steak]						= { category = "mtFood" },
+					[L.Unit_Fruit]							= { category = "mtFood" },
+					[L.Unit_Food_Crate]						= { category = "mtFood" },
+					[L.Unit_Large_Feed_Sack]				= { category = "mtFeed" },
+					[L.Unit_Feed_Sack]						= { category = "mtFeed" },
+					[L.Unit_Hay_Bale]						= { category = "mtFeed" },
+					[L.Unit_Roving_Chompacabra]				= { category = "mtEnemy" },
+					[L.Unit_Dustback_Gnasher]				= { category = "mtEnemy" },
+					[L.Unit_Dustback_Gnawer]				= { category = "mtEnemy" } },
+				challengeUnits 								= {
 					-- Challenge specific fixes
-					[L["Roan Skull"]]					= { challenge = 576 } },
+					[L.Unit_Roan_Skull]						= { challenge = 576 } },
 				categories = {
 					default = {
 						disabled = false,
@@ -305,11 +305,11 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = false,
 						rangeLimit = 15	},
 					all = {
-						header = L["Set All"], 
-						module = L["All"] },
+						title = L.Category_Set_All ,
+						module = L.Module_All },
 					target = {
-						header = L["Target"],
-						module = L["Miscellaneous"],
+						title = L.Category_Misc_Target,
+						module = L.Module_Misc,
 						disabled = true,				
 						lineColor = "ff00ffff",
 						iconColor = "ffffffff",
@@ -317,10 +317,10 @@ function PerspectiveOptions:LoadDefaults()
 						maxIcons = 1,
 						maxLines = 1,
 						iconHeight = 48,
-						iconWidth = 48 },
+						iconWidth = 80 },
 					focus = {
-						header = L["Focus"],
-						module = L["Miscellaneous"],
+						title = L.Category_Misc_Focus,
+						module = L.Module_Misc,
 						lineColor = "ffff7dda",
 						iconColor = "ffff7dda",
 						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Grit",
@@ -328,9 +328,26 @@ function PerspectiveOptions:LoadDefaults()
 						maxLines = 1,
 						iconHeight = 48,
 						iconWidth = 48 },
+					lore = {
+						title = L.Category_Misc_Lore,
+						module = L.Module_Misc,
+						fontColor  = "ff7abcff",
+						icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
+						lineColor = "ff7abcff",
+						showLines = true,
+						maxLines = 1 },
+					subdue = {
+						title = L.Category_Misc_Weapon_Subdue,
+						module = L.Module_Misc,
+						lineColor = "ffff8000",
+						iconColor = "ffff8000",
+						icon = "ClientSprites:GroupWarriorIcon",
+						lineWidth = 10,
+						iconHeight = 32,
+						iconWidth = 32 },
 					group = {
-						header = L["Group"],
-						module = L["Player"],
+						title = L.Category_Player_Group,
+						module = L.Module_Player,
 						fontColor = "ff7482c1",
 						lineColor = "ff7482c1",
 						iconColor = "ff7482c1",
@@ -344,8 +361,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = true,
 						rangeFont = true },
 					raid = {
-						header = L["Raid"],
-						module = L["Player"],
+						title = L.Category_Player_Raid,
+						module = L.Module_Player,
 						fontColor = "ff00ffff",
 						lineColor = "ff00ffff",
 						iconColor = "ff00ffff",
@@ -359,42 +376,71 @@ function PerspectiveOptions:LoadDefaults()
 						rangeLine = true,
 						rangeFont = true },
 					guild = {
-						header = L["Guild"],
-						module = L["Player"],
+						title = L.Category_Player_Guild,
+						module = L.Module_Player,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
 						iconColor = "ff00ff00",
 						icon = "PerspectiveSprites:guild",
 						showLines = false },
 					exile = {
-						header = L["Exile"],
-						module = L["Player"],
+						title = L.Category_Player_Exile,
+						module = L.Module_Player,
 						icon = "charactercreate:sprCharC_Ico_Exile_Lrg",
 						iconWidth = 32,
 						iconHeight = 32,
 						showLines = false,
 						disabled = true	},
 					dominion = {
-						header = L["Dominion"],
-						module = L["Player"],
+						title = L.Category_Player_Dominion,
+						module = L.Module_Player,
 						icon = "charactercreate:sprCharC_Ico_Dominion_Lrg",
 						iconWidth = 32,
 						iconHeight = 32,
 						showLines = false,
 						disabled = true	},
 					friend = {
-						header = L["Friend"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_MapNode_Map_Friend",
+						title = L.Category_Player_Friend,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Friend",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					rival = {
-						header = L["Rival"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_MapNode_Map_Rival",
+						title = L.Category_Player_Rival,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Rival",
+						iconHeight = 36,
+						iconWidth = 36,
+						showLines = false },
+					mainTank = {
+						title = L.Category_Player_Main_Tank,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_DeflectCritical",
+						showLines = false },
+					mainAssist = {
+						title = L.Category_Player_Main_Assist,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_BruteForce",
+						showLines = false },
+					tank = {
+						title = L.Category_Player_Tank,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Deflect",
+						showLines = false },
+					healer = {
+						title = L.Category_Player_Healer,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Health",
+						showLines = false },
+					dps = {
+						title = L.Category_Player_DPS,
+						module = L.Module_Player,
+						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_CriticalSeverity",
 						showLines = false },
 					friendly = {
-						header = L["Friendly Normal"],
-						module = L["NPC"],
+						title = L.Category_NPC_Friendly_Normal,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -407,8 +453,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 8,
 						iconWidth = 8 },	
 					friendlyPrime = {
-						header = L["Friendly Prime"],
-						module = L["NPC"],
+						title = L.Category_NPC_Friendly_Prime,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -421,8 +467,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 16,
 						iconWidth = 16 },	
 					friendlyElite = {
-						header = L["Friendly Elite"],
-						module = L["NPC"],
+						title = L.Category_NPC_Friendly_Elite,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
@@ -435,8 +481,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32 },
 					neutral = {
-						header = L["Neutral Normal"],
-						module = L["NPC"],
+						title = L.Category_NPC_Neutral_Normal,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -449,8 +495,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 8,
 						iconWidth = 8 },	
 					neutralPrime = {
-						header = L["Neutral Prime"],
-						module = L["NPC"],
+						title = L.Category_NPC_Neutral_Prime,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -463,8 +509,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 16,
 						iconWidth = 16 },	
 					neutralElite = {
-						header = L["Neutral Elite"],
-						module = L["NPC"],
+						title = L.Category_NPC_Neutral_Elite,
+						module = L.Module_NPC,
 						disabled = true,
 						fontColor = "ffffff00",
 						lineColor = "ffffff00",
@@ -477,8 +523,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 32,
 						iconWidth = 32 },	
 					hostile = {
-						header = L["Hostile Normal"],
-						module = L["NPC"],
+						title = L.Category_NPC_Hostile_Normal,
+						module = L.Module_NPC,
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -492,8 +538,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					hostilePrime = {
-						header = L["Hostile Prime"],
-						module = L["NPC"],
+						title = L.Category_NPC_Hostile_Prime,
+						module = L.Module_NPC,
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -507,8 +553,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					hostileElite = {
-						header = L["Hostile Elite"],
-						module = L["NPC"],
+						title = L.Category_NPC_Hostile_Elite,
+						module = L.Module_NPC,
 						fontColor = "ffff0000",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000",
@@ -522,8 +568,8 @@ function PerspectiveOptions:LoadDefaults()
 						rangeIcon = true,
 						rangeColor = "ffff00ff"	},
 					questObjective = {
-						header = L["Objective"],
-						module = L["Quest"],
+						title = L.Category_Quest_Objective,
+						module = L.Module_Quest,
 						icon = "PerspectiveSprites:target",
 						max = 3,
 						limitBy = "category",
@@ -532,8 +578,8 @@ function PerspectiveOptions:LoadDefaults()
 						iconWidth = 36,
 						iconColor = "ffff8000" },
 					questInteractable = {
-						header = L["Interactable"],
-						module = L["Quest"],
+						title = L.Category_Quest_Interactable,
+						module = L.Module_Quest,
 						icon = "PerspectiveSprites:gear",
 						max = 3,
 						iconHeight = 36,
@@ -542,29 +588,29 @@ function PerspectiveOptions:LoadDefaults()
 						lineColor = "ffff8000",
 						iconColor = "ffff8000" },
 					questNew = {
-						header = L["Start"],
-						module = L["Quest"],
+						title = L.Category_Quest_Start,
+						module = L.Module_Quest,
 						icon = "PerspectiveOptions:Quest-Available",
 						iconWidth = 42,
 						iconHeight = 36,
 						lineColor = "ff00ff00" },
 					questTalkTo = {
-						header = L["Talk To"],
-						module = L["Quest"],
+						title = L.Category_Quest_TalkTo,
+						module = L.Module_Quest,
 						icon = "PerspectiveOptions:Quest-TalkTo",
 						iconWidth = 36,
 						iconHeight = 36,
 						lineColor = "ffff8000" },
 					questReward = {
-						header = L["Complete"],
-						module = L["Quest"],
+						title = L.Category_Quest_Complete,
+						module = L.Module_Quest,
 						icon = "IconSprites:Icon_Windows_UI_CRB_Checkmark",
 						iconHeight = 38,
 						iconWidth = 38,
 						lineColor = "ff00ff00" },	
 					questLocation = {
-						header = L["Quest Location"],
-						module = L["Quest"],
+						title = L.Category_Quest_Location,
+						module = L.Module_Quest,
 						limitBy = "quest",
 						max = 1,
 						drawLine = false,
@@ -572,11 +618,11 @@ function PerspectiveOptions:LoadDefaults()
 						iconWidth = 64,
 						iconHeight = 64	,
 						maxDistance = 9999,
-						minDistanace = 100,
+						minDistance = 100,
 						iconColor = "ffffa600"},
 					eventLocation = {
-						header = L["Event Location"],
-						module = L["Quest"],
+						title = L.Category_Event_Location,
+						module = L.Module_Quest,
 						limitBy = "category",
 						max = 1,
 						drawLine = false,
@@ -584,187 +630,224 @@ function PerspectiveOptions:LoadDefaults()
 						iconWidth = 64,
 						iconHeight = 64,
 						maxDistance = 9999,
-						minDistanace = 100,
+						minDistance = 100,
 						iconColor = "ff00ff00" },
+					questLoot = {
+						title = L.Category_Quest_Loot,
+						module = L.Module_Quest,
+						icon = "ClientSprites:GroupLootIcon",
+						showLines = false,
+						iconWidth = 32,
+						iconHeight = 32 },
 					challengeLocation = {
-						header = L["Challenge Location"],
+						title = L.Category_Challenge_Location,
 						iconColor = "ffff8000",
-						module = L["Challenge"],
+						module = L.Module_Challenge,
 						limitBy = "challenge",
 						max = 1,
 						drawLine = false,
 						maxDistance = 9999,
-						minDistanace = 100,
+						minDistance = 100,
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64	},
 					challenge = {
-						header = L["Objective"],
-						module = L["Challenge"],
+						title = L.Category_Challenge_Objective,
+						module = L.Module_Challenge,
 						icon = "PerspectiveSprites:QuestObjective",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000" },
 					farmer = {
-						header = L["Farmer"],
-						module = L["Harvest"],
+						title = L.Category_Harvest_Farmer,
+						module = L.Module_Harvest,
 						max = 5,
 						fontColor = "ffffff00",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Plant",
 						lineColor = "ffffff00" },
 					miner = {
-						header = L["Mining"],
-						module = L["Harvest"],
+						title = L.Category_Harvest_Mining,
+						module = L.Module_Harvest,
 						max = 5,
 						fontColor = "ff0078ce",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Mining",
 						lineColor = "ff0078ce" },
 					relichunter = {
-						header = L["Relic Hunter"],
-						module = L["Harvest"],
+						title = L.Category_Harvest_Relic_Hunter,
+						module = L.Module_Harvest,
 						max = 5,
 						fontColor = "ffff7fed",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Relic",
 						lineColor = "ffff7fed" },
 					survivalist = {
-						header = L["Survivalist"],
-						module = L["Harvest"],
+						title = L.Category_Harvest_Survivalist,
+						module = L.Module_Harvest,
 						max = 5,
 						fontColor = "ffce9967",
 						icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
 						lineColor = "ffce9967" },
+					[L.Unit_Food_Table] = {
+						title = L.Category_Malgrave_Food_Table,
+						module = L.Module_Harvest,
+						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
+						iconColor = "ff9d8734",
+						lineColor = "ff9d8734",
+						fontColor = "ff9d8734",
+						iconHeight = 32,
+						iconWidth = 32,
+						max = 1 },
+					[L.Unit_Butcher_Block] = {
+						title = L.Category_Harvest_Butcher_Block,
+						module = L.Module_Harvest,
+						icon = "IconSprites:Icon_Guild_UI_Guild_Steak",
+						iconColor = "ff9d3838",
+						lineColor = "ff9d3838",
+						fontColor = "ff9d3838",
+						iconHeight = 32,
+						iconWidth = 32,
+						max = 1 },
+					[L.Unit_Tanning_Rack] = {
+						title = L.Category_Harvest_Tanning_Rack,
+						module = L.Module_Harvest,
+						icon = "PerspectiveSprites:Hide",
+						iconColor = "ffb2aa73",
+						lineColor = "ffb2aa73",
+						fontColor = "ffb2aa73",
+						iconHeight = 32,
+						iconWidth = 32,
+						max = 1 },
 					flightPath = {
-						header = L["Flight Path"],
-						module = L["Travel"],
+						title = L.Category_Travel_Taxi,
+						module = L.Module_Travel,
 						fontColor = "ffabf8cb",
-						icon = "IconSprites:Icon_MapNode_Map_Taxi",
+						icon = "PerspectiveSprites:Travel-Taxi",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					instancePortal = {
-						header = L["Portal"],
-						module = L["Travel"],
+						title = L.Category_Travel_Portal,
+						module = L.Module_Travel,
 						fontColor = "ffabf8cb",
-						icon = "IconSprites:Icon_MapNode_Map_Portal",
+						icon = "PerspectiveSprites:Travel-Portal",
+						iconHeight = 42,
+						iconWidth = 42,
 						max = 10,
 						showLines = false },
 					bindPoint = {
-						header = L["Bind Point"],
-						module = L["Travel"],
+						title = L.Category_Travel_Bind_Point,
+						module = L.Module_Travel,
 						fontColor = "ffabf8cb",
-						icon = "IconSprites:Icon_MapNode_Map_Gate",
+						icon = "IconSprites:Icon_Mission_Explorer_ExplorerDoor",
+						iconHeight = 42,
+						iconWidth = 42,
+						showLines = false },
+					dungeon = {
+						title = L.Category_Travel_Dungeon,
+						module = L.Module_Travel,
+						fontColor = "ff00ffff",
+						icon = "PerspectiveSprites:Travel-Dungeon",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					marketplace = {
-						header = L["Commodities Exchange"],
-						module = L["Town"],
+						title = L.Category_Town_Commodities_Exchange,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Commodity",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					auctionHouse = {
-						header = L["Auction House"],
-						module = L["Town"],
+						title = L.Category_Town_Auction_House,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Auction",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					mailBox = {
-						header = L["Mailbox"],
-						module = L["Town"],
+						title = L.Category_Town_Mailbox,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Mail",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					vendor = {
-						header = L["Vendor"],
-						module = L["Town"],
+						title = L.Category_Town_Vendor,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Vendor",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					craftingStation = {
-						header = L["Crafting Station"],
-						module = L["Town"],
+						title = L.Category_Town_Crafting_Station,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Craft",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					engravingStation = {
-						header = L["Engraving Station"],
-						module = L["Town"],
+						title = L.Category_Town_Engraving_Station,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Engrave",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					tradeskillTrainer = {
-						header = L["Tradeskill Trainer"],
-						module = L["Town"],
+						title = L.Category_Town_Tradeskill_Trainer,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-CTrainer",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					dye = {
-						header = L["Appearance Modifier"],
-						module = L["Town"],
+						title = L.Category_Town_Appearance_Modifier,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Dye",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					bank = {
-						header = L["Bank"],
-						module = L["Town"],
+						title = L.Category_Town_Bank,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Town-Bank",
 						iconWidth = 36,
 						iconHeight = 36,
 						showLines = false },
 					guildBank = {
-						header = L["Guild Bank"],
-						module = L["Town"],
+						title = L.Category_Town_Guild_Bank,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						showLines = false, 
 						iconWidth = 36,
 						iconHeight = 36,
 						icon = "PerspectiveSprites:Town-GBank" },
 					guildRegistrar = {
-						header = L["Guild Registrar"],
-						module = L["Town"],
+						title = L.Category_Town_Guild_Registrar,
+						module = L.Module_Town,
 						fontColor = "ffabf8cb",
 						showLines = false, 
 						iconWidth = 36,
 						iconHeight = 36,
 						icon = "PerspectiveSprites:Town-Registrar" },
 					cityDirections = {
-						header = L["City Guards"],
-						module = L["Town"],
+						title = L.Category_Town_City_Guard,
+						module = L.Module_Town,
 						disabled = true,
 						fontColor = "ffabf8cb",
 						showLines = false, 
 						iconWidth = 36,
 						iconHeight = 36,
 						icon = "PerspectiveSprites:Town-Directions" },
-					dungeon = {
-						header = L["Dungeon"],
-						module = L["Travel"],
-						fontColor = "ff00ffff",
-						icon = "IconSprites:Icon_MapNode_Map_Dungeon",
-						showLines = false },
-					lore = {
-						header = L["Lore"],
-						module = L["Miscellaneous"],
-						fontColor  = "ff7abcff",
-						icon = "CRB_MegamapSprites:sprMap_IconCompletion_Lore_Stretch",
-						lineColor = "ff7abcff",
-						showLines = true,
-						maxLines = 1 },
 					pathLocation = {
-						header = L["Mission Location"],
-						module = L["Path"],
+						title = L.Category_Path_Mission_Location,
+						module = L.Module_Path,
 						limitBy = "path",
 						max = 1,
 						iconColor = "ffffffff",
@@ -774,187 +857,119 @@ function PerspectiveOptions:LoadDefaults()
 						maxDistance = 9999,
 						max = 1 },
 					scientist = {
-						header = L["Scientist"],
-						module = L["Path"],
+						title = L.Category_Path_Scientist,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 						lineColor = "ffc759ff",
 						showLines = false,
 						maxLines = 1 },
 					scientistScans = {
-						header = L["Scientist Scans"],
-						module = L["Path"],
+						title = L.Category_Path_Scientist_Scans,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					solider = {
-						header = L["Soldier"],
-						module = L["Path"],
+						title = L.Category_Path_Soldier,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					settler = {
-						header = L["Settler"],
-						module = L["Path"],
+						title = L.Category_Path_Settler,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					settlerResources = {
-						header = L["Settler Resources"],
-						module = L["Path"],
+						title = L.Category_Path_Settler_Resources,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					explorer = {
-						header = L["Explorer"],
-						module = L["Path"],
+						title = L.Category_Path_Explorer,
+						module = L.Module_Path,
 						fontColor = "ffc759ff",
 						icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
-					questLoot = {
-						header = L["Loot"],
-						module = L["Quest"],
-						icon = "ClientSprites:GroupLootIcon",
-						showLines = false,
-						iconWidth = 32,
-						iconHeight = 32 },
-					subdue = {
-						header = L["Weapon Subdue"],
-						module = L["Miscellaneous"],
-						lineColor = "ffff8000",
-						iconColor = "ffff8000",
-						icon = "ClientSprites:GroupWarriorIcon",
-						lineWidth = 10,
-						iconHeight = 32,
-						iconWidth = 32 },
 					wotwChampion = {
-						header = L["Enemy Champion"],
-						module = L["War of the Wilds"],
+						title = L.Category_WotW_Enemy_Champion,
+						module = L.Module_WotW,
 						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
 						showLines = false },
-					[L["Energy Node"]] = {
-						header = L["Energy Node"],
-						module = L["War of the Wilds"],
+					[L.Unit_Energy_Node] = {
+						title = L.Category_WotW_Energy_Node,
+						module = L.Module_WotW,
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
 						showLines = false },
-					[L["Moodie Totem"]] = {
-						header = L["Moodie Totem"],
-						module = L["War of the Wilds"],
+					[L.Unit_Moodie_Totem] = {
+						title = L.Category_WotW_Moodie_Totem,
+						module = L.Module_WotW,
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
 						iconColor = "ffff3300",
 						showLines = false },
-					[L["Skeech Totem"]] = {
-						header = L["Skeech Totem"],
-						module = L["War of the Wilds"],
+					[L.Unit_Skeech_Totem] = {
+						title = L.Category_WotW_Skeech_Totem,
+						module = L.Module_WotW,
 						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
 						showLines = false },
 					cowPolice = {
-						header = L["Police"],
-						module = L["Crimelords of Whitevale"],
+						title = L.Category_Crimelords_Police,
+						module = L.Module_Crimelords,
 						icon = "PerspectiveSprites:Circle-Outline",
 						showLines = false,
 						showName = false,
 						showDistance = false,
 						iconColor = "ff00ff00" },
-					[L["Food Table"]] = {
-						header = L["Food Table"],
-						module = L["Harvest"],
-						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
-						iconColor = "ff9d8734",
-						lineColor = "ff9d8734",
-						fontColor = "ff9d8734",
-						iconHeight = 32,
-						iconWidth = 32,
-						max = 1 },
-					[L["Butcher Block"]] = {
-						header = L["Butcher Block"],
-						module = L["Harvest"],
-						icon = "IconSprites:Icon_Guild_UI_Guild_Steak",
-						iconColor = "ff9d3838",
-						lineColor = "ff9d3838",
-						fontColor = "ff9d3838",
-						iconHeight = 32,
-						iconWidth = 32,
-						max = 1 },
-					[L["Tanning Rack"]] = {
-						header = L["Tanning Rack"],
-						module = L["Harvest"],
-						icon = "IconSprites:Icon_Guild_UI_Guild_Skull",
-						iconColor = "ffb2aa73",
-						lineColor = "ffb2aa73",
-						fontColor = "ffb2aa73",
-						iconHeight = 32,
-						iconWidth = 32,
-						max = 1 },
 					mtWater = {
-						header = L["Water"],
-						module = L["The Malgrave Trail"],
+						title = L.Category_Malgrave_Water,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Water",
 						showLines = false },
-					[L["Caravan Member"]] = {
-						header = L["Caravan Member"],
-						module = L["The Malgrave Trail"],
+					[L.Unit_Caravan_Member] = {
+						title = L.Category_Malgrave_Caravan_Member,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Survivor",
 						showLines = false },
 					mtFood = {
-						header = L["Food"],
-						module = L["The Malgrave Trail"],
+						title = L.Category_Malgrave_Food,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Food",
 						showLines = false },
 					mtFeed = {
-						header = L["Feed"],
-						module = L["The Malgrave Trail"],
+						title = L.Category_Malgrave_Feed,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Feed",
 						showLines = false },
 					mtEnemy = {
-						header = L["Enemy"],
-						module = L["The Malgrave Trail"],
+						title = L.Category_Malgrave_Enemy,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_MapNode_Map_PvP_BattleAlert",
 						showLines = false },
-					[L["Cactus Fruit"]] = {
-						header = L["Cactus Fruit"],
-						module = L["The Malgrave Trail"], 
+					[L.Unit_Cactus_Fruit] = {
+						title = L.Category_Malgrave_Cactus_Fruit,
+						module = L.Module_Malgrave,
 						icon = "IconSprites:Icon_Mission_Scientist_ScanPlant",
+						iconColor = "ff00ffb6",
 						showLines = false },
-					[L["Medical Grenade"]] = {
-						header = L["Medical Grenade"],
-						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Mission_Soldier_Demolition",
+					[L.Unit_Medical_Grenade] = {
+						title = L.Category_Malgrave_Medical_Grenade,
+						module = L.Module_Malgrave,
+						iconColor = "ff00ffd5",
+						icon = "PerspectiveSprites:Grenade",
 						showLines = false },
-					[L["Bug Bomb"]] = {
-						header = L["Bug Bomb"],
-						module = L["The Malgrave Trail"],
-						icon = "IconSprites:Icon_Mission_Scientist_ScanCreature",
-						showLines = false },
-					mainTank = {
-						header = L["Main Tank"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_DeflectCritical",
-						showLines = false },
-					mainAssist = {
-						header = L["Main Assist"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_BruteForce",
-						showLines = false },
-					tank = {
-						header = L["Tank"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Deflect",
-						showLines = false },
-					healer = {
-						header = L["Healer"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Health",
-						showLines = false },
-					dps = {
-						header = L["DPS"],
-						module = L["Player"],
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_CriticalSeverity",
+					[L.Unit_Bug_Bomb] = {
+						title = L.Category_Malgrave_Bug_Bomb,
+						module = L.Module_Malgrave,
+						iconColor = "ff00ffd5",
+						icon = "PerspectiveSprites:Bomb",
 						showLines = false },
 				}
 			}
@@ -966,14 +981,14 @@ function PerspectiveOptions:LoadControls()
 	return {
 		Options 						= {
 			Buttons 					= {
-				NewButton				= {												text = L["New Category"],				tooltip = L["Create a new category."] },
-				DefaultButton 			= { 											text = L["Default ALL"],				tooltip = L["Reset ALL addon settings back to the defaults."] },
-				ExportButton			= {												text = L["Export"],						tooltip = L["Export your current settings."] },
-				ImportButton			= {												text = L["Import"],						tooltip = L["Import your current settings."] } },
+				NewButton				= {},
+				DefaultButton 			= {},
+				ExportButton			= {},
+				ImportButton			= {} },
 			CheckButtons 				= {
 				CategoriesCheck 		= {	checked = true,								text = L["Categories"],					tooltip = L[""] },
 				SettingsCheck 			= {												text = L["Settings"], 					tooltip = L[""] } } },
-		CategoryEditor 					= {
+		Editor 							= {
 			CheckButtons				= {
 				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L["Disable this category."] },
 				CombatDisableCheck 		= { option = "disableInCombat",					text = L["Hide When In Combat"], 		tooltip = L["Hide this category while in combat."] },
@@ -1216,7 +1231,7 @@ function PerspectiveOptions:InitializeOptions()
 
 	if not self.initialized then
 		-- Set the All module as the selected module
-		self.module = L["All"]
+		self.module = L.Module_All
 
 		-- Check the All button
 		self.ModuleList:FindChild("ModuleItem" .. self.module):FindChild("Button"):SetCheck(true)
@@ -1225,7 +1240,7 @@ function PerspectiveOptions:InitializeOptions()
 		local module = self.ModuleList:FindChild("ModuleItem" .. self.module)
 
 		if not module then
-			module = self.ModuleList:FindChild("ModuleItem" .. L["All"])
+			module = self.ModuleList:FindChild("ModuleItem" .. L.Module_All)
 		end
 
 		local button = module:FindChild("Button")
@@ -1242,8 +1257,6 @@ function PerspectiveOptions:InitializeOptions()
 end
 
 function PerspectiveOptions:ModuleItemInitialize(category, module)
-	--module = module or L["Unknown"]
-
 	local item = self.ModuleList:FindChild("ModuleItem" .. module)
 	local button
 
@@ -1351,7 +1364,7 @@ function PerspectiveOptions:CategoryItemInitialize(category, module)
 	item:SetName("CategoryItem" .. category)
 
 	-- Get the sortBy value.
-	local sortBy = category == "all" and "_first" or self:GetOptionValue(nil, "header", category)
+	local sortBy = category == "all" and "_first" or self:GetOptionValue(nil, "title", category)
 
 	-- Set the data for the item.
 	item:SetData({ 
@@ -1366,7 +1379,7 @@ function PerspectiveOptions:CategoryItemInitialize(category, module)
 	button:UpdatePixie(1, icon)
 
 	local text= button:GetPixieInfo(2)
-	text.strText = self:GetOptionValue(nil, "header", category)
+	text.strText = self:GetOptionValue(nil, "title", category)
 	text.flagsText = { DT_VCENTER = true }
 	button:UpdatePixie(2, text)
 end
@@ -1376,7 +1389,7 @@ function PerspectiveOptions:CategoryItemClicked(handler, control, button)
 	self.category = control:GetData()
 
 	-- Show the category editor.
-	self:CategoryEditorInitialize(self.category)
+	self:EditorInitialize(self.category)
 end
 
 function PerspectiveOptions:CategoryItemChecked(handler, control, button)
@@ -1405,11 +1418,11 @@ function PerspectiveOptions:CategoryItemChecked(handler, control, button)
 	Perspective:UpdateOptions(nil, true) 
 end
 
-function PerspectiveOptions:CategoryEditorInitialize(category)
+function PerspectiveOptions:EditorInitialize(category)
 
 	local function loadDropDown(name, category, option)
 		-- Get the control by name
-		local control = self.CategoryEditor:FindChild(name .. "DropDownButton")
+		local control = self.Editor:FindChild(name .. "DropDownButton")
 
 		-- Disable the line texts
 		if option == "limitBy" then
@@ -1424,18 +1437,18 @@ function PerspectiveOptions:CategoryEditorInitialize(category)
 		end		
 
 		-- Get the menu associated with the control
-		local menu = self.CategoryEditor:FindChild(name .. "DropDownMenu")
+		local menu = self.Editor:FindChild(name .. "DropDownMenu")
 
 		-- Set the control value.
 		control:SetText(self:GetOptionValue(nil, option, category))
 
 		-- Make sure we haven't already set the event handlers
 		if not control:GetData() then
-			control:AddEventHandler("ButtonSignal", "CategoryEditor_OnDropDown")
+			control:AddEventHandler("ButtonSignal", "Editor_OnDropDown")
 
 			for k, v in pairs(menu:GetChildren()) do
-				v:AddEventHandler("ButtonCheck", 	"CategoryEditor_OnDropDownItem")
-				v:AddEventHandler("ButtonUncheck", 	"CategoryEditor_OnDropDownItem")
+				v:AddEventHandler("ButtonCheck", 	"Editor_OnDropDownItem")
+				v:AddEventHandler("ButtonUncheck", 	"Editor_OnDropDownItem")
 			end
 		end
 
@@ -1446,77 +1459,77 @@ function PerspectiveOptions:CategoryEditorInitialize(category)
 		menu:SetData({ button = control })
 	end
 
-	local header = 	self:GetOptionValue(nil, "header", 		category)
+	local title = 	self:GetOptionValue(nil, "title", 		category)
 	local icon = 	self:GetOptionValue(nil, "icon", 		category)
 	local color = 	self:GetOptionValue(nil, "iconColor", 	category)
 
 	-- Set the category editor image pixie
-	self:SetPixie(self.CategoryEditor, 1, { sprite = icon, color = color })
+	self:SetPixie(self.Editor, 1, { sprite = icon, color = color })
 
 	local custom = self:GetOptionValue(nil, "custom", category)
 	
-	local catEdit = self.CategoryEditor:FindChild("CategoryEdit")
+	local catEdit = self.Editor:FindChild("CategoryEdit")
 
 	-- Set the rename text
-	catEdit:SetText(header)
+	catEdit:SetText(title)
 
 	if not catEdit:GetData() then
-		catEdit:AddEventHandler("EditBoxReturn", 	"TextBoxReturnCategoryEditorCategoryEdit")
-		catEdit:AddEventHandler("EditBoxTab", 		"TextBoxReturnCategoryEditorCategoryEdit")
-		catEdit:AddEventHandler("EditBoxEscape", 	"TextBoxEscapeCategoryEditorCategoryEdit")
+		catEdit:AddEventHandler("EditBoxReturn", 	"TextBoxReturnEditorCategoryEdit")
+		catEdit:AddEventHandler("EditBoxTab", 		"TextBoxReturnEditorCategoryEdit")
+		catEdit:AddEventHandler("EditBoxEscape", 	"TextBoxEscapeEditorCategoryEdit")
 	end
 
 	catEdit:SetData(category)
 
 	-- Set the module
-	self.CategoryEditor:SetData(self:GetOptionValue(nil, "module", category))
+	self.Editor:SetData(self:GetOptionValue(nil, "module", category))
 
 	-- Initialize the buttons
-	for name, options in pairs(controls.CategoryEditor.Buttons) do
-		self:ButtonInitialize("CategoryEditor", name, category, options)
+	for name, options in pairs(controls.Editor.Buttons) do
+		self:ButtonInitialize("Editor", name, category, options)
 	end
 
 	-- Initialize the checkbuttons
-	for name, options in pairs(controls.CategoryEditor.CheckButtons) do
-		self:CheckButtonInitialize("CategoryEditor", name, category, options)
+	for name, options in pairs(controls.Editor.CheckButtons) do
+		self:CheckButtonInitialize("Editor", name, category, options)
 	end
 
 	-- Initialize the textboxes
-	for name, options in pairs(controls.CategoryEditor.TextBoxes) do
-		self:TextBoxInitialize("CategoryEditor", name, category, options)
+	for name, options in pairs(controls.Editor.TextBoxes) do
+		self:TextBoxInitialize("Editor", name, category, options)
 	end
 
 	-- Initialize the colorbuttons
-	for name, options in pairs(controls.CategoryEditor.ColorButtons) do
-		self:ColorButtonInitialize("CategoryEditor", name, category, options)
+	for name, options in pairs(controls.Editor.ColorButtons) do
+		self:ColorButtonInitialize("Editor", name, category, options)
 	end
 
 	-- Show the rename edit box if this is a custom item
 	if custom then
 		-- Show the edit box border
-		self:SetPixie(self.CategoryEditor, 2, { sprite = "BK3:UI_BK3_Holo_InsetSimple" })
+		self:SetPixie(self.Editor, 2, { sprite = "BK3:UI_BK3_Holo_InsetSimple" })
 		-- Allow edits
 		catEdit:SetStyleEx("ReadOnly", false)
 		-- Show the delete button
-		self.CategoryEditor:FindChild("DeleteButton"):Show(true, true)
+		self.Editor:FindChild("DeleteButton"):Show(true, true)
 	else
 		-- Hide the edit box border
-		self:SetPixie(self.CategoryEditor, 2, { sprite = "" })
+		self:SetPixie(self.Editor, 2, { sprite = "" })
 		-- Do not allow edits
 		catEdit:SetStyleEx("ReadOnly", true)
 		-- Hide the delete button
-		self.CategoryEditor:FindChild("DeleteButton"):Show(false, true)
+		self.Editor:FindChild("DeleteButton"):Show(false, true)
 	end
 
 	--[[loadDropDown("LimitBy",			category, "limitBy")
 
 	for k, v in pairs(fonts) do
-		self.CategoryEditor:FindChild("FontDropDown"):FindChild("DropDown"):AddItem(k)
+		self.Editor:FindChild("FontDropDown"):FindChild("DropDown"):AddItem(k)
 	end]]
 
 	self.ModuleList:GetParent():Show(false, true)
 	self.CategoryList:GetParent():Show(false, true)
-	self.CategoryEditor:Show(true, true)
+	self.Editor:Show(true, true)
 end
 
 -----------------------------------------------------------------------------------------
@@ -1574,7 +1587,7 @@ function PerspectiveOptions:ImportSettings()
 
 	self:InitializeOptions()
 
-	self.CategoryEditor:Show(false, true)
+	self.Editor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 
@@ -1592,11 +1605,11 @@ function PerspectiveOptions:ButtonInitialize(parent, name, category, options)
 	-- Get the control by name
 	local control = self[parent]:FindChild(name)
 
-	-- Set the control toolip.
-	control:SetTooltip(options.tooltip)
+	-- Set the text
+	control:SetText(L["UI_" .. parent .. "_" .. name .. "_Text"])
 
-	-- category checkbutton
-	control:SetText(options.text)
+	-- Set the control toolip.
+	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"])	
 
 	-- Make sure we haven't already set the event handlers
 	if not control:GetData() then
@@ -1609,14 +1622,14 @@ function PerspectiveOptions:ButtonInitialize(parent, name, category, options)
 end
 
 function PerspectiveOptions:ButtonClickedOptionsNewButton(handler, control, button)
-	self.db.profile[self.profile].categories[L["Custom Unit"]] = {
-		header = L["Custom Unit"],
-		module = L["Custom"],
+	self.db.profile[self.profile].categories[L.Unit_Custom] = {
+		title = L.Unit_Custom,
+		module = L.Module_Custom,
 		custom = true }
 
 	self:InitializeOptions()
 
-	self:CategoryEditorInitialize(L["Custom Unit"])
+	self:EditorInitialize(L["Custom Unit"])
 end
 
 function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)
@@ -1624,7 +1637,7 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 
 	self:InitializeOptions()
 
-	self.CategoryEditor:Show(false, true)
+	self.Editor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 
@@ -1640,28 +1653,28 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 end
 
 function PerspectiveOptions:ButtonClickedOptionsImportButton(handler, control, button)
-	self:ShowDialog(L["Perspective Settings Import"], "", false, false, L["Import"], "ImportSettings")
+	self:ShowDialog(L.UI_Dialog_Import_Header, "", false, false, L.UI_Options_ImportButton_Text, "ImportSettings")
 end
 
 function PerspectiveOptions:ButtonClickedOptionsExportButton(handler, control, button)
 	local profile = JSON.encode(self.db.profile)
-	self:ShowDialog(L["Perspective Settings Export"], profile, true, true, L["Close"], "CloseDialog")
+	self:ShowDialog(L.UI_Dialog_Export_Header, profile, true, true, L.UI_Options_ExportButton_Text , "CloseDialog")
 end
 
-function PerspectiveOptions:ButtonClickedCategoryEditorBackButton(handler, control, button)
-	self.CategoryEditor:Show(false, true)
+function PerspectiveOptions:ButtonClickedEditorBackButton(handler, control, button)
+	self.Editor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 end
 
-function PerspectiveOptions:ButtonClickedCategoryEditorDeleteButton(handler, control, button)
+function PerspectiveOptions:ButtonClickedEditorDeleteButton(handler, control, button)
 	local data = control:GetData()
 
 	self.db.profile[self.profile].categories[data.category] = nil
 
 	self:InitializeOptions()
 
-	self.CategoryEditor:Show(false, true)
+	self.Editor:Show(false, true)
 	self.ModuleList:GetParent():Show(true, true)
 	self.CategoryList:GetParent():Show(true, true)
 
@@ -1669,21 +1682,17 @@ function PerspectiveOptions:ButtonClickedCategoryEditorDeleteButton(handler, con
 	Perspective:UpdateOptions(nil, true)
 end
 
-function PerspectiveOptions:ButtonClickedCategoryEditorDefaultButton(handler, control, button)
+function PerspectiveOptions:ButtonClickedEditorDefaultButton(handler, control, button)
 	local data = control:GetData()
 
 	self.db.profile[self.profile].categories[data.category] = {}
 	for k, v in pairs(self.db.defaults.profile[self.profile].categories[data.category]) do
 		self.db.profile[self.profile].categories[data.category][k] = v
-SendVarToRover(k, v)
 	end
 
-	for k, v in pairs(self.db.profile[self.profile].categories[data.category]) do
-SendVarToRover("New: " .. k, v)
-	end
 	self:InitializeOptions()
 
-	self:CategoryEditorInitialize(data.category)
+	self:EditorInitialize(data.category)
 
 	-- Update all the uis
 	Perspective:UpdateOptions(nil, true)	
@@ -1697,8 +1706,11 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 	-- Get the control by name
 	local control = self[parent]:FindChild(name)
 
+	-- Set the control text.
+	control:SetText(L["UI_" .. parent .. "_" .. name .. "_Text"])
+	
 	-- Set the control toolip.
-	control:SetTooltip(options.tooltip)
+	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"] or "")
 
 	-- Set the checkbutton value.
 	if category then
@@ -1746,7 +1758,7 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 	control:SetData({ category = category, options = options })
 end
 
-function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, button)
+function PerspectiveOptions:CheckButtonClickedEditor(handler, control, button)
 	-- Get the control's data
 	local data = control:GetData()
 	
@@ -1756,7 +1768,7 @@ function PerspectiveOptions:CheckButtonClickedCategoryEditor(handler, control, b
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+			if (self.module == L.Module_All and category ~= "default") or cat.module == self.module then
 				cat[data.options.option] = val
 			end
 		end
@@ -1797,12 +1809,12 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 	local control = self[parent]:FindChild(name)
 	local edit = control:FindChild("EditBox")
 
-	-- Set the control toolip.
-	control:SetTooltip(options.tooltip .. " " .. L["Press enter to save the new value."])
-
 	-- Set the textbox label.
-	self:SetPixie(control, 1, { text = options.label, flagsText = { DT_VCENTER = true } })
+	self:SetPixie(control, 1, { text = L["UI_" .. parent .. "_" .. name .. "_Text"], flagsText = { DT_VCENTER = true } })
 
+	-- Set the control toolip.
+	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"] .. "  " .. L.UI_Options_Tooltip_Action)
+	
 	-- Set the textbox value.
 	if category then
 		-- Category textbox
@@ -1842,7 +1854,7 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 	edit:SetData({ category = category, options = options })
 end
 
-function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
+function PerspectiveOptions:TextBoxReturnEditor(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 
@@ -1866,10 +1878,10 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 	-- Check to see if we need to set the value for all categories
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+			if (self.module == L.Module_All and category ~= "default") or cat.module == self.module then
 				cat[data.options.option] = val
 				if data.options.option == "icon" then
-					self:CategoryEditor_UpdateIcon(category)
+					self:Editor_UpdateIcon(category)
 				end
 			end
 		end
@@ -1877,7 +1889,7 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 		self.db.profile[self.profile].categories[data.category][data.options.option] = val	
 
 		if data.options.option == "icon" then
-			self:CategoryEditor_UpdateIcon(data.category)
+			self:Editor_UpdateIcon(data.category)
 		end
 	end
 
@@ -1897,7 +1909,7 @@ function PerspectiveOptions:TextBoxReturnCategoryEditor(handler, control)
 	end
 end
 
-function PerspectiveOptions:TextBoxEscapeCategoryEditor(handler, control)
+function PerspectiveOptions:TextBoxEscapeEditor(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 
@@ -1905,7 +1917,7 @@ function PerspectiveOptions:TextBoxEscapeCategoryEditor(handler, control)
 	control:SetText(self:GetOptionValue(nil, data.options.option, data.category) or "")
 end
 
-function PerspectiveOptions:TextBoxReturnCategoryEditorCategoryEdit(handler, control)
+function PerspectiveOptions:TextBoxReturnEditorCategoryEdit(handler, control)
 	-- Get the data from the control
 	local oldCategory = control:GetData()
 
@@ -1918,7 +1930,6 @@ function PerspectiveOptions:TextBoxReturnCategoryEditorCategoryEdit(handler, con
 		category == "oldCategory" then
 		-- Category already exists or is not allowed.
 		control:SetText(oldCategory)
-		Print("Not allowed")
 	else
 		self.db.profile[self.profile].categories[category] = {}
 		
@@ -1926,8 +1937,8 @@ function PerspectiveOptions:TextBoxReturnCategoryEditorCategoryEdit(handler, con
 			self.db.profile[self.profile].categories[category][k] = v
 		end
 
-		-- Update the header
-		self.db.profile[self.profile].categories[category].header = category
+		-- Update the title
+		self.db.profile[self.profile].categories[category].title = category
 
 		-- Delete the custom unit
 		self.db.profile[self.profile].categories[oldCategory] = nil
@@ -1936,7 +1947,7 @@ function PerspectiveOptions:TextBoxReturnCategoryEditorCategoryEdit(handler, con
 		self:InitializeOptions()
 
 		-- Show our new category.
-		self:CategoryEditorInitialize(category)
+		self:EditorInitialize(category)
 
 		-- Update the ui options
 		Perspective:UpdateOptions(nil, true)
@@ -1955,11 +1966,11 @@ function PerspectiveOptions:ColorButtonInitialize(parent, name, category, option
 
 	local color
 
-	-- Set the control tooltip.
-	control:SetTooltip(options.tooltip)
-
 	-- Set the textbox label.
-	self:SetPixie(control, 1, { text = options.label, flagsText = { DT_VCENTER = true } })
+	self:SetPixie(control, 1, { text = L["UI_" .. parent .. "_" .. name .. "_Text"], flagsText = { DT_VCENTER = true } })
+	
+	-- Set the control tooltip.
+	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"])	
 
 	-- Set the button value
 	if category then
@@ -1997,7 +2008,7 @@ function PerspectiveOptions:ColorButtonInitialize(parent, name, category, option
 	button:SetData({ category = category, options = options, color = color })
 end
 
-function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, button)
+function PerspectiveOptions:ColorButtonClickedEditor(handler, control, button)
 	local function setColor(data)
 
 		-- Convert the color back to str
@@ -2009,11 +2020,11 @@ function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, b
 		-- Update the settings
 		if data.category == "all" then
 			for category, cat in pairs(self.db.profile[self.profile].categories) do
-				if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+				if (self.module == L.Module_All and category ~= "default") or cat.module == self.module then
 					cat[data.options.option] = color
 
 					if data.option == "iconColor" then
-						self:CategoryEditor_UpdateIcon(category)
+						self:Editor_UpdateIcon(category)
 					end
 				end
 			end
@@ -2021,7 +2032,7 @@ function PerspectiveOptions:ColorButtonClickedCategoryEditor(handler, control, b
 			self.db.profile[self.profile].categories[data.category][data.options.option] = color
 
 			if data.options.option == "iconColor" then
-				self:CategoryEditor_UpdateIcon(data.category)
+				self:Editor_UpdateIcon(data.category)
 			end
 		end
 
@@ -2060,7 +2071,7 @@ end
 
 
 
-function PerspectiveOptions:CategoryEditor_OnDropDown(handler, control, button)
+function PerspectiveOptions:Editor_OnDropDown(handler, control, button)
 	-- Get the control's data.
 	local data = control:GetData()
 
@@ -2077,7 +2088,7 @@ function PerspectiveOptions:CategoryEditor_OnDropDown(handler, control, button)
 	data.menu:Show(true, true)--:BringChildToTop(data.menu)
 end
 
-function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, button)
+function PerspectiveOptions:Editor_OnDropDownItem(handler, control, button)
 	-- Get the data for the control
 	local data = control:GetParent():GetData()
 
@@ -2099,7 +2110,7 @@ function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, butt
 	-- Update the settings.
 	if data.category == "all" then
 		for category, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+			if (self.module == L.Module_All and category ~= "default") or cat.module == self.module then
 				cat[data.option] = val
 			end
 		end
@@ -2114,7 +2125,7 @@ function PerspectiveOptions:CategoryEditor_OnDropDownItem(handler, control, butt
 	Perspective:MarkersInit()
 end
 
-function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button)
+function PerspectiveOptions:Editor_OnColorClick(handler, control, button)
 
 	local function setColor(data)
 		-- Convert the color back to str
@@ -2126,11 +2137,11 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 		-- Update the settings
 		if data.category == "all" then
 			for category, cat in pairs(self.db.profile[self.profile].categories) do
-				if (self.module == L["All"] and category ~= "default") or cat.module == self.module then
+				if (self.module == L.Module_All and category ~= "default") or cat.module == self.module then
 					cat[data.option] = color
 
 					if data.option == "iconColor" then
-						self:CategoryEditor_UpdateIcon(category)
+						self:Editor_UpdateIcon(category)
 					end
 				end
 			end
@@ -2138,7 +2149,7 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 			self.db.profile[self.profile].categories[data.category][data.option] = color
 
 			if data.option == "iconColor" then
-				self:CategoryEditor_UpdateIcon(data.category)
+				self:Editor_UpdateIcon(data.category)
 			end
 		end
 
@@ -2163,7 +2174,7 @@ function PerspectiveOptions:CategoryEditor_OnColorClick(handler, control, button
 	end
 end
 
-function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
+function PerspectiveOptions:Editor_UpdateIcon(category)
 	-- Get our category item button
 	local button  = self.CategoryList:FindChild("CategoryItem" .. category):FindChild("Button")
 
@@ -2173,10 +2184,10 @@ function PerspectiveOptions:CategoryEditor_UpdateIcon(category)
 
 	if category == self.category or category == "all" then
 		-- Update the category editor icon.
-		local pixie = self.CategoryEditor:GetPixieInfo(1)
+		local pixie = self.Editor:GetPixieInfo(1)
 		pixie.strSprite = icon
 		pixie.cr = iconColor
-		self.CategoryEditor:UpdatePixie(1, pixie)
+		self.Editor:UpdatePixie(1, pixie)
 	end
 
 	-- Update our icon pixie

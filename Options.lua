@@ -557,7 +557,9 @@ function PerspectiveOptions:LoadDefaults()
 					questReward = {
 						header = L["Complete"],
 						module = L["Quest"],
-						icon = "IconSprites:Icon_MapNode_Map_Checkmark",
+						icon = "IconSprites:Icon_Windows_UI_CRB_Checkmark",
+						iconHeight = 38,
+						iconWidth = 38,
 						lineColor = "ff00ff00" },	
 					questLocation = {
 						header = L["Quest Location"],

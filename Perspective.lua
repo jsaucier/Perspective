@@ -1076,7 +1076,7 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 	local id = "path" .. mission:GetId()
 
 	if not mission:IsComplete() and not deactivated then
-		if table.getn(mission:GetMapRegions()) > 0 then
+		if table.getn(mission:GetMapRegions()) > 0 or table.getn(mission:GetMapLocations()) > 0 then
 			self.markers[id] = {
 				name = mission:GetName(),
 				mission = mission,
@@ -1087,9 +1087,15 @@ function Perspective:MarkerPathUpdate(mission, deactivated)
 			self:MarkerUpdateOptions(self.markers[id], "pathLocation")
 
 			for index, region in pairs(mission:GetMapRegions()) do
-				self.markers[id].regions[index] = {
+				table.insert(self.markers[id].regions, {
 					vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
-				}
+				})
+				self:MarkerUpdate(self.markers[id])
+			end
+			for index, loc in pairs(mission:GetMapLocations()) do
+				table.insert(self.markers[id].regions, {
+					vector = Vector3.New(loc.x, loc.y, loc.z)
+				})
 				self:MarkerUpdate(self.markers[id])
 			end
 		end

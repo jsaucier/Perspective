@@ -569,6 +569,7 @@ function PerspectiveOptions:LoadDefaults()
 						iconWidth = 64,
 						iconHeight = 64	,
 						maxDistance = 9999,
+						minDistanace = 100,
 						iconColor = "ffffa600"},
 					eventLocation = {
 						header = L["Event Location"],
@@ -580,6 +581,7 @@ function PerspectiveOptions:LoadDefaults()
 						iconWidth = 64,
 						iconHeight = 64,
 						maxDistance = 9999,
+						minDistanace = 100,
 						iconColor = "ff00ff00" },
 					challengeLocation = {
 						header = L["Challenge Location"],
@@ -589,6 +591,7 @@ function PerspectiveOptions:LoadDefaults()
 						max = 1,
 						drawLine = false,
 						maxDistance = 9999,
+						minDistanace = 100,
 						icon = "Crafting_CoordSprites:sprCoord_AdditivePreviewSmall",
 						iconWidth = 64,
 						iconHeight = 64	},

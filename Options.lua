@@ -269,9 +269,7 @@ function PerspectiveOptions:LoadDefaults()
 					[L["Hay Bale"]]						= { category = "mtFeed" },
 					[L["Roving Chompacabra"]]			= { category = "mtEnemy" },
 					[L["Dustback Gnasher"]]				= { category = "mtEnemy" },
-					[L["Dustback Gnawer"]]				= { category = "mtEnemy" },
-					
-				},
+					[L["Dustback Gnawer"]]				= { category = "mtEnemy" } },
 				challengeUnits = {
 					-- Challenge specific fixes
 					[L["Roan Skull"]]					= { challenge = 576 } },
@@ -916,6 +914,7 @@ function PerspectiveOptions:LoadControls()
 	return {
 		Options 						= {
 			Buttons 					= {
+				NewButton				= {												text = L["New Category"],				tooltip = L["Create a new category."] },
 				DefaultButton 			= { 											text = L["Default ALL"],				tooltip = L["Reset ALL addon settings back to the defaults."] },
 				ExportButton			= {												text = L["Export"],						tooltip = L["Export your current settings."] },
 				ImportButton			= {												text = L["Import"],						tooltip = L["Import your current settings."] } },
@@ -1094,16 +1093,16 @@ end
 function PerspectiveOptions:InitializeOptions()
 	-- Only run these actions on the first initialize
 	if not self.initialized then
-		-- Load the window position
-		local pos = self.db.profile[self.profile].position
-
-		if pos ~= nil then
-			self.Options:SetAnchorOffsets(pos.left, pos.top, pos.right, pos.bottom)
-		end
-
 		-- Setup the event handlers for the options window
 		self.Options:AddEventHandler("WindowMoved", 		"OnOptions_AnchorsChanged")
 		self.Options:AddEventHandler("WindowSizeChanged", 	"OnOptions_AnchorsChanged")
+	end
+
+	-- Load the window position
+	local pos = self.db.profile.position
+
+	if pos ~= nil then
+		self.Options:SetAnchorOffsets(pos.left, pos.top, pos.right, pos.bottom)
 	end
 
 	-- Initialize Options Buttons
@@ -1365,24 +1364,23 @@ function PerspectiveOptions:CategoryEditorInitialize(category)
 	-- Set the category editor image pixie
 	self:SetPixie(self.CategoryEditor, 1, { sprite = icon, color = color })
 
-	local whitelist = self:GetOptionValue(nil, "whitelist", category)
+	local custom = self:GetOptionValue(nil, "custom", category)
 	
 	local catEdit = self.CategoryEditor:FindChild("CategoryEdit")
 
 	-- Set the rename text
 	catEdit:SetText(header)
 
+	if not catEdit:GetData() then
+		catEdit:AddEventHandler("EditBoxReturn", 	"TextBoxReturnCategoryEditorCategoryEdit")
+		catEdit:AddEventHandler("EditBoxTab", 		"TextBoxReturnCategoryEditorCategoryEdit")
+		catEdit:AddEventHandler("EditBoxEscape", 	"TextBoxEscapeCategoryEditorCategoryEdit")
+	end
+
+	catEdit:SetData(category)
+
 	-- Set the module
 	self.CategoryEditor:SetData(self:GetOptionValue(nil, "module", category))
-	
-	-- Show the rename edit box if this is a whitelist item
-	if whitelist then
-		self:SetPixie(self.CategoryEditor, 2, { sprite = "BK3:UI_BK3_Holo_InsetSimple" })
-		catEdit:SetStyleEx("ReadOnly", false)
-	else
-		self:SetPixie(self.CategoryEditor, 2, { sprite = "" })
-		catEdit:SetStyleEx("ReadOnly", true)
-	end
 
 	-- Initialize the buttons
 	for name, options in pairs(controls.CategoryEditor.Buttons) do
@@ -1399,9 +1397,26 @@ function PerspectiveOptions:CategoryEditorInitialize(category)
 		self:TextBoxInitialize("CategoryEditor", name, category, options)
 	end
 
-		-- Initialize the colorbuttons
+	-- Initialize the colorbuttons
 	for name, options in pairs(controls.CategoryEditor.ColorButtons) do
 		self:ColorButtonInitialize("CategoryEditor", name, category, options)
+	end
+
+	-- Show the rename edit box if this is a custom item
+	if custom then
+		-- Show the edit box border
+		self:SetPixie(self.CategoryEditor, 2, { sprite = "BK3:UI_BK3_Holo_InsetSimple" })
+		-- Allow edits
+		catEdit:SetStyleEx("ReadOnly", false)
+		-- Show the delete button
+		self.CategoryEditor:FindChild("DeleteButton"):Show(true, true)
+	else
+		-- Hide the edit box border
+		self:SetPixie(self.CategoryEditor, 2, { sprite = "" })
+		-- Do not allow edits
+		catEdit:SetStyleEx("ReadOnly", true)
+		-- Hide the delete button
+		self.CategoryEditor:FindChild("DeleteButton"):Show(false, true)
 	end
 
 	--[[loadDropDown("LimitBy",			category, "limitBy")
@@ -1458,6 +1473,10 @@ function PerspectiveOptions:ImportSettings()
 	-- Parse the dialog text.
 	local profile = JSON.decode(self.Dialog:FindChild("TextBox"):GetText())
 	
+	for k, v in pairs(profile) do
+		self.db.profile[k] = {}
+		self.db.profile[k] = v
+	end
 	-- Save the import to your profile.
 	self.db.profile = profile
 
@@ -1465,6 +1484,10 @@ function PerspectiveOptions:ImportSettings()
 	Perspective:UpdateOptions(nil, true)
 
 	self:InitializeOptions()
+
+	self.CategoryEditor:Show(false, true)
+	self.ModuleList:GetParent():Show(true, true)
+	self.CategoryList:GetParent():Show(true, true)
 
 	Perspective:Stop()
 	Perspective:Start()
@@ -1489,11 +1512,22 @@ function PerspectiveOptions:ButtonInitialize(parent, name, category, options)
 	-- Make sure we haven't already set the event handlers
 	if not control:GetData() then
 		--Setup the event handlers
-		control:AddEventHandler("ButtonSignal", 		"ButtonClicked" .. parent .. name)
+		control:AddEventHandler("ButtonSignal", "ButtonClicked" .. parent .. name)
 	end
 
 	-- Set the data for the control.
 	control:SetData({ category = category, options = options })
+end
+
+function PerspectiveOptions:ButtonClickedOptionsNewButton(handler, control, button)
+	self.db.profile[self.profile].categories[L["Custom Unit"]] = {
+		header = L["Custom Unit"],
+		module = L["Custom"],
+		custom = true }
+
+	self:InitializeOptions()
+
+	self:CategoryEditorInitialize(L["Custom Unit"])
 end
 
 function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)
@@ -1532,11 +1566,29 @@ function PerspectiveOptions:ButtonClickedCategoryEditorBackButton(handler, contr
 end
 
 function PerspectiveOptions:ButtonClickedCategoryEditorDeleteButton(handler, control, button)
-	Print("TODO: Delete Click")
+	local data = control:GetData()
+
+	self.db.profile[self.profile].categories[data.category] = nil
+
+	self:InitializeOptions()
+
+	self.CategoryEditor:Show(false, true)
+	self.ModuleList:GetParent():Show(true, true)
+	self.CategoryList:GetParent():Show(true, true)
+
+	-- Update all the uis
+	Perspective:UpdateOptions(nil, true)
 end
 
 function PerspectiveOptions:ButtonClickedCategoryEditorDefaultButton(handler, control, button)
-	Print("TODO: Default Click")
+	local data = control:GetData()
+
+	self.db.profile[self.profile].categories[data.category] = {}
+	for k, v in pairs(self.db.defaults.profile[self.profile].categories[data.category]) do
+		self.db.profile[self.profile].categories[data.category][k] = v
+	end
+
+	self:CategoryEditorInitialize(data.category)
 end
 
 -----------------------------------------------------------------------------------------
@@ -1648,7 +1700,7 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 	local edit = control:FindChild("EditBox")
 
 	-- Set the control toolip.
-	control:SetTooltip(options.tooltip)
+	control:SetTooltip(options.tooltip .. " " .. L["Press enter to save the new value."])
 
 	-- Set the textbox label.
 	self:SetPixie(control, 1, { text = options.label, flagsText = { DT_VCENTER = true } })
@@ -1754,6 +1806,45 @@ function PerspectiveOptions:TextBoxEscapeCategoryEditor(handler, control)
 	-- Load the previous value
 	control:SetText(self:GetOptionValue(nil, data.options.option, data.category) or "")
 end
+
+function PerspectiveOptions:TextBoxReturnCategoryEditorCategoryEdit(handler, control)
+	-- Get the data from the control
+	local oldCategory = control:GetData()
+
+	-- Get the new category
+	local category = control:GetText()
+
+	if self.db.profile[self.profile].categories[category] or
+		category == "all" or
+		category == "default" or
+		category == "oldCategory" then
+		-- Category already exists or is not allowed.
+		control:SetText(oldCategory)
+		Print("Not allowed")
+	else
+		self.db.profile[self.profile].categories[category] = {}
+		
+		for k, v in pairs(self.db.profile[self.profile].categories[oldCategory] or {}) do
+			self.db.profile[self.profile].categories[category][k] = v
+		end
+
+		-- Update the header
+		self.db.profile[self.profile].categories[category].header = category
+
+		-- Delete the custom unit
+		self.db.profile[self.profile].categories[oldCategory] = nil
+
+		-- Reinit the options
+		self:InitializeOptions()
+
+		-- Show our new category.
+		self:CategoryEditorInitialize(category)
+
+		-- Update the ui options
+		Perspective:UpdateOptions(nil, true)
+	end
+end
+
 
 -----------------------------------------------------------------------------------------
 -- ColorButton

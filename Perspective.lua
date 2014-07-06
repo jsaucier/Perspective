@@ -300,77 +300,74 @@ function Perspective:OnTimerQueue(elapsed)
 	end
 end
 
-function Perspective:OnTimerDraw()
-	-- Determines if we are allowed to draw the unit
-	local function addPixies(ui, pPos, pixies, items, lines)
-		local unit = self:GetUnitById(ui.id)
+function Perspective:AddPixie(ui, pPos, pixies, items, lines)
+	local unit = self:GetUnitById(ui.id)
 
-		if unit then				
-			local isOccluded = unit:IsOccluded()
+	if unit then				
+		local isOccluded = unit:IsOccluded()
 
-			if not ui.disabled and 
-				ui.inRange and
-				not (ui.disableInCombat and GameLib.GetPlayerUnit():IsInCombat()) and
-				table.getn(pixies) < Options.db.profile[Options.profile].settings.max
-				and (not isOccluded or (isOccluded and not ui.disableOccluded)) then
+		if not ui.disabled and 
+			ui.inRange and
+			not (ui.disableInCombat and GameLib.GetPlayerUnit():IsInCombat()) and
+			table.getn(pixies) < Options.db.profile[Options.profile].settings.max
+			and (not isOccluded or (isOccluded and not ui.disableOccluded)) then
 
-				-- Update the units position
-				local uPos = GameLib.GetUnitScreenPosition(unit)
-			
-				if uPos then
-					local showItem = true
-					local showLine = true
+			-- Update the units position
+			local uPos = GameLib.GetUnitScreenPosition(unit)
+		
+			if uPos then
+				local showItem = true
+				local showLine = true
 
-					-- Determine if we can show the line
-					if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
-						showLine = false
-					end
+				-- Determine if we can show the line
+				if not ui.showLines or (not uPos.bOnScreen and not ui.showLinesOffscreen) then
+					showLine = false
+				end
 
-					-- Determine if we can show the icon
-					if not uPos.bOnScreen then
-						showItem = false
-					end
+				-- Determine if we can show the icon
+				if not uPos.bOnScreen then
+					showItem = false
+				end
 
-					-- We've determined either the lines or icons can be show, now
-					-- we need to see if we hit our display limit.
-					if (showItem or showLine) and ui.limitBy and ui.limitId then
-						for i, id in pairs(ui.limitId) do
-							-- Determine if our item is within limit.
-							if showItem and (items[ui.limitBy][id] or 0) >= ui.max then
-								showItem = false
-							end
+				-- We've determined either the lines or icons can be show, now
+				-- we need to see if we hit our display limit.
+				if (showItem or showLine) and ui.limitBy and ui.limitId then
+					for i, id in pairs(ui.limitId) do
+						-- Determine if our item is within limit.
+						if showItem and (items[ui.limitBy][id] or 0) >= ui.max then
+							showItem = false
+						end
 
-							-- Determine if our line is within limit.
-							if showLine and (lines[ui.limitBy][id] or 0) >= ui.maxLines then
-								showLine = false
-							end
+						-- Determine if our line is within limit.
+						if showLine and (lines[ui.limitBy][id] or 0) >= ui.maxLines then
+							showLine = false
 						end
 					end
+				end
 
-					-- Either the item or line are able to be shown.
-					if showItem or showLine then
-						-- Add the unit to the draw list.
-						table.insert(pixies, { 
-							ui = ui, 
-							unit = unit,
-							uPos = uPos, 
-							pPos = pPos, 
-							showItem = showItem, 
-							showLine = showLine 
-						})
-						
-						-- Increase our limits.
-						if ui.limitBy and ui.limitId then
-							for i, id in pairs(ui.limitId) do
-								-- Increase the item limit count
-								if showItem then
-									items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
-								end
+				-- Either the item or line are able to be shown.
+				if showItem or showLine then
+					-- Add the unit to the draw list.
+					table.insert(pixies, { 
+						ui = ui, 
+						unit = unit,
+						uPos = uPos, 
+						pPos = pPos, 
+						showItem = showItem, 
+						showLine = showLine 
+					})
+					
+					-- Increase our limits.
+					if ui.limitBy and ui.limitId then
+						for i, id in pairs(ui.limitId) do
+							-- Increase the item limit count
+							if showItem then
+								items[ui.limitBy][id] = (items[ui.limitBy][id] or 0) + 1
+							end
 
-								-- Increase the line limit count
-								if showLine then
-									lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
-								end
+							-- Increase the line limit count
+							if showLine then
+								lines[ui.limitBy][id] = (lines[ui.limitBy][id] or 0) + 1
 							end
 						end
 					end
@@ -378,105 +375,121 @@ function Perspective:OnTimerDraw()
 			end
 		end
 	end
+end
 
-	-- Draw the pixie on screen
-	local function drawPixie(ui, unit, uPos, pPos, showItem, showLine)
-		-- Draw the line first, if it needs to be drawn
-		if showLine then
-			-- Get the unit's position and vector
-			local pos = unit:GetPosition()
-			local vec = Vector3.New(pos.x, pos.y, pos.z)
+function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
+	local lineDistanceFromCenter = 200
 
-			-- Get the screen position of the unit by it's vector
-			local lPos = GameLib.WorldLocToScreenPoint(vec)
+	-- Draw the line first, if it needs to be drawn
+	if showLine then
+		-- Get the unit's position and vector
+		local pos = unit:GetPosition()
+		local vec = Vector3.New(pos.x, pos.y, pos.z)
 
-			-- Draw the background line to give the outline if required
-			if ui.showLineOutline then
-				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
-				self.Overlay:AddPixie({
-					bLine = true,
-					fWidth = ui.lineWidth + 2,
-					cr = lineAlpha .. "000000",
-					loc = {
-						fPoints = {0, 0, 0, 0},
-						nOffsets = {
-							lPos.x, 
-							lPos.y, 
-							pPos.nX, 
-							pPos.nY
-						}
-					}
-				})
-			end
+		-- Get the screen position of the unit by it's vector
+        local lPos = GameLib.WorldLocToScreenPoint(vec)
 
-			-- Draw the actual line to the unit's vector
+        -- Get the length of the vector
+        local xDist = pPos.nX - lPos.x
+        local yDist = pPos.nY - lPos.y
+        local vectorLength = math.sqrt(xDist * xDist + yDist * yDist)
+       
+        -- Get the ratio of the line distance from the center of the screen to the vector length
+        local lengthRatio = lineDistanceFromCenter / vectorLength
+       
+        -- Get the x and y offsets for the line starting point
+        local xOffset = lengthRatio * xDist
+        local yOffset = lengthRatio * yDist
+
+		-- Draw the background line to give the outline if required
+		if ui.showLineOutline then
+			local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+
 			self.Overlay:AddPixie({
 				bLine = true,
-				fWidth = ui.lineWidth,
-				cr = ui.cLineColor,
+				fWidth = ui.lineWidth + 2,
+				cr = lineAlpha .. "000000",
 				loc = {
 					fPoints = {0, 0, 0, 0},
 					nOffsets = {
-						pPos.nX, 
-						pPos.nY,
 						lPos.x, 
-						lPos.y, 					
+						lPos.y, 
+						pPos.nX - xOffset, 
+						pPos.nY - yOffset
 					}
 				}
 			})
 		end
 
-		-- Draw the icon and text if it needs to be drawn.
-		if showItem then
-			-- Draw the icon first
-			if ui.showIcon then
-				self.Overlay:AddPixie({
-					strSprite = ui.icon,
-					cr = ui.cIconColor,
-					loc = {
-						fPoints = { 0, 0, 0, 0 },
-						nOffsets = {
-							uPos.nX - (ui.scaledWidth / 2), 
-							uPos.nY - (ui.scaledHeight / 2), 
-							uPos.nX + (ui.scaledWidth / 2),
-							uPos.nY + (ui.scaledHeight / 2)
-						}
-					}
-				})
-			end		
-			
-			-- Draw the text
-			if ui.showName or ui.showDistance then
-				local text = ""
-
-				if ui.showName then
-					text = ui.display or ui.name or ""
-				end
-
-				text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
-
-				self.Overlay:AddPixie({
-					strText = text,
-					strFont = ui.font,
-					crText = ui.cFontColor,
-					loc = {
-						fPoints = {0,0,0,0},
-						nOffsets = {
-							uPos.nX - 50, 
-							uPos.nY + (ui.scaledHeight / 2) + 0, 
-							uPos.nX + 50, 
-							uPos.nY + (ui.scaledHeight / 2) + 100 
-						}
-					},
-					flagsText = {
-						DT_CENTER = true,
-						DT_WORDBREAK = true
-					}
-				})
-			end
-		end
+		-- Draw the actual line to the unit's vector
+		self.Overlay:AddPixie({
+			bLine = true,
+			fWidth = ui.lineWidth,
+			cr = ui.cLineColor,
+			loc = {
+				fPoints = {0, 0, 0, 0},
+				nOffsets = {
+					lPos.x, 
+					lPos.y,
+					pPos.nX - xOffset, 
+					pPos.nY - yOffset					
+				}
+			}
+		})
 	end
 
+	-- Draw the icon and text if it needs to be drawn.
+	if showItem then
+		-- Draw the icon first
+		if ui.showIcon then
+			self.Overlay:AddPixie({
+				strSprite = ui.icon,
+				cr = ui.cIconColor,
+				loc = {
+					fPoints = { 0, 0, 0, 0 },
+					nOffsets = {
+						uPos.nX - (ui.scaledWidth / 2), 
+						uPos.nY - (ui.scaledHeight / 2), 
+						uPos.nX + (ui.scaledWidth / 2),
+						uPos.nY + (ui.scaledHeight / 2)
+					}
+				}
+			})
+		end		
+		
+		-- Draw the text
+		if ui.showName or ui.showDistance then
+			local text = ""
+
+			if ui.showName then
+				text = ui.display or ui.name or ""
+			end
+
+			text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
+
+			self.Overlay:AddPixie({
+				strText = text,
+				strFont = ui.font,
+				crText = ui.cFontColor,
+				loc = {
+					fPoints = {0,0,0,0},
+					nOffsets = {
+						uPos.nX - 50, 
+						uPos.nY + (ui.scaledHeight / 2) + 0, 
+						uPos.nX + 50, 
+						uPos.nY + (ui.scaledHeight / 2) + 100 
+					}
+				},
+				flagsText = {
+					DT_CENTER = true,
+					DT_WORDBREAK = true
+				}
+			})
+		end
+	end
+end
+
+function Perspective:OnTimerDraw()
 	-- Perspective is disabled
 	if Options.db.profile[Options.profile].settings.disabled then return end
 
@@ -495,12 +508,12 @@ function Perspective:OnTimerDraw()
 
 		-- Check our prioritized units first, they are the closest to our player
 		for index, ui in pairs(self.sorted.prioritized) do
-			addPixies(ui, pPos, pixies, items, lines)
+			self:AddPixie(ui, pPos, pixies, items, lines)
 		end
 
 		-- Finally check our categorized units.
 		for index, ui in pairs(self.sorted.categorized) do
-			addPixies(ui, pPos, pixies, items, lines)			
+			self:AddPixie(ui, pPos, pixies, items, lines)			
 		end
 
 		-- Destroy all our pixies
@@ -520,7 +533,7 @@ function Perspective:OnTimerDraw()
 			pixie = pixies[i]
 
 			-- Drw the pixie
-			drawPixie(
+			self:DrawPixie(
 				pixie.ui, 
 				pixie.unit,
 				pixie.uPos, 

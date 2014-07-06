@@ -302,6 +302,8 @@ function PerspectiveLocale:LoadLocalization()
 	-- UI Settings CheckButtons
 	locale.UI_Settings_DisableCheck_Text			= "Disable Perspective"
 	locale.UI_Settings_DisableCheck_Tooltip			= "Disabling Perspective turns it completely off but preserves all settings."
+	locale.UI_Settings_OffsetCheck_Text				= "Offset lines from character"
+	locale.UI_Settings_OffsetCheck_Tooltip			= "Offsets the lines so they do not overlay on top of your character."
 	locale.UI_Settings_DrawSlider_Text				= "Redraw Delay Time:"
 	locale.UI_Settings_DrawSlier_Tooltip 			= "The amount of time between screen redraws."
 	locale.UI_Settings_FastSlider_Text 				= "Update delay at close range"

@@ -39,9 +39,11 @@ local activationStates = {
 	{ state = "Vendor", 				category = "vendor" },
 	{ state = "CraftingStation", 		category = "craftingStation" },
 	{ state = "EngravingStation", 		category = "engravingStation" },
+	{ state = "GuildRegistrar",			category = "guildRegistrar"},
+	{ state = "CityDirections",			category = "cityDirections"},
 	{ state = "Dye", 					category = "dye" },
 	{ state = "Bank", 					category = "bank" },
-	{ state = "GuildBank", 				category = "bank" },
+	{ state = "GuildBank", 				category = "guildBank" },
 	{ state = "Dungeon", 				category = "dungeon" },
 }
 
@@ -562,8 +564,13 @@ function Perspective:OnTimerDraw()
 	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
-	-- Save player unit 
-	if (self.Player == nil) then self.Player = GameLib.GetPlayerUnit() end
+	-- Save player unit & Race Id
+	if (self.Player == nil) then 
+		local p = GameLib.GetPlayerUnit()
+		if (p:IsValid()) then 
+			self.Player = GameLib.GetPlayerUnit() 
+		end
+	end
 	if (self.PlayerRaceId == nil) then 
 		if (self.Player ~= nil) then 
 			self.PlayerRaceId = self.Player:GetRaceId()
@@ -1392,6 +1399,7 @@ function Perspective:OnWorldChanged()
 	if self.loaded then
 		self:MarkersInit()
 	end
+	self.Player = nil
 end
 
 function Perspective:OnQuestInit()

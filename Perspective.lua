@@ -1740,9 +1740,12 @@ function Perspective:UpdateRewards(ui, unit)
 				if questId == 7085 and not act.Interact then
 					isValid = false
 				end
-			elseif unit:GetType() == "Simple" then
+			elseif unit:GetType() == "Simple" or unit:GetType() == "SimpleCollidable" then
 				-- ANALYSIS: Crystal Healing (Northern Wastes)
 				if questId == 7086 and not act.ScientistRawScannable then
+					isValid = false
+				-- The Ravenous Grove
+				elseif questId == 6762 and not act.Interact then
 					isValid = false
 				end
 			end

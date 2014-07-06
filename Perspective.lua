@@ -300,6 +300,7 @@ function Perspective:OnTimerQueue(elapsed)
 	end
 end
 
+
 function Perspective:AddPixie(ui, pPos, pixies, items, lines)
 	local unit = self:GetUnitById(ui.id)
 
@@ -378,8 +379,6 @@ function Perspective:AddPixie(ui, pPos, pixies, items, lines)
 end
 
 function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
-	local lineDistanceFromCenter = 0
-
 	-- Draw the line first, if it needs to be drawn
 	if showLine then
 		-- Get the unit's position and vector
@@ -388,18 +387,6 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 
 		-- Get the screen position of the unit by it's vector
         local lPos = GameLib.WorldLocToScreenPoint(vec)
-
-        -- Get the length of the vector
-        local xDist = pPos.nX - lPos.x
-        local yDist = pPos.nY - lPos.y
-        local vectorLength = math.sqrt(xDist * xDist + yDist * yDist)
-       
-        -- Get the ratio of the line distance from the center of the screen to the vector length
-        local lengthRatio = lineDistanceFromCenter / vectorLength
-       
-        -- Get the x and y offsets for the line starting point
-        local xOffset = lengthRatio * xDist
-        local yOffset = lengthRatio * yDist
 
 		-- Draw the background line to give the outline if required
 		if ui.showLineOutline then
@@ -414,8 +401,8 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 					nOffsets = {
 						lPos.x, 
 						lPos.y, 
-						pPos.nX - xOffset, 
-						pPos.nY - yOffset
+						pPos.nX, 
+						pPos.nY
 					}
 				}
 			})
@@ -431,8 +418,8 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
 				nOffsets = {
 					lPos.x, 
 					lPos.y,
-					pPos.nX - xOffset, 
-					pPos.nY - yOffset					
+					pPos.nX, 
+					pPos.nY					
 				}
 			}
 		})

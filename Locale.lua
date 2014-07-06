@@ -24,10 +24,12 @@ end
 function PerspectiveLocale:LoadLocalization()
 	local locale = {
 		[""] = true,
+		["Unknown"] = true,		
 		["Perspective Target Information"] = true,
 		["Perspective Settings Export"] = true,
 		["Perspective Settings Import"] = true,
 		["Perspective Target Information"] = true,
+		["Get Current Target"] = true,
 		["Import"] = true,
 		["Import your current settings."] = true,
 		["Export"] = true,
@@ -233,7 +235,6 @@ function PerspectiveLocale:LoadLocalization()
 		["Tank"] = true,
 		["Healer"] = true,
 		["DPS"] = true,
-		["Unknown"] = true,
 		["Roan Skull"] = true,
 	}
 

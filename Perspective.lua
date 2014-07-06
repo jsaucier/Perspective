@@ -1719,13 +1719,13 @@ function Perspective:UpdateHarvest(ui, unit)
 	local category
 	
 	if not unit:IsDead() then
-		if skill == L["Farmer"] then
+		if skill == L.Tradeskill_Farmer then
 			category = "farmer"
-		elseif skill == L["Mining"] then
+		elseif skill == L.Tradeskill_Mining then
 			category = "miner"
-		elseif skill == L["Relic Hunter"] then
+		elseif skill == L.Tradeskill_Relic_Hunter then
 			category = "relichunter"
-		elseif skill == L["Survivalist"] then
+		elseif skill == L.Tradeskill_Survivalist then
 			category = "survivalist" 
 		end
 		

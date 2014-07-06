@@ -1035,9 +1035,7 @@ function Perspective:MarkersDraw()
 				marks < marker.max and
 				uPos.z > 0 and
 				region.distance and 
-				(region.distance >= marker.minDistance and
-				region.distance <= marker.maxDistance) and
-				not region.inArea then
+				region.inRange then
 
 				if marker.showIcon then
 					self.Overlay:AddPixie({
@@ -1293,24 +1291,13 @@ function Perspective:MarkerUpdate(marker, vector)
 	end
 
 	if vector then
-		local inArea = false
-
-		if marker.type == "path" and marker.mission:IsInArea() then
-			inArea = true
-		end
-
 		for index, region in pairs(marker.regions) do
 			-- Get the distance to the marker
 			region.distance = math.ceil((vector - region.vector):Length())
 				
 			-- Determine if the player is in the region
-			if marker.type == "quest" then
-				-- No direct call that I can find to determine if the player is
-				-- in the area, so make it anywhere closer than 100m
-				region.inArea = (region.distance <= Options.db.profile[Options.profile].settings.inArea)
-			elseif marker.type == "path" then
-				region.inArea = inArea
-			end
+			region.inRange = (region.distance >= marker.minDistance and
+							region.distance <= marker.maxDistance)
 		end
 
 		table.sort(marker.regions, function(a, b) return (a.distance or 0) < (b.distance or 0) end)

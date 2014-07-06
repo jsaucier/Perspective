@@ -378,7 +378,7 @@ function Perspective:AddPixie(ui, pPos, pixies, items, lines)
 end
 
 function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine)
-	local lineDistanceFromCenter = 200
+	local lineDistanceFromCenter = 0
 
 	-- Draw the line first, if it needs to be drawn
 	if showLine then

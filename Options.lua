@@ -1274,21 +1274,32 @@ function PerspectiveOptions:CategoryItemInitialize(category, module)
 	
 	local item = self.CategoryList:FindChild("CategoryItem" .. category)
 
-	local button
+	local button, check
 
 	if not item then
 		-- Create a new category item.
 		item = Apollo.LoadForm(self.xmlDoc, "CategoryItem", self.CategoryList, self)
 
 		button = item:FindChild("Button")
+
+		check = button:FindChild("Check")
 		
 		button:AddEventHandler("ButtonSignal", "CategoryItemClicked")
+		check:AddEventHandler("ButtonCheck", "CategoryItemChecked")
+		check:AddEventHandler("ButtonUncheck", "CategoryItemChecked")
 	else
 		button = item:FindChild("Button")
+
+		check = button:FindChild("Check")
+		check:AddEventHandler("ButtonCheck", "CategoryItemChecked")
+		check:AddEventHandler("ButtonUncheck", "CategoryItemChecked")
 	end
 
 	-- Set the category for the button
 	button:SetData(category)
+	check:SetData(category)
+
+	check:SetCheck(not self:GetOptionValue(nil, "disabled", category))
 
 	-- Set the name for the item.
 	item:SetName("CategoryItem" .. category)
@@ -1320,6 +1331,32 @@ function PerspectiveOptions:CategoryItemClicked(handler, control, button)
 
 	-- Show the category editor.
 	self:CategoryEditorInitialize(self.category)
+end
+
+function PerspectiveOptions:CategoryItemChecked(handler, control, button)
+	-- Get the category
+	local category = control:GetData()
+
+	-- Disable/Enable the category
+	self.db.profile[self.profile].categories[category].disabled = not control:IsChecked()
+	
+	if category == "all" then
+		for c, cat in pairs(self.db.profile[self.profile].categories) do
+			if (self.module == L["All"] and c ~= "default") or cat.module == self.module then
+				-- Toggle the category
+				cat.disabled = not control:IsChecked()
+
+				-- Get the category checkbox
+				self.CategoryList:FindChild("CategoryItem" .. c):FindChild("Check"):SetCheck(not cat.disabled)
+			end
+		end
+	else
+		-- Toggle the category
+		self.db.profile[self.profile].categories[category].disabled = not control:IsChecked()
+	end	
+
+	-- Update all the ui options.
+	Perspective:UpdateOptions(nil, true) 
 end
 
 function PerspectiveOptions:CategoryEditorInitialize(category)

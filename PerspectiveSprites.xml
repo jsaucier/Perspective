@@ -199,7 +199,7 @@
         <Frame Texture="Perspective\Sprites\Town\auction.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="town-commodity" Cycle="1">
-        <Frame Texture="Perspective\Sprites\Town\commodity.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+        <Frame Texture="Perspective\Sprites\Town\commodoty.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="town-gbank" Cycle="1">
         <Frame Texture="Perspective\Sprites\Town\gbank.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
@@ -224,5 +224,35 @@
     </Sprite>
     <Sprite Name="town-registrar" Cycle="1">
         <Frame Texture="Perspective\Sprites\Town\registrar.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="travel-taxi" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Travel\taxi.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="travel-portal" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Travel\portal.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="travel-dungeon" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Travel\dungeon.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pin" Cycle="1">
+        <Frame Texture="Perspective\Sprites\pin.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-heavy" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\heavy.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-resonator" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\resonator.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-claw" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\claw.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-pistol" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\pistol.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-psyblade" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\psyblade.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="subdue-sword" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Subdue\sword.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
 </Sprites>

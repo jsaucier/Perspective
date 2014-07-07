@@ -248,12 +248,12 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Captain_Visia]					= { category = "instancePortal",	display = L.Unit_Travel_Whitevale },
 					[L.Unit_Captain_Zanaar]					= { category = "instancePortal",	display = L.Unit_Travel_Northern_Wastes },
 					[L.Unit_Servileia_Uticeia]				= { category = "instancePortal",	display = L.Unit_Travel_Ilium },
-					[L.Unit_Empirius]						= { category = "wotwChampion" },
+					--[[[L.Unit_Empirius]						= { category = "wotwChampion" },
 					[L.Unit_Sagittaurus]					= { category = "wotwChampion" },
 					[L.Unit_Lectro]							= { category = "wotwChampion" },
 					[L.Unit_Krule]							= { category = "wotwChampion" },
 					[L.Unit_Zappo]							= { category = "wotwChampion" },
-					[L.Unit_Ignacio]						= { category = "wotwChampion" },
+					[L.Unit_Ignacio]						= { category = "wotwChampion" },]]
 					[L.Unit_Police_Patrolman]				= { category = "cowPolice" },
 					[L.Unit_Police_Constable]				= { category = "cowPolice" },
 					[L.Unit_Water]							= { category = "mtWater" },
@@ -351,10 +351,12 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff7482c1",
 						lineColor = "ff7482c1",
 						iconColor = "ff7482c1",
-						icon = "PerspectiveSprites:guild2",
+						icon = "PerspectiveSprites:player-guild",
 						showLines = false,
 						maxLines = 4,
 						max = 4,
+						iconWidth = 36,
+						iconHeight = 36,
 						useRange = true,
 						rangeColor = "ff00ff00",
 						rangeIcon = true,
@@ -366,10 +368,12 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff00ffff",
 						lineColor = "ff00ffff",
 						iconColor = "ff00ffff",
-						icon = "PerspectiveSprites:guild2",
+						icon = "PerspectiveSprites:player-guild",
 						showLines = false,
 						maxLines = 40,
 						max = 40,
+						iconWidth = 36,
+						iconHeight = 36,
 						useRange = true,
 						rangeColor = "ff00ffff",
 						rangeIcon = true,
@@ -381,7 +385,9 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
 						iconColor = "ff00ff00",
-						icon = "PerspectiveSprites:guild2",
+						iconWidth = 36,
+						iconHeight = 36,
+						icon = "PerspectiveSprites:player-guild",
 						showLines = false },
 					exile = {
 						title = L.Category_Player_Exile,
@@ -585,7 +591,7 @@ function PerspectiveOptions:LoadDefaults()
 					questObjective = {
 						title = L.Category_Quest_Objective,
 						module = L.Module_Quest,
-						icon = "PerspectiveSprites:target",
+						icon = "PerspectiveSprites:Quest-Objective",
 						max = 3,
 						limitBy = "category",
 						lineColor = "ffff8000",
@@ -595,7 +601,7 @@ function PerspectiveOptions:LoadDefaults()
 					questInteractable = {
 						title = L.Category_Quest_Interactable,
 						module = L.Module_Quest,
-						icon = "PerspectiveSprites:gear",
+						icon = "PerspectiveSprites:quest-interactive",
 						max = 3,
 						iconHeight = 36,
 						iconWidth = 36,
@@ -1754,7 +1760,7 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 	-- Set the checkbutton value.
 	if category == "settings" then
 		control:SetCheck(options.checked or self.db.profile[self.profile].settings[options.option])
-	elseif cateogry then
+	elseif category then
 		-- category checkbutton
 		control:SetCheck(self:GetOptionValue(nil, options.option, category))
 

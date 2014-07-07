@@ -124,99 +124,6 @@ function PerspectiveOptions:OnEnable()
 	end
 end
 
-function PerspectiveOptions:ShowTargetInfo()
-	local text = ""
-
-	local function appendLine(txt, bNoReturn)
-		text = text .. txt .. (not bNoReturn and "\n" or "")
-	end
-
-	local function getIndent(indent)
-		local txt = ""
-
-		for i = 1, indent do
-			txt = txt .. "    "
-		end
-
-		return txt
-	end
-
-	local function deepPrint(key, value, indent)
-		local txt = ""
-
-		if type(value) == "table" then
-			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
-			for k, v in pairs(value) do
-				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
-			end
-			txt = txt .. " }"
-		else
-			txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
-		end
-
-		return txt
-	end
-
-	local indent = 1
-	local target = GameLib.GetTargetUnit()
-
-	if target then
-		local rewards = target:GetRewardInfo()
-		local state = target:GetActivationState()
-		local zone = GameLib.GetCurrentZoneMap()
-
-		appendLine("Name: " .. target:GetName())
-		appendLine("ID: " .. target:GetId())
-		appendLine("IsDead: " .. tostring(target:IsDead()))
-		appendLine("IsValid: " .. tostring(target:IsValid()))
-		appendLine("Disposition: " .. tostring(target:GetDispositionTo(GameLib.GetPlayerUnit())))
-		appendLine("Difficulty: " .. tostring(target:GetDifficulty()))
-		appendLine("Eliteness: " .. tostring(target:GetEliteness()))
-		appendLine("Faction: " .. tostring(target:GetFaction()))
-		appendLine("Title: " .. tostring(target:GetTitle()))
-		appendLine("IsPvpFlagged: " .. tostring(target:IsPvpFlagged()))
-		appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
-		appendLine("Type: " .. target:GetType())
-		appendLine("MouseOverType: " .. target:GetMouseOverType())
-
-		if rewards then
-			local txt = ""
-			for k, v in pairs(rewards) do
-				txt = txt .. deepPrint(k, v, indent + 1)
-			end
-
-			if txt ~= "" then
-				appendLine("RewardInfo: {", true)
-				appendLine(txt .. " }")
-			else
-				appendLine("RewardInfo: {}")
-			end
-		else
-			appendLine("RewardInfo: nil")
-		end
-
-		if state then
-			local txt = ""
-			for k, v in pairs(state) do
-				txt = txt .. deepPrint(k, v, indent + 1)
-			end
-
-			if txt ~= "" then
-				appendLine("ActivationState: {", true)
-				appendLine(txt .. " }")
-			else
-				appendLine("ActivationState: {}")
-			end
-		else
-			appendLine("ActivationState: nil")
-		end
-	else
-		text = L.UI_Dialog_PTI_Error
-	end
-
-	self:ShowDialog(L.UI_Dialog_PTI_Header, text, true, true, L.UI_Dialog_PTI_Button_Text, "ShowTargetInfo")
-end
-
 function PerspectiveOptions:OnDialogClose()
 	self.Dialog:Show(false, true)
 end
@@ -264,6 +171,9 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Roving_Chompacabra]				= { category = "mtEnemy" },
 					[L.Unit_Dustback_Gnasher]				= { category = "mtEnemy" },
 					[L.Unit_Dustback_Gnawer]				= { category = "mtEnemy" } },
+				buffs 										= {},
+				debuffs										= { 
+					[L.Debuff_Moodie_Mask]					= { category = "wtCarrier", disposition = true, zone = 69 } },
 				challengeUnits 								= {
 					-- Challenge specific fixes
 					[L.Unit_Roan_Skull]						= { challenge = 576 } },
@@ -279,7 +189,7 @@ function PerspectiveOptions:LoadDefaults()
 						iconColor = "ffffffff",
 						iconHeight = 48,
 						iconWidth = 48,
-						limitBy = "category", -- valid options are nil, "name", "category", "quest", "challenge"
+						limitBy = "category", -- valid options are nil, "name", "category", "quest", "challenge", "module"
 						lineColor = "ffffffff",
 						lineWidth = 2,
 						max = 2,
@@ -315,9 +225,9 @@ function PerspectiveOptions:LoadDefaults()
 					focus = {
 						title = L.Category_Misc_Focus,
 						module = L.Module_Misc,
-						lineColor = "ffff7dda",
-						iconColor = "ffff7dda",
-						icon = "IconSprites:Icon_Windows_UI_CRB_Attribute_Grit",
+						lineColor = "ffff65aa",
+						iconColor = "ffff65aa",
+						icon = "PerspectiveSprites:Misc-Focus",
 						maxIcons = 1,
 						maxLines = 1,
 						iconHeight = 48,
@@ -419,7 +329,8 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "PerspectiveSprites:Player-MainTank",
 						iconHeight = 36,
 						iconWidth = 36,
-						rangeColor = "ff00ffff",
+						iconColor = "ff00ffff",
+						rangeColor = "ff00ff00",
 						showLines = false },
 					mainAssist = {
 						title = L.Category_Player_Main_Assist,
@@ -427,14 +338,16 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "PerspectiveSprites:Player-MainAssist",
 						iconHeight = 36,
 						iconWidth = 36,
-						rangeColor = "ff00ffff",
+						iconColor = "ff00ffff",
+						rangeColor = "ff00ff00",
 						showLines = false },
 					tank = {
 						title = L.Category_Player_Tank,
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-Tank",
 						iconHeight = 36,
-						rangeColor = "ff00ffff",
+						iconColor = "ff00ffff",
+						rangeColor = "ff00ff00",
 						iconWidth = 36,
 						showLines = false },
 					healer = {
@@ -442,7 +355,8 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-Healer",
 						iconHeight = 36,
-						rangeColor = "ff00ffff",
+						iconColor = "ff00ffff",
+						rangeColor = "ff00ff00",
 						iconWidth = 36,
 						showLines = false },
 					dps = {
@@ -450,9 +364,130 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-DPS",
 						iconHeight = 36,
-						rangeColor = "ff00ffff",
+						iconColor = "ff00ffff",
+						rangeColor = "ff00ff00",
 						iconWidth = 36,
 						showLines = false },
+					dead = {
+						title = L.Category_Player_Dead,
+						module = L.Module_Player,
+						icon = "PerspectiveSprites:Player-Dead",
+						iconHeight = 36,
+						iconWidth = 36,
+						iconColor = "ff808080" },
+					-- [[ PVP ]]
+					friendlyPvpStalker = {
+						title = L.Category_PVP_Friendly_Stalker,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Stalker",
+						showLines = false },
+					friendlyPvpWarrior = {
+						title = L.Category_PVP_Friendly_Warrior,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Warrior",
+						showLines = false },
+					friendlyPvpEngineer = {
+						title = L.Category_PVP_Friendly_Engineer,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Engineer",
+						showLines = false },
+					friendlyPvpMedic = {
+						title = L.Category_PVP_Friendly_Medic,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Medic",
+						showLines = false },
+					friendlyPvpEsper = {
+						title = L.Category_PVP_Friendly_Esper,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Esper",
+						showLines = false },
+					friendlyPvpSpellslinger = {
+						title = L.Category_PVP_Friendly_Spellslinger,
+						module = L.Module_PVP,
+						iconColor = "ff00ff00",
+						icon = "PerspectiveSprites:PVP-Spellslinger",
+						showLines = false },
+					hostilePvpStalker = {
+						title = L.Category_PVP_Hostile_Stalker,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Stalker",
+						showLines = false },
+					hostilePvpWarrior = {
+						title = L.Category_PVP_Hostile_Warrior,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Warrior",
+						showLines = false },
+					hostilePvpEngineer = {
+						title = L.Category_PVP_Hostile_Engineer,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Engineer",
+						showLines = false },
+					hostilePvpMedic = {
+						title = L.Category_PVP_Hostile_Medic,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Medic",
+						showLines = false },
+					hostilePvpEsper = {
+						title = L.Category_PVP_Hostile_Esper,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Esper",
+						showLines = false },
+					hostilePvpSpellslinger = {
+						title = L.Category_PVP_Hostile_Spellslinger,
+						module = L.Module_PVP,
+						iconColor = "ffff0000",
+						icon = "PerspectiveSprites:PVP-Spellslinger",
+						showLines = false },
+					-- [[ Walatiki Temple ]]
+					wtCarrierFriendly = {
+						title = L.Category_Walatiki_Carrier_Friendly,
+						module = L.Module_Walatiki,
+						icon = "PerspectiveSprites:PVP-WalatikiMask",
+						iconColor = "ff00ff00",
+						lineColor = "ff00ff00" },
+					wtCarrierHostile = {
+						title = L.Category_Walatiki_Carrier_Hostile,
+						module = L.Module_Walatiki,
+						icon = "PerspectiveSprites:PVP-WalatikiMask",
+						iconColor = "ffff0000",
+						lineColor = "ffff0000" },
+					[L.Unit_Walatiki_Mask_Dominion] = {
+						title = L.Unit_Walatiki_Mask_Dominion,
+						module = L.Module_Walatiki,
+						icon = "PerspectiveSprites:PVP-WalatikiMask",
+						iconColor = "ffff0000",
+						lineColor = "ffff0000" },
+					[L.Unit_Walatiki_Mask_Exile] = {
+						title = L.Unit_Walatiki_Mask_Exile,
+						module = L.Module_Walatiki,
+						icon = "PerspectiveSprites:PVP-WalatikiMask",
+						iconColor = "ff00ff00",
+						lineColor = "ff00ff00" },
+					[L.Unit_Walatiki_Mask] = {
+						title = L.Category_Walatiki_Mask,
+						module = L.Module_Walatiki,
+						icon = "PerspectiveSprites:PVP-WalatikiMask",
+						iconColor = "ffffff00",
+						lineColor = "ffffff00" },
+					[L.Unit_Walatiki_Totem_Exile] = {
+						title = L.Category_Walatiki_Totem_Exile,
+						module = L.Module_Walatiki,
+						showLines = false },
+					[L.Unit_Walatiki_Totem_Dominion] = {
+						title = L.Category_Walatiki_Totem_Dominion,
+						module = L.Module_Walatiki,
+						showLines = false },
+					-- [[ NPC ]]
 					friendly = {
 						title = L.Category_NPC_Friendly_Normal,
 						module = L.Module_NPC,
@@ -650,10 +685,10 @@ function PerspectiveOptions:LoadDefaults()
 					questLoot = {
 						title = L.Category_Quest_Loot,
 						module = L.Module_Quest,
-						icon = "ClientSprites:GroupLootIcon",
+						icon = "PerspectiveSprites:Quest-Loot",
 						showLines = false,
-						iconWidth = 32,
-						iconHeight = 32 },
+						iconWidth = 28,
+						iconHeight = 28 },
 					challengeLocation = {
 						title = L.Category_Challenge_Location,
 						iconColor = "ffff8000",
@@ -703,8 +738,8 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Food_Table] = {
 						title = L.Category_Harvest_Food_Table,
 						module = L.Module_Harvest,
-						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
-						iconColor = "ff9d8734",
+						icon = "PerspectiveSprites:Harvest-Table",
+						iconColor = "ffffffff",
 						lineColor = "ff9d8734",
 						fontColor = "ff9d8734",
 						iconHeight = 32,
@@ -713,22 +748,22 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Butcher_Block] = {
 						title = L.Category_Harvest_Butcher_Block,
 						module = L.Module_Harvest,
-						icon = "IconSprites:Icon_Guild_UI_Guild_Steak",
-						iconColor = "ff9d3838",
+						icon = "PerspectiveSprites:Harvest-Butcher",
+						iconColor = "ffffffff",
 						lineColor = "ff9d3838",
 						fontColor = "ff9d3838",
-						iconHeight = 32,
-						iconWidth = 32,
+						iconHeight = 36,
+						iconWidth = 36,
 						max = 1 },
 					[L.Unit_Tanning_Rack] = {
 						title = L.Category_Harvest_Tanning_Rack,
 						module = L.Module_Harvest,
-						icon = "PerspectiveSprites:Hide",
+						icon = "PerspectiveSprites:Harvest-Hide",
 						iconColor = "ffb2aa73",
 						lineColor = "ffb2aa73",
 						fontColor = "ffb2aa73",
-						iconHeight = 32,
-						iconWidth = 32,
+						iconHeight = 36,
+						iconWidth = 36,
 						max = 1 },
 					flightPath = {
 						title = L.Category_Travel_Taxi,
@@ -743,6 +778,7 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Travel,
 						fontColor = "ffabf8cb",
 						icon = "PerspectiveSprites:Travel-Portal",
+						iconColor = "ff9c00ff",
 						iconHeight = 42,
 						iconWidth = 42,
 						max = 10,
@@ -751,9 +787,10 @@ function PerspectiveOptions:LoadDefaults()
 						title = L.Category_Travel_Bind_Point,
 						module = L.Module_Travel,
 						fontColor = "ffabf8cb",
-						icon = "IconSprites:Icon_Mission_Explorer_ExplorerDoor",
-						iconHeight = 42,
-						iconWidth = 42,
+						icon = "PerspectiveSprites:Travel-Bind",
+						iconColor = "ff00ffff",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					dungeon = {
 						title = L.Category_Travel_Dungeon,
@@ -922,18 +959,23 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Energy_Node] = {
 						title = L.Category_WotW_Energy_Node,
 						module = L.Module_WotW,
-						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_SilverFlagStretch",
+						icon = "PerspectiveSprites:Wilds-EnergyNode",
+						iconHeight = 48,
+						iconWidth = 48,
 						showLines = false },
 					[L.Unit_Moodie_Totem] = {
 						title = L.Category_WotW_Moodie_Totem,
 						module = L.Module_WotW,
-						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_RedFlagStretch",
-						iconColor = "ffff3300",
+						icon = "PerspectiveSprites:Wilds-MoodieTotem",
+						iconHeight = 48,
+						iconWidth = 48,
 						showLines = false },
 					[L.Unit_Skeech_Totem] = {
 						title = L.Category_WotW_Skeech_Totem,
 						module = L.Module_WotW,
-						icon = "CRB_InterfaceMenuList:spr_InterfaceMenuList_BlueFlagStretch",
+						icon = "PerspectiveSprites:Wilds-SkeechTotem",
+						iconHeight = 48,
+						iconWidth = 48,
 						showLines = false },
 					cowPolice = {
 						title = L.Category_Crimelords_Police,
@@ -946,22 +988,34 @@ function PerspectiveOptions:LoadDefaults()
 					mtWater = {
 						title = L.Category_Malgrave_Water,
 						module = L.Module_Malgrave,
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Water",
+						icon = "PerspectiveSprites:Malgrave-Water",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					[L.Unit_Caravan_Member] = {
 						title = L.Category_Malgrave_Caravan_Member,
 						module = L.Module_Malgrave,
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Survivor",
+						icon = "PerspectiveSprites:Malgrave-Member",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					mtFood = {
 						title = L.Category_Malgrave_Food,
 						module = L.Module_Malgrave,
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Food",
+						icon = "PerspectiveSprites:Malgrave-Food",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					mtFeed = {
 						title = L.Category_Malgrave_Feed,
 						module = L.Module_Malgrave,
-						icon = "IconSprites:Icon_Windows_UI_CRB_Adventure_Malgrave_Feed",
+						icon = "PerspectiveSprites:Malgrave-Feed",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					mtEnemy = {
 						title = L.Category_Malgrave_Enemy,
@@ -971,20 +1025,26 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Cactus_Fruit] = {
 						title = L.Category_Malgrave_Cactus_Fruit,
 						module = L.Module_Malgrave,
-						icon = "IconSprites:Icon_Mission_Scientist_ScanPlant",
-						iconColor = "ff00ffb6",
+						icon = "PerspectiveSprites:Malgrave-Fruit",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
 						showLines = false },
 					[L.Unit_Medical_Grenade] = {
 						title = L.Category_Malgrave_Medical_Grenade,
 						module = L.Module_Malgrave,
-						iconColor = "ff00ffd5",
-						icon = "PerspectiveSprites:Grenade",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
+						icon = "PerspectiveSprites:Malgrave-Grenade",
 						showLines = false },
 					[L.Unit_Bug_Bomb] = {
 						title = L.Category_Malgrave_Bug_Bomb,
 						module = L.Module_Malgrave,
-						iconColor = "ff00ffd5",
-						icon = "PerspectiveSprites:Bomb",
+						iconColor = "ffe759d3",
+						iconHeight = 36,
+						iconWidth = 36,
+						icon = "PerspectiveSprites:Malgrave-Bomb",
 						showLines = false },
 				}
 			}
@@ -1049,6 +1109,99 @@ function PerspectiveOptions:LoadControls()
 				DrawSlider 				= {},
 				FastSlider				= {},
 				SlowSlider				= {} } } }
+end
+
+function PerspectiveOptions:ShowTargetInfo()
+	local text = ""
+
+	local function appendLine(txt, bNoReturn)
+		text = text .. txt .. (not bNoReturn and "\n" or "")
+	end
+
+	local function getIndent(indent)
+		local txt = ""
+
+		for i = 1, indent do
+			txt = txt .. "    "
+		end
+
+		return txt
+	end
+
+	local function deepPrint(key, value, indent)
+		local txt = ""
+
+		if type(value) == "table" then
+			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
+			for k, v in pairs(value) do
+				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
+			end
+			txt = txt .. " }"
+		else
+			txt = txt .. getIndent(indent) .. key .. ": " .. tostring(value)
+		end
+
+		return txt
+	end
+
+	local indent = 1
+	local target = GameLib.GetTargetUnit()
+
+	if target then
+		local rewards = target:GetRewardInfo()
+		local state = target:GetActivationState()
+		local zone = GameLib.GetCurrentZoneMap()
+
+		appendLine("Name: " .. target:GetName())
+		appendLine("ID: " .. target:GetId())
+		appendLine("IsDead: " .. tostring(target:IsDead()))
+		appendLine("IsValid: " .. tostring(target:IsValid()))
+		appendLine("Disposition: " .. tostring(target:GetDispositionTo(GameLib.GetPlayerUnit())))
+		appendLine("Difficulty: " .. tostring(target:GetDifficulty()))
+		appendLine("Eliteness: " .. tostring(target:GetEliteness()))
+		appendLine("Faction: " .. tostring(target:GetFaction()))
+		appendLine("Title: " .. tostring(target:GetTitle()))
+		appendLine("IsPvpFlagged: " .. tostring(target:IsPvpFlagged()))
+		appendLine("Zone: " .. zone.strName .. " [" .. zone.id .. "]")
+		appendLine("Type: " .. target:GetType())
+		appendLine("MouseOverType: " .. target:GetMouseOverType())
+
+		if rewards then
+			local txt = ""
+			for k, v in pairs(rewards) do
+				txt = txt .. deepPrint(k, v, indent + 1)
+			end
+
+			if txt ~= "" then
+				appendLine("RewardInfo: {", true)
+				appendLine(txt .. " }")
+			else
+				appendLine("RewardInfo: {}")
+			end
+		else
+			appendLine("RewardInfo: nil")
+		end
+
+		if state then
+			local txt = ""
+			for k, v in pairs(state) do
+				txt = txt .. deepPrint(k, v, indent + 1)
+			end
+
+			if txt ~= "" then
+				appendLine("ActivationState: {", true)
+				appendLine(txt .. " }")
+			else
+				appendLine("ActivationState: {}")
+			end
+		else
+			appendLine("ActivationState: nil")
+		end
+	else
+		text = L.UI_Dialog_PTI_Error
+	end
+
+	self:ShowDialog(L.UI_Dialog_PTI_Header, text, true, true, L.UI_Dialog_PTI_Button_Text, "ShowTargetInfo")
 end
 
 function PerspectiveOptions:GetOptionValue(ui, option, category)

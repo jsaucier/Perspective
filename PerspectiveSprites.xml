@@ -63,8 +63,8 @@
     <Sprite Name="Grenade" Cycle="1">
         <Frame Texture="Perspective\Sprites\grenade.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Gear" Cycle="1">
-        <Frame Texture="Perspective\Sprites\gear.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="quest-interactive" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Quest\interactive.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="Guild" Cycle="1">
         <Frame Texture="Perspective\Sprites\guild.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="1" y1="1" y2="1" y3="1" y4="73" y5="73" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
@@ -255,8 +255,8 @@
     <Sprite Name="subdue-sword" Cycle="1">
         <Frame Texture="Perspective\Sprites\Subdue\sword.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="guild2" Cycle="1">
-        <Frame Texture="Perspective\Sprites\guild2.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="player-guild" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Player\guild.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="player-maintank" Cycle="1">
         <Frame Texture="Perspective\Sprites\Player\maintank.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>

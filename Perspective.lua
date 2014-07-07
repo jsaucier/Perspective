@@ -441,6 +441,8 @@ end
 
 function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedLine, deadzone)
 
+	local pixieLocPoints = { 0, 0, 0, 0 }
+
 	-- Draw the line first, if it needs to be drawn
 	if showLine then
 		-- Get the unit's position and vector
@@ -483,11 +485,9 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 		if drawLine == 1 then 
 
-			local pixieLocPoints = { 0, 0, 0, 0 }
-
-			if dottedLine == true then 
-			-- if true then 
-				-- Draw Dots, then! 
+			-- if dottedLine == true then 
+			if true then 
+				-- Draw Dots! 
 				-- First dumb approach, and it seems to work OK:  
 				-- 		draw dot at start, 
 				--		then one extra dot at ~half (configurable) remaining distance (maybe with a max jump length)
@@ -519,13 +519,12 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 		 			if ( deltaX >= -20 and deltaX <= 20 and deltaY >= -20 and deltaY <= 20 ) then break end 
 
 		 			-- maxDelta is design to avoid too big a gap between dots on very long lines (especially going offscreen)
-		 			-- changed conditions to avoid math.abs in the test
-		 			if (deltaX > maxDelta or deltaX < maxDeltaNeg) then 
+		 			if (math.abs(deltaX) > maxDelta) then 
 		 				deltaRatio = maxDelta / math.abs(deltaX)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
-		 			if (deltaY > maxDelta or deltaY < maxDeltaNeg) then 
+		 			if (math.abs(deltaY) > maxDelta) then 
 		 				deltaRatio = maxDelta / math.abs(deltaY)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
@@ -536,7 +535,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 		 			drawY = drawY + deltaY * self.lineStep
 				end
 
-				-- Add option to show final dot? Or maybe key it to showItem?
+				-- Only draw final dot if not showing item name/icon
 				if not showItem then 
 					self.Overlay:AddPixie( {
 							strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
@@ -561,28 +560,17 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 						loc = { fPoints = pixieLocPoints, nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset } }
 					} )
 			end
-
 		end
-
 	end
 
 	-- Draw the icon and text if it needs to be drawn.
 	if showItem then
 		-- Draw the icon first
 		if ui.showIcon then
-			self.Overlay:AddPixie({
-				strSprite = ui.icon,
-				cr = ui.cIconColor,
-				loc = {
-					fPoints = { 0, 0, 0, 0 },
-					nOffsets = {
-						uPos.nX - (ui.scaledWidth / 2), 
-						uPos.nY - (ui.scaledHeight / 2), 
-						uPos.nX + (ui.scaledWidth / 2),
-						uPos.nY + (ui.scaledHeight / 2)
-					}
-				}
-			})
+			self.Overlay:AddPixie( {
+					strSprite = ui.icon, cr = ui.cIconColor,
+					loc = { fPoints = pixieLocPoints, nOffsets = { uPos.nX - (ui.scaledWidth / 2),  uPos.nY - (ui.scaledHeight / 2),  uPos.nX + (ui.scaledWidth / 2), uPos.nY + (ui.scaledHeight / 2) } }
+				} )
 		end		
 		
 		-- Draw the text
@@ -595,24 +583,11 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 			text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
 
-			self.Overlay:AddPixie({
-				strText = text,
-				strFont = ui.font,
-				crText = ui.cFontColor,
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						uPos.nX - 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 0, 
-						uPos.nX + 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 100 
-					}
-				},
-				flagsText = {
-					DT_CENTER = true,
-					DT_WORDBREAK = true
-				}
-			})
+			self.Overlay:AddPixie( {
+					strText = text, strFont = ui.font, crText = ui.cFontColor,
+					loc = { fPoints = pixieLocPoints, nOffsets = { uPos.nX - 50, uPos.nY + (ui.scaledHeight / 2) + 0, uPos.nX + 50, uPos.nY + (ui.scaledHeight / 2) + 100 } },
+					flagsText = { DT_CENTER = true, DT_WORDBREAK = true }
+				} )
 		end
 	end
 end

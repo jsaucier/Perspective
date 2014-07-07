@@ -442,7 +442,7 @@ function Perspective:GetLineOffsetFromCenter (yDist, vectorLength)
 end
 
 
-function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzone)
+function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedLine, deadzone)
 
 	-- Draw the line first, if it needs to be drawn
 	if showLine then
@@ -458,7 +458,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 
         local drawLine = 1
 
-       	if self.offsetLines then
+        if self.offsetLines then
 	        -- Get the length of the vector
 			local xDist = lPos.x - pPos.nX
 			local yDist = lPos.y - pPos.nY
@@ -487,41 +487,86 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 		end
 
 		if drawLine == 1 then 
-			-- Draw the background line to give the outline if required
-			if ui.showLineOutline then
-				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
 
+			local pixieLocPoints = { 0, 0, 0, 0 }
+
+			if dottedLine == true then 
+				-- Draw Dots, then! 
+				-- First dumb approach, and it seems to work OK:  
+				-- 		draw dot at start, 
+				--		then one extra dot at ~half (configurable) remaining distance (maybe with a max jump length)
+				--		until 20 pixels remain on either X or Y axis (really do NOT want to spam SQRT)
+
+				local drawX = pPos.nX + xOffset
+				local drawY = pPos.nY + yOffset
+				local targetX = lPos.x
+				local targetY = lPos.y
+				local deltaX, deltaY, deltaRatio
+				-- move that to some global place with change notification and account for render scale
+				local maxDelta = Apollo.GetDisplaySize().nWidth / 6 
+
+				while 1 do
+					-- Draw Dot 
+		 			self.Overlay:AddPixie( {
+		 					strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
+		 					loc = { fPoints = pixieLocPoints, nOffsets = { drawX - 5, drawY - 5, drawX + 5, drawY + 5 } }
+		 				} )
+		 			-- Move half remaioning distance
+		 			deltaX = (targetX - drawX)
+		 			deltaY = (targetY - drawY)
+
+		 			if ( deltaX >= -20 and deltaX <= 20 and deltaY >= -20 and deltaY <= 20 ) then break end 
+
+		 			if ( math.abs(deltaX) > maxDelta ) then 
+		 				deltaRatio = maxDelta / math.abs(deltaX)
+		 				deltaX = deltaX * deltaRatio
+		 				deltaY = deltaY * deltaRatio
+		 			end
+		 			if ( math.abs(deltaY) > maxDelta ) then 
+		 				deltaRatio = maxDelta / math.abs(deltaY)
+		 				deltaX = deltaX * deltaRatio
+		 				deltaY = deltaY * deltaRatio
+		 			end
+
+		 			drawX = drawX + deltaX * 0.5
+		 			drawY = drawY + deltaY * 0.5
+
+				end
+
+				-- Add option to show final dot? 
+				self.Overlay:AddPixie( {
+						strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
+						loc = { fPoints = pixieLocPoints, nOffsets = { targetX - 5, targetY - 5, targetX + 5, targetY + 5 } }
+					} )
+			else
+				-- Draw lines!
+				-- Draw the background line to give the outline if required
+				if ui.showLineOutline then
+					local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+
+					self.Overlay:AddPixie({
+						bLine = true,
+						fWidth = ui.lineWidth + 2,
+						cr = lineAlpha .. "000000",
+						loc = {
+							fPoints = pixieLocPoints,
+							nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
+						}
+					})
+				end
+
+				-- Draw the actual line to the unit's vector
 				self.Overlay:AddPixie({
 					bLine = true,
-					fWidth = ui.lineWidth + 2,
-					cr = lineAlpha .. "000000",
+					fWidth = ui.lineWidth,
+					cr = ui.cLineColor,
 					loc = {
-						fPoints = {0, 0, 0, 0},
-						nOffsets = {
-							lPos.x, 
-							lPos.y, 
-							pPos.nX + xOffset, 
-							pPos.nY + yOffset
-						}
+						fPoints = pixieLocPoints,
+						nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
 					}
 				})
 			end
 
-			-- Draw the actual line to the unit's vector
-			self.Overlay:AddPixie({
-				bLine = true,
-				fWidth = ui.lineWidth,
-				cr = ui.cLineColor,
-				loc = {
-					fPoints = {0, 0, 0, 0},
-					nOffsets = {
-						lPos.x, 
-						lPos.y,
-						pPos.nX + xOffset, 
-						pPos.nY + yOffset					
-					}
-				}
-			})
 		end
 
 	end
@@ -576,6 +621,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 		end
 	end
 end
+
 
 function Perspective:OnTimerDraw()
 	-- Perspective is disabled

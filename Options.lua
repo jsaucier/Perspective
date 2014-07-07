@@ -351,7 +351,7 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff7482c1",
 						lineColor = "ff7482c1",
 						iconColor = "ff7482c1",
-						icon = "PerspectiveSprites:guild",
+						icon = "PerspectiveSprites:guild2",
 						showLines = false,
 						maxLines = 4,
 						max = 4,
@@ -366,7 +366,7 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff00ffff",
 						lineColor = "ff00ffff",
 						iconColor = "ff00ffff",
-						icon = "PerspectiveSprites:guild",
+						icon = "PerspectiveSprites:guild2",
 						showLines = false,
 						maxLines = 40,
 						max = 40,
@@ -381,7 +381,7 @@ function PerspectiveOptions:LoadDefaults()
 						fontColor = "ff00ff00",
 						lineColor = "ff00ff00",
 						iconColor = "ff00ff00",
-						icon = "PerspectiveSprites:guild",
+						icon = "PerspectiveSprites:guild2",
 						showLines = false },
 					exile = {
 						title = L.Category_Player_Exile,
@@ -686,7 +686,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "IconSprites:Icon_MapNode_Map_Node_Tree",
 						lineColor = "ffce9967" },
 					[L.Unit_Food_Table] = {
-						title = L.Category_Malgrave_Food_Table,
+						title = L.Category_Harvest_Food_Table,
 						module = L.Module_Harvest,
 						icon = "IconSprites:Icon_Guild_UI_Guild_Sandwich",
 						iconColor = "ff9d8734",
@@ -986,46 +986,54 @@ function PerspectiveOptions:LoadControls()
 				ExportButton			= {},
 				ImportButton			= {} },
 			CheckButtons 				= {
-				CategoriesCheck 		= {	checked = true,								text = L["Categories"],					tooltip = L[""] },
-				SettingsCheck 			= {												text = L["Settings"], 					tooltip = L[""] } } },
+				CategoriesCheck 		= {	checked = true },
+				SettingsCheck 			= {} } },
 		Editor 							= {
 			CheckButtons				= {
-				DisableCheck 			= { option = "disabled",						text = L["Disable"], 					tooltip = L["Disable this category."] },
-				CombatDisableCheck 		= { option = "disableInCombat",					text = L["Hide When In Combat"], 		tooltip = L["Hide this category while in combat."] },
-				OccludedDisableCheck 	= { option = "disableOccluded",					text = L["Hide When Occluded"], 		tooltip = L["Hide this category whhen it is occluded."] },
-				ShowIconCheck 			= { option = "showIcon",						text = L["Show Icon"], 					tooltip = L["Show the icon for this category."] },
-				ShowNameCheck 			= { option = "showName",						text = L["Show Name"], 					tooltip = L["Show the name for this category."] },
-				ShowDistanceCheck 		= { option = "showDistance",					text = L["Show Distance"], 				tooltip = L["Show the distance for this category."] },
-				ShowLinesCheck 			= { option = "showLines",						text = L["Show Lines"], 				tooltip = L["Show the line to this cateogry."] },
-				ShowOutlineCheck 		= { option = "showLineOutline",					text = L["Show Line Outline"], 			tooltip = L["Show the outline of the line to this category."] },
-				ShowOffScreenLineCheck 	= { option = "showLinesOffscreen",				text = L["Show Lines Offscreen"], 		tooltip = L["Show the line to this category even it is offscreen."] },
-				RangeFontCheck 			= { option = "rangeFont",						text = L["Color Font By Range Color"], 	tooltip = L["Use the range color for the font color."] },
-				RangeIconCheck 			= { option = "rangeIcon",						text = L["Color Icon By Range Color"], 	tooltip = L["Use the range color for the icon color."] },
-				RangeLineCheck 			= { option = "rangeLine",						text = L["Color Line By Range Color"], 	tooltip = L["Use the range color for the line color."] } },
+				DisableCheck 			= { option = "disabled" },
+				CombatDisableCheck 		= { option = "disableInCombat" },
+				OccludedDisableCheck 	= { option = "disableOccluded" },
+				ShowIconCheck 			= { option = "showIcon" },
+				ShowNameCheck 			= { option = "showName" },
+				ShowDistanceCheck 		= { option = "showDistance" },
+				ShowLinesCheck 			= { option = "showLines" },
+				ShowOutlineCheck 		= { option = "showLineOutline" },
+				ShowOffScreenLineCheck 	= { option = "showLinesOffscreen" },
+				RangeFontCheck 			= { option = "rangeFont" },
+				RangeIconCheck 			= { option = "rangeIcon" },
+				RangeLineCheck 			= { option = "rangeLine" } },
 			TextBoxes					= {
-				ModuleText				= { option = "module",							label = L["Module"],					tooltip = L["Edit the module for this category."] },
-				DisplayText				= { option = "display",							label = L["Display As"],				tooltip = L["Set a display name to be used instead of the unit's name."] },
-				IconText				= { option = "icon",							label = L["Icon"],						tooltip = L["Set the icon to be displayed for this category."] },
-				IconHeightText			= { option = "iconHeight",	isNumber = true,	label = L["Icon Height"], 				tooltip = L["Set the icon height for this category."] },
-				IconWidthText			= { option = "iconWidth",	isNumber = true,	label = L["Icon Width"], 				tooltip = L["Set the icon width for this category."] },
-				MinDistanceText			= { option = "minDistance",	isNumber = true,	label = L["Min Distance"], 				tooltip = L["Set the minimium distance for which to show this category."] },
-				MaxDistanceText			= { option = "maxDistance",	isNumber = true,	label = L["Max Distance"], 				tooltip = L["Set the maximium distance for which to show this category."] },
-				ZDistanceText			= { option = "zDistance",	isNumber = true,	label = L["Z Distance"], 				tooltip = L["Set the maximium vertical distance for which to show this category."] },
-				LineWidthText			= { option = "lineWidth",	isNumber = true,	label = L["Line Width"], 				tooltip = L["Set the line width for the category."] },
-				MaxIconsText			= { option = "max",			isNumber = true,	label = L["Limit Icons"], 				tooltip = L["Set the maximium limit of icons to be displayed on screen at once."] },
-				MaxLinesText			= { option = "maxLines",	isNumber = true,	label = L["Limit Lines"], 				tooltip = L["Set the maximium limit of lines to be displayed on screen at once."] },
-				RangeLimitText			= { option = "rangeLimit",	isNumber = true,	label = L["Range Limit"], 				tooltip = L["Set the range limit for this category.  This can be used to determine if your skills are in range of certain targets."] } },
+				ModuleText				= { option = "module" },
+				DisplayText				= { option = "display" },
+				IconText				= { option = "icon" },
+				IconHeightText			= { option = "iconHeight",	isNumber = true },
+				IconWidthText			= { option = "iconWidth",	isNumber = true },
+				MinDistanceText			= { option = "minDistance",	isNumber = true },
+				MaxDistanceText			= { option = "maxDistance",	isNumber = true },
+				ZDistanceText			= { option = "zDistance",	isNumber = true },
+				LineWidthText			= { option = "lineWidth",	isNumber = true },
+				MaxIconsText			= { option = "max",			isNumber = true },
+				MaxLinesText			= { option = "maxLines",	isNumber = true },
+				RangeLimitText			= { option = "rangeLimit",	isNumber = true } },
 			ColorButtons				= {
-				FontColor				= { option = "fontColor",						label = L["Font Color"],				tooltip = L["Set the font color for this category."] },
-				IconColor				= { option = "iconColor",						label = L["Icon Color"],				tooltip = L["Set the icon color for this category."] },
-				LineColor				= { option = "lineColor",						label = L["Line Color"],				tooltip = L["Set the line color for this category."] },
-				RangeColor				= { option = "rangeColor",						label = L["Range Color"],				tooltip = L["Set the range color for this category."] } },
+				FontColor				= { option = "fontColor" },
+				IconColor				= { option = "iconColor" },
+				LineColor				= { option = "lineColor" },
+				RangeColor				= { option = "rangeColor" } } ,
 			Buttons 					= { 
-				BackButton				= { 																					tooltip = L["Back to the categories list view."] },
-				DeleteButton			= { 											text = L["Delete"], 					tooltip = L["Delete this category."] },
-				DefaultButton			= { 											text = L["Default"],					tooltip = L["Reset this category to the default settings."] } }	},
-		Settings = {}
-	}
+				BackButton				= {},
+				DeleteButton			= {},
+				DefaultButton			= {} } },
+		Settings 						= {
+			CheckButtons 				= {
+				DisableCheck 			= { option = "disabled" },
+				OffsetCheck 			= { option = "offsetLines" } },
+			TextBoxes 					= {
+				MaxUnitsText 			= { option = "max",			isNumber = true } },
+			Sliders 					= {
+				DrawSlider 				= {},
+				FastSlider				= {},
+				SlowSlider				= {} } } }
 end
 
 function PerspectiveOptions:GetOptionValue(ui, option, category)
@@ -1215,14 +1223,28 @@ function PerspectiveOptions:InitializeOptions()
 		end
 	end
 
-	-- Initialize the settings 
-	self:Settings_CheckInit("Disable", 		"disabled")
+	-- Initialize Settings Tab
+	for name, options in pairs(controls.Settings.CheckButtons) do
+		self:CheckButtonInitialize("Settings", name, "settings", options)
+	end
 
-	self:Settings_TimerInit("DrawUpdate", 	"draw", 0, "ms", 1000, 	"OnTimerTicked_Draw")
-	self:Settings_TimerInit("FastUpdate", 	"fast", 1, "ms", 1000, 	"OnTimerTicked_Fast")
-	self:Settings_TimerInit("SlowUpdate", 	"slow", 1, "secs", 1,	"OnTimerTicked_Slow")
+	-- Initialize Options CheckButtons
+	for name, options in pairs(controls.Settings.Sliders) do
+		--self:SliderInitialize("Settings", name, nil, options)
+	end
 
-	self:Settings_TextInit("Max", 			"max", 		true)
+	-- Initialize Options TextBoxes
+	for name, options in pairs(controls.Settings.TextBoxes) do
+		self:TextBoxInitialize("Settings", name, "settings", options)
+	end
+
+	--self:Settings_CheckInit("Disable", 		"disabled")
+
+	self:Settings_TimerInit("DrawSlider", 	"draw", 0, "ms", 1000, 	"OnTimerTicked_Draw")
+	self:Settings_TimerInit("FastSlider", 	"fast", 1, "ms", 1000, 	"OnTimerTicked_Fast")
+	self:Settings_TimerInit("SlowSlider", 	"slow", 1, "secs", 1,	"OnTimerTicked_Slow")
+
+	--self:Settings_TextInit("Max", 			"max", 		true)
 	--self:Settings_TextInit("InArea", 		"inArea", 	true)
 
 		-- Sort the lists.
@@ -1282,7 +1304,7 @@ function PerspectiveOptions:ModuleItemInitialize(category, module)
 	item:SetName("ModuleItem" .. module)
 
 	-- Get the sortBy value.
-	local sortBy = module == L["All"] and "_first" or module
+	local sortBy = module == L.Module_All and "_first" or module
 
 	-- Set the data for the item.
 	item:SetData({ module = module, sortValue = sortBy })
@@ -1303,7 +1325,7 @@ function PerspectiveOptions:ModuleItemChecked(handler, control, button)
 		local m = item:GetData().module
 
 		-- If the module matches or we are showing all, then show the item, otherwise hide it.
-		if m == module or module == L["All"] or m == L["All"] then
+		if m == module or module == L.Module_All or m == L.Module_All then
 			item:Show(true, true)
 		else
 			item:Show(false, true)
@@ -1401,7 +1423,7 @@ function PerspectiveOptions:CategoryItemChecked(handler, control, button)
 	
 	if category == "all" then
 		for c, cat in pairs(self.db.profile[self.profile].categories) do
-			if (self.module == L["All"] and c ~= "default") or cat.module == self.module then
+			if (self.module == L.Module_All and c ~= "default") or cat.module == self.module then
 				-- Toggle the category
 				cat.disabled = not control:IsChecked()
 
@@ -1713,7 +1735,9 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"] or "")
 
 	-- Set the checkbutton value.
-	if category then
+	if category == "settings" then
+		control:SetCheck(options.checked or self.db.profile[self.profile].settings[options.option])
+	elseif cateogry then
 		-- category checkbutton
 		control:SetCheck(self:GetOptionValue(nil, options.option, category))
 
@@ -1737,9 +1761,6 @@ function PerspectiveOptions:CheckButtonInitialize(parent, name, category, option
 				control:Show(false, true)
 			end
 		end
-
-	else
-		control:SetCheck(options.checked or self.db.profile[self.profile].settings[options.option])
 	end
 
 	-- Make sure we haven't already set the event handlers
@@ -1788,6 +1809,26 @@ function PerspectiveOptions:CheckButtonClickedEditor(handler, control, button)
 	end
 end
 
+function PerspectiveOptions:CheckButtonClickedSettings(handler, control, button)
+	-- Get the control's data
+	local data = control:GetData()
+	
+	-- Get the control's value
+	local val = control:IsChecked()
+
+	self.db.profile[self.profile].settings[data.options.option] = val	
+
+	if data.options.option == "disabled" then
+		if val then
+			Perspective:Stop()
+		else
+			Perspective:Start()
+		end
+	elseif data.options.option == "offsetLines" then
+		Perspective.offsetLines = val
+	end
+end
+
 function PerspectiveOptions:CheckButtonClickedOptionsCategoriesCheck(handler, control, button)
 	self:OnHeaderButtonClicked("Categories")
 
@@ -1816,7 +1857,10 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 	control:SetTooltip(L["UI_" .. parent .. "_" .. name .. "_Tooltip"] .. "  " .. L.UI_Options_Tooltip_Action)
 	
 	-- Set the textbox value.
-	if category then
+	if category == "settings" then
+		-- Settings checkbutton
+		edit:SetText(self.db.profile[self.profile].settings[options.option])
+	else
 		-- Category textbox
 		edit:SetText(self:GetOptionValue(nil,  options.option, category) or "")
 
@@ -1837,9 +1881,6 @@ function PerspectiveOptions:TextBoxInitialize(parent, name, category, options)
 				control:Show(false, true)
 			end
 		end
-	else
-		-- Settings checkbutton
-		edit:SetText(self.db.profile[self.profile].settings[options.option])
 	end
 
 	-- Make sure we haven't already set the event handlers
@@ -1954,6 +1995,43 @@ function PerspectiveOptions:TextBoxReturnEditorCategoryEdit(handler, control)
 	end
 end
 
+function PerspectiveOptions:TextBoxReturnSettings(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+
+	-- Get the control's value
+	local val = control:GetText()
+
+	-- Check to see if the textbox is expecting a number
+	if data.options.isNumber then
+		if not tonumber(val) then
+			val = self.db.profile[self.profile].settings[options.option]
+		else
+			val = tonumber(val)
+		end
+	end
+
+	-- If the option is blank, load the default setting.
+	if val == "" then 
+		val = self.db.profile[self.profile].settings[options.option]
+	end
+
+	self.db.profile[self.profile].settings[data.options.option] = val	
+
+	-- Update the markers.
+	Perspective:MarkersInit()
+
+	-- Update all the ui options.
+	Perspective:UpdateOptions() 
+end
+
+function PerspectiveOptions:TextBoxEscapeEditor(handler, control)
+	-- Get the control's data
+	local data = control:GetData()
+
+	-- Load the previous value
+	control:SetText(self.db.profile[self.profile].settings[data.options.option])
+end
 
 -----------------------------------------------------------------------------------------
 -- ColorButton
@@ -2197,8 +2275,6 @@ function PerspectiveOptions:Editor_UpdateIcon(category)
 	button:UpdatePixie(1, pixie)
 end
 
-
-
 function PerspectiveOptions:Settings_CheckInit(name, option)
 	local control = self.Settings:FindChild(name .. "Check")
 
@@ -2216,9 +2292,16 @@ function PerspectiveOptions:Settings_CheckInit(name, option)
 	control:SetData({ option = option })
 end
 
-function PerspectiveOptions:Settings_TimerInit(control, value, numDecimal, unit, divBy, tickFunc)
-	local slider = self.Settings:FindChild(control .. "Slider")
-	local text = self.Settings:FindChild(control .. "Text")
+function PerspectiveOptions:Settings_TimerInit(name, value, numDecimal, unit, divBy, tickFunc)
+	local control = self["Settings"]:FindChild(name)
+	
+	control:SetTooltip(L["UI_Settings_" .. name .. "_Tooltip"])
+
+	control:FindChild(name .. "Label"):SetText(L["UI_Settings_" .. name .. "_Text"])
+	
+	local slider = control:FindChild("Slider")
+	
+	local text = self.Settings:FindChild(name .. "Text")
 
 	local val = tonumber(Apollo.FormatNumber(self.db.profile[self.profile].settings[value], numDecimal))
 

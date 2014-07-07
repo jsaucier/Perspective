@@ -57,11 +57,11 @@
     <Sprite Name="Circle-Outline" Cycle="1">
         <Frame Texture="Perspective\Sprites\circle-outline.tga" x0="0" x1="0" x2="0" x3="0" x4="64" x5="64" y0="0" y1="0" y2="0" y3="0" y4="64" y5="64" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Bomb" Cycle="1">
-        <Frame Texture="Perspective\Sprites\bomb.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="malgrave-bomb" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\bomb.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Grenade" Cycle="1">
-        <Frame Texture="Perspective\Sprites\grenade.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="malgrave-grenade" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\grenade.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="quest-interactive" Cycle="1">
         <Frame Texture="Perspective\Sprites\Quest\interactive.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
@@ -69,8 +69,8 @@
     <Sprite Name="Guild" Cycle="1">
         <Frame Texture="Perspective\Sprites\guild.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="1" y1="1" y2="1" y3="1" y4="73" y5="73" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Hide" Cycle="1">
-        <Frame Texture="Perspective\Sprites\hide.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    <Sprite Name="harvest-hide" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\hide.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="Target" Cycle="1">
         <Frame Texture="Perspective\Sprites\target.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
@@ -127,7 +127,7 @@
         <Frame Texture="Perspective\Sprites\Harvest\Plant\bloodbriar.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="plant-coralscale" Cycle="1">
-        <Frame Texture="Perspective\Sprites\Harvest\Plant\coralscale.tga" x0="0" x1="0" x2="0" x3="0" x4="0" x5="0" y0="0" y1="0" y2="0" y3="0" y4="0" y5="0" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+        <Frame Texture="Perspective\Sprites\Harvest\Plant\coralscale.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="plant-crowncorn" Cycle="1">
         <Frame Texture="Perspective\Sprites\Harvest\Plant\crowncorn.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
@@ -153,7 +153,7 @@
     <Sprite Name="plant-honeywheat" Cycle="1">
         <Frame Texture="Perspective\Sprites\Harvest\Plant\honeywheat.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-    <Sprite Name="Logicleaf" Cycle="1">
+    <Sprite Name="plant-logicleaf" Cycle="1">
         <Frame Texture="Perspective\Sprites\Harvest\Plant\logicleaf.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
     <Sprite Name="plant-mourningstar" Cycle="1">
@@ -272,5 +272,83 @@
     </Sprite>
     <Sprite Name="player-dps" Cycle="1">
         <Frame Texture="Perspective\Sprites\Player\dps.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="small-circle" Cycle="1">
+        <Frame Texture="Perspective\Sprites\small-circle.tga" x0="0" x1="0" x2="0" x3="0" x4="11" x5="11" y0="0" y1="0" y2="0" y3="0" y4="11" y5="11" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="travel-bind" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Travel\bind.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="malgrave-fruit" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\fruit.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="malgrave-member" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\member.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="malgrave-food" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\food.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="malgrave-feed" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\feed.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="malgrave-water" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Malgrave\water.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="harvest-butcher" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\butcher.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="harvest-table" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\table.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="misc-focus" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Misc\focus.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="wilds-skeechtotem" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Wilds\skeechtotem.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="wilds-moodietotem" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Wilds\moodietotem.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="wilds-energynode" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Wilds\energynode.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="quest-loot" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Quest\loot.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="mine-hydrogem" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\Mine\hydrogem.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="mine-shardslate" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\Mine\shardslate.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="mine-novacite" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\Mine\novacite.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="mine-zephyrite" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Harvest\Mine\zephyrite.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="player-dead" Cycle="1">
+        <Frame Texture="Perspective\Sprites\Player\dead.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-engineer" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\engineer.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-spellslinger" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\spellslinger.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-medic" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\medic.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-esper" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\esper.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-warrior" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\warrior.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-stalker" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\stalker.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="pvp-walatikimask" Cycle="1">
+        <Frame Texture="Perspective\Sprites\PVP\walatikimask.tga" x0="0" x1="0" x2="0" x3="0" x4="72" x5="72" y0="0" y1="0" y2="0" y3="0" y4="72" y5="72" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
 </Sprites>

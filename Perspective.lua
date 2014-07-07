@@ -128,6 +128,7 @@ function Perspective:OnInitialize()
 	self.inRaid = false
 
 	-- Register our addon events	
+	Apollo.RegisterEventHandler("ResolutionChanged", 					"OnResolutionChanged", self)
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("ChangeWorld", 							"OnWorldChanged", self)	
@@ -168,6 +169,11 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("ChatZoneChange",						"OnChatZoneChange", self)
 end
 
+function Perspective:OnResolutionChanged()
+	self.DisplaySize = Apollo.GetDisplaySize()
+	self.MaxDottedLineDelta = self.DisplaySize.nWidth / 6
+end
+
 function Perspective:OnEnable()
 	-- Make sure the addon isn't disabled before starting.
 	if not Options.db.profile[Options.profile].settings.disabled then
@@ -180,6 +186,8 @@ function Perspective:OnEnable()
 	if Apollo.GetAddon("Rover") then
 		SendVarToRover("Perspective", self)
 	end
+
+	self:OnResolutionChanged()
 end
 
 function Perspective:Start()
@@ -419,10 +427,7 @@ function Perspective:GetLineOffsetFromCenter (yDist, vectorLength)
 	local angle = math.asin(yDist / vectorLength)
 
 	local Wide = 0
-	if (self.PlayerRaceId ~= nil) then 
-		local deadzoneRaceEntry = DeadzoneRaceLookup[self.PlayerRaceId]
-		if (deadzoneRaceEntry ~= nil) then Wide = deadzoneRaceEntry.Wide end
-	end
+	if self.PlayerRaceIsWide ~= nil then Wide = self.PlayerRaceIsWide end
 
 	for index, item in pairs(DeadzoneAnglesLookup) do
 		if (angle >= item.Rad and angle < item.NextRad) then
@@ -467,9 +472,6 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 			local lineOffsetFromCenter = self:GetLineOffsetFromCenter(yDist, vectorLength)
 			if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
 
-			-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
-			-- TODO 
-
 			-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
 			if (lineOffsetFromCenter + 25 < vectorLength) then 
 				-- Get the ratio of the line distance from the center of the screen to the vector length
@@ -485,8 +487,8 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 		if drawLine == 1 then 
 
-			-- if dottedLine == true then 
-			if true then 
+			if dottedLine == true then 
+			-- if true then 
 				-- Draw Dots! 
 				-- First dumb approach, and it seems to work OK:  
 				-- 		draw dot at start, 
@@ -494,7 +496,8 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 				--		until 20 pixels remain on either X or Y axis (really do NOT want to spam SQRT)
 
 				-- Remove this from here once this is a config entry. 
-				-- MUST be between 0.1 and 1.0 (really. if it's 0 or less, or >1, it will crash)
+				-- MUST be between 0.1 and 1.0. Really. If it's 0 or less, or >1, it will crash. 
+				-- (don't wanna validate it here 100 times, config UI should guarantee value! let config file hackers crash!)
 				-- SHOULD be between 0.33 and 0.66, sweet spot is 0.5
 				self.lineStep = 0.5
 
@@ -503,9 +506,6 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 				local targetX = lPos.x
 				local targetY = lPos.y
 				local deltaX, deltaY, deltaRatio
-				-- move maxDelta* to some global place with resolution change notification and account for render scale
-				local maxDelta = Apollo.GetDisplaySize().nWidth / 6
-				local maxDeltaNeg = maxDelta * -1
 
 				while 1 do
 					-- Draw Dot 
@@ -519,13 +519,13 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 		 			if ( deltaX >= -20 and deltaX <= 20 and deltaY >= -20 and deltaY <= 20 ) then break end 
 
 		 			-- maxDelta is design to avoid too big a gap between dots on very long lines (especially going offscreen)
-		 			if (math.abs(deltaX) > maxDelta) then 
-		 				deltaRatio = maxDelta / math.abs(deltaX)
+		 			if (math.abs(deltaX) > self.MaxDottedLineDelta) then 
+		 				deltaRatio = self.MaxDottedLineDelta / math.abs(deltaX)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
-		 			if (math.abs(deltaY) > maxDelta) then 
-		 				deltaRatio = maxDelta / math.abs(deltaY)
+		 			if (math.abs(deltaY) > self.MaxDottedLineDelta) then 
+		 				deltaRatio = self.MaxDottedLineDelta / math.abs(deltaY)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
@@ -603,19 +603,21 @@ function Perspective:OnTimerDraw()
 	-- Save player unit & Race Id
 	if (self.Player == nil) then 
 		local p = GameLib.GetPlayerUnit()
-		if (p:IsValid()) then 
-			self.Player = GameLib.GetPlayerUnit() 
-		end
+		if (p:IsValid()) then self.Player = p end
 	end
 	if (self.PlayerRaceId == nil) then 
 		if (self.Player ~= nil) then 
 			self.PlayerRaceId = self.Player:GetRaceId()
-
+			local deadzoneRaceEntry = DeadzoneRaceLookup[self.PlayerRaceId]
+			if (deadzoneRaceEntry ~= nil) then 
+				self.PlayerRaceIsWide = deadzoneRaceEntry.Wide 
+			else 
+				self.PlayerRaceIsWide = 0 
+			end
 		end
 	end
 
 	-- Get the player's current screen position
-	-- local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 	local pPos = GameLib.GetUnitScreenPosition(self.Player)
 
 	-- We want to make sure we can get the unit's screen position	

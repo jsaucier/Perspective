@@ -455,13 +455,13 @@ function PerspectiveOptions:LoadDefaults()
 						iconColor = "ffff0000",
 						lineColor = "ffff0000" },
 					[L.Unit_Walatiki_Mask_Dominion] = {
-						title = L.Unit_Walatiki_Mask_Dominion,
+						title = L.Category_Walatiki_Mask_Dominion,
 						module = L.Module_Walatiki,
 						icon = "PerspectiveSprites:PVP-WalatikiMask",
 						iconColor = "ffff0000",
 						lineColor = "ffff0000" },
 					[L.Unit_Walatiki_Mask_Exile] = {
-						title = L.Unit_Walatiki_Mask_Exile,
+						title = L.Category_Walatiki_Mask_Exile,
 						module = L.Module_Walatiki,
 						icon = "PerspectiveSprites:PVP-WalatikiMask",
 						iconColor = "ff00ff00",

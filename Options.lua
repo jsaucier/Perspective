@@ -341,10 +341,10 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Misc,
 						lineColor = "ffff8000",
 						iconColor = "ffff8000",
-						icon = "ClientSprites:GroupWarriorIcon",
+						icon = "ClientSprites:Subdue-sword",
 						lineWidth = 10,
-						iconHeight = 32,
-						iconWidth = 32 },
+						iconHeight = 72,
+						iconWidth = 72 },
 					group = {
 						title = L.Category_Player_Group,
 						module = L.Module_Player,
@@ -371,7 +371,7 @@ function PerspectiveOptions:LoadDefaults()
 						maxLines = 40,
 						max = 40,
 						useRange = true,
-						rangeColor = "ff00ff00",
+						rangeColor = "ff00ffff",
 						rangeIcon = true,
 						rangeLine = true,
 						rangeFont = true },
@@ -419,6 +419,7 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "PerspectiveSprites:Player-MainTank",
 						iconHeight = 36,
 						iconWidth = 36,
+						rangeColor = "ff00ffff",
 						showLines = false },
 					mainAssist = {
 						title = L.Category_Player_Main_Assist,
@@ -426,12 +427,14 @@ function PerspectiveOptions:LoadDefaults()
 						icon = "PerspectiveSprites:Player-MainAssist",
 						iconHeight = 36,
 						iconWidth = 36,
+						rangeColor = "ff00ffff",
 						showLines = false },
 					tank = {
 						title = L.Category_Player_Tank,
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-Tank",
 						iconHeight = 36,
+						rangeColor = "ff00ffff",
 						iconWidth = 36,
 						showLines = false },
 					healer = {
@@ -439,6 +442,7 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-Healer",
 						iconHeight = 36,
+						rangeColor = "ff00ffff",
 						iconWidth = 36,
 						showLines = false },
 					dps = {
@@ -446,6 +450,7 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Player,
 						icon = "PerspectiveSprites:Player-DPS",
 						iconHeight = 36,
+						rangeColor = "ff00ffff",
 						iconWidth = 36,
 						showLines = false },
 					friendly = {
@@ -1665,23 +1670,25 @@ function PerspectiveOptions:ButtonClickedOptionsNewButton(handler, control, butt
 end
 
 function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)
-	self.db:ResetDB()
+	if button == 1 then
+		self.db:ResetDB()
 
-	self:InitializeOptions()
+		self:InitializeOptions()
 
-	self.Editor:Show(false, true)
-	self.ModuleList:GetParent():Show(true, true)
-	self.CategoryList:GetParent():Show(true, true)
+		self.Editor:Show(false, true)
+		self.ModuleList:GetParent():Show(true, true)
+		self.CategoryList:GetParent():Show(true, true)
 
-	-- Update all the uis
-	Perspective:UpdateOptions(nil, true)
+		-- Update all the uis
+		Perspective:UpdateOptions(nil, true)
 
-	-- Restart Perspective
-	Perspective:Stop()
-	Perspective:Start()
+		-- Restart Perspective
+		Perspective:Stop()
+		Perspective:Start()
 
-	-- Update the markers.
-	Perspective:MarkersInit()
+		-- Update the markers.
+		Perspective:MarkersInit()
+	end
 end
 
 function PerspectiveOptions:ButtonClickedOptionsImportButton(handler, control, button)

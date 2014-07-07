@@ -427,14 +427,11 @@ function Perspective:GetLineOffsetFromCenter (yDist, vectorLength)
 	for index, item in pairs(DeadzoneAnglesLookup) do
 		if (angle >= item.Rad and angle < item.NextRad) then
 			local DeltaRatio = (angle - item.Rad) / item.DeltaRad
-			local Offset
 			if (Wide == 1) then
-				Offset = item.WideLength + (item.DeltaWideLength * DeltaRatio)
+				return item.WideLength + (item.DeltaWideLength * DeltaRatio)
 			else
-				Offset = item.Length + (item.DeltaLength * DeltaRatio)
+				return item.Length + (item.DeltaLength * DeltaRatio)
 			end
-			-- Print (	"a:" .. angle .. ", " .. " | item.Rad: " .. item.Rad .. " | item.Length: " .. item.Length .. " | dRatio: " .. DeltaRatio .. " | Offset: " .. Offset)
-			return Offset
 		end
 	end
 
@@ -467,8 +464,6 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 			-- Get line distance offset based on angle, scale for camera position 
 			local lineOffsetFromCenter = self:GetLineOffsetFromCenter(yDist, vectorLength)
 			if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
-			-- Print (	"O:" .. math.floor(pPos.nX) .. ", " .. math.floor(pPos.nY) .. " | T: " .. math.floor(lPos.x) .. "," .. math.floor(lPos.y) .. " | D: " .. math.floor(xDist) .. "," .. math.floor(yDist) .. " | VL: " .. math.floor(vectorLength) )
-			-- Print (	"DZ.nameplateY: " .. math.floor(deadzone.nameplateY) .. ", DZ.feetY: " .. math.floor(deadzone.feetY) .. ", Height: " .. math.floor(deadzone.feetY - deadzone.nameplateY) .. ", DZ.scale : " .. deadzone.scale )
 
 			-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
 			-- TODO 
@@ -491,19 +486,26 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 			local pixieLocPoints = { 0, 0, 0, 0 }
 
 			if dottedLine == true then 
+			-- if true then 
 				-- Draw Dots, then! 
 				-- First dumb approach, and it seems to work OK:  
 				-- 		draw dot at start, 
 				--		then one extra dot at ~half (configurable) remaining distance (maybe with a max jump length)
 				--		until 20 pixels remain on either X or Y axis (really do NOT want to spam SQRT)
 
+				-- Remove this from here once this is a config entry. 
+				-- MUST be between 0.1 and 1.0 (really. if it's 0 or less, or >1, it will crash)
+				-- SHOULD be between 0.33 and 0.66, sweet spot is 0.5
+				self.lineStep = 0.5
+
 				local drawX = pPos.nX + xOffset
 				local drawY = pPos.nY + yOffset
 				local targetX = lPos.x
 				local targetY = lPos.y
 				local deltaX, deltaY, deltaRatio
-				-- move that to some global place with change notification and account for render scale
-				local maxDelta = Apollo.GetDisplaySize().nWidth / 6 
+				-- move maxDelta* to some global place with resolution change notification and account for render scale
+				local maxDelta = Apollo.GetDisplaySize().nWidth / 6
+				local maxDeltaNeg = maxDelta * -1
 
 				while 1 do
 					-- Draw Dot 
@@ -511,60 +513,53 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 		 					strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
 		 					loc = { fPoints = pixieLocPoints, nOffsets = { drawX - 5, drawY - 5, drawX + 5, drawY + 5 } }
 		 				} )
-		 			-- Move half remaioning distance
+		 			-- How far do we still have to go? Stop if close enough 
 		 			deltaX = (targetX - drawX)
 		 			deltaY = (targetY - drawY)
-
 		 			if ( deltaX >= -20 and deltaX <= 20 and deltaY >= -20 and deltaY <= 20 ) then break end 
 
-		 			if ( math.abs(deltaX) > maxDelta ) then 
+		 			-- maxDelta is design to avoid too big a gap between dots on very long lines (especially going offscreen)
+		 			-- changed conditions to avoid math.abs in the test
+		 			if (deltaX > maxDelta or deltaX < maxDeltaNeg) then 
 		 				deltaRatio = maxDelta / math.abs(deltaX)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
-		 			if ( math.abs(deltaY) > maxDelta ) then 
+		 			if (deltaY > maxDelta or deltaY < maxDeltaNeg) then 
 		 				deltaRatio = maxDelta / math.abs(deltaY)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
 
-		 			drawX = drawX + deltaX * 0.5
-		 			drawY = drawY + deltaY * 0.5
-
+		 			-- Step up to the next dot 
+		 			drawX = drawX + deltaX * self.lineStep
+		 			drawY = drawY + deltaY * self.lineStep
 				end
 
-				-- Add option to show final dot? 
-				self.Overlay:AddPixie( {
-						strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
-						loc = { fPoints = pixieLocPoints, nOffsets = { targetX - 5, targetY - 5, targetX + 5, targetY + 5 } }
-					} )
+				-- Add option to show final dot? Or maybe key it to showItem?
+				if not showItem then 
+					self.Overlay:AddPixie( {
+							strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
+							loc = { fPoints = pixieLocPoints, nOffsets = { targetX - 5, targetY - 5, targetX + 5, targetY + 5 } }
+						} )
+				end
 			else
 				-- Draw lines!
 				-- Draw the background line to give the outline if required
 				if ui.showLineOutline then
 					local lineAlpha = string.sub(ui.cLineColor, 1, 2)
 
-					self.Overlay:AddPixie({
-						bLine = true,
-						fWidth = ui.lineWidth + 2,
-						cr = lineAlpha .. "000000",
-						loc = {
-							fPoints = pixieLocPoints,
-							nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
-						}
-					})
+					self.Overlay:AddPixie( {
+							bLine = true, fWidth = ui.lineWidth + 2, cr = lineAlpha .. "000000",
+							loc = { fPoints = pixieLocPoints, nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset } }
+						})
 				end
 
 				-- Draw the actual line to the unit's vector
-				self.Overlay:AddPixie({
-					bLine = true,
-					fWidth = ui.lineWidth,
-					cr = ui.cLineColor,
-					loc = {
-						fPoints = pixieLocPoints,
-						nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
-					}
-				})
+				self.Overlay:AddPixie( {
+						bLine = true, fWidth = ui.lineWidth, cr = ui.cLineColor,
+						loc = { fPoints = pixieLocPoints, nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset } }
+					} )
 			end
 
 		end

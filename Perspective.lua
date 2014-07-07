@@ -182,6 +182,8 @@ function Perspective:OnEnable()
 end
 
 function Perspective:Start()
+	self.offsetLines = Options.db.profile[Options.profile].settings.offsetLines
+	
 	-- Check to see if we are in a raid
 	self.inRaid = GroupLib.InRaid()
 
@@ -445,65 +447,70 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 		-- Get the screen position of the unit by it's vector
         local lPos = GameLib.WorldLocToScreenPoint(vec)
 
-        -- Get the length of the vector
-		local xDist = lPos.x - pPos.nX
-		local yDist = lPos.y - pPos.nY
-		local vectorLength = math.sqrt(xDist * xDist + yDist * yDist)
+        local xOffset = 0
+        local yOffset = 0
 
-		-- Get line distance offset based on angle, scale for camera position 
-		local lineOffsetFromCenter = self:GetLineOffsetFromCenter(yDist, vectorLength)
-		if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
-		-- Print (	"O:" .. math.floor(pPos.nX) .. ", " .. math.floor(pPos.nY) .. " | T: " .. math.floor(lPos.x) .. "," .. math.floor(lPos.y) .. " | D: " .. math.floor(xDist) .. "," .. math.floor(yDist) .. " | VL: " .. math.floor(vectorLength) )
-		-- Print (	"DZ.nameplateY: " .. math.floor(deadzone.nameplateY) .. ", DZ.feetY: " .. math.floor(deadzone.feetY) .. ", Height: " .. math.floor(deadzone.feetY - deadzone.nameplateY) .. ", DZ.scale : " .. deadzone.scale )
+        if self.offsetLines then
+	        -- Get the length of the vector
+			local xDist = lPos.x - pPos.nX
+			local yDist = lPos.y - pPos.nY
+			local vectorLength = math.sqrt(xDist * xDist + yDist * yDist)
 
-		-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
-		-- TODO 
+			-- Get line distance offset based on angle, scale for camera position 
+			local lineOffsetFromCenter = self:GetLineOffsetFromCenter(yDist, vectorLength)
+			if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
+			-- Print (	"O:" .. math.floor(pPos.nX) .. ", " .. math.floor(pPos.nY) .. " | T: " .. math.floor(lPos.x) .. "," .. math.floor(lPos.y) .. " | D: " .. math.floor(xDist) .. "," .. math.floor(yDist) .. " | VL: " .. math.floor(vectorLength) )
+			-- Print (	"DZ.nameplateY: " .. math.floor(deadzone.nameplateY) .. ", DZ.feetY: " .. math.floor(deadzone.feetY) .. ", Height: " .. math.floor(deadzone.feetY - deadzone.nameplateY) .. ", DZ.scale : " .. deadzone.scale )
 
-		-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
-		if (lineOffsetFromCenter + 10 < vectorLength) then 
-			-- Get the ratio of the line distance from the center of the screen to the vector length
-			local lengthRatio = lineOffsetFromCenter / vectorLength
+			-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
+			-- TODO 
 
-			-- Get the x and y offsets for the line starting point
-			local xOffset = lengthRatio * xDist
-			local yOffset = lengthRatio * yDist
+			-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
+			if (lineOffsetFromCenter + 10 < vectorLength) then 
+				-- Get the ratio of the line distance from the center of the screen to the vector length
+				local lengthRatio = lineOffsetFromCenter / vectorLength
 
-			-- Draw the background line to give the outline if required
-			if ui.showLineOutline then
-				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
-
-				self.Overlay:AddPixie({
-					bLine = true,
-					fWidth = ui.lineWidth + 2,
-					cr = lineAlpha .. "000000",
-					loc = {
-						fPoints = {0, 0, 0, 0},
-						nOffsets = {
-							lPos.x, 
-							lPos.y, 
-							pPos.nX + xOffset, 
-							pPos.nY + yOffset
-						}
-					}
-				})
+				-- Get the x and y offsets for the line starting point
+				xOffset = lengthRatio * xDist
+				yOffset = lengthRatio * yDist
 			end
+		end
 
-			-- Draw the actual line to the unit's vector
+		-- Draw the background line to give the outline if required
+		if ui.showLineOutline then
+			local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+
 			self.Overlay:AddPixie({
 				bLine = true,
-				fWidth = ui.lineWidth,
-				cr = ui.cLineColor,
+				fWidth = ui.lineWidth + 2,
+				cr = lineAlpha .. "000000",
 				loc = {
 					fPoints = {0, 0, 0, 0},
 					nOffsets = {
 						lPos.x, 
-						lPos.y,
+						lPos.y, 
 						pPos.nX + xOffset, 
-						pPos.nY + yOffset					
+						pPos.nY + yOffset
 					}
 				}
 			})
 		end
+
+		-- Draw the actual line to the unit's vector
+		self.Overlay:AddPixie({
+			bLine = true,
+			fWidth = ui.lineWidth,
+			cr = ui.cLineColor,
+			loc = {
+				fPoints = {0, 0, 0, 0},
+				nOffsets = {
+					lPos.x, 
+					lPos.y,
+					pPos.nX + xOffset, 
+					pPos.nY + yOffset					
+				}
+			}
+		})
 	end
 
 	-- Draw the icon and text if it needs to be drawn.

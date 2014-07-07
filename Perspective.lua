@@ -795,6 +795,8 @@ function Perspective:UpdateUnitCategory(ui, unit)
 
 					if type == "Player" then
 						self:UpdatePlayer(ui, unit)
+					elseif type == "NonPlayer" then
+						self:UpdateNonPlayer(ui, unit)
 					elseif type == "Harvest" then
 						self:UpdateHarvest(ui, unit)
 					elseif type == "Pickup" then
@@ -1726,6 +1728,17 @@ function Perspective:UpdatePlayer(ui, unit)
 		not Options.db.profile[Options.profile].categories.dominion.disabled then
 		ui.category = "dominion"
 	end
+end
+
+function Perspective:UpdateNonPlayer(ui, unit)
+	local id = GameLib.GetCurrentWorldId()
+
+	-- War of the Wilds
+	if id == 1393 then
+		if (unit:GetFaction() == 170 or unit:GetFaction() == 900) and unit:GetName() ~= L.Unit_Maimbot_R4 then
+			ui.category = "wotwChampion"
+		end
+	end	
 end
 
 function Perspective:UpdateHarvest(ui, unit)

@@ -310,8 +310,8 @@ function PerspectiveLocale:LoadLocalization()
 	locale.UI_Settings_SlowSlider_Text 				= "Update delay at long range"
 	locale.UI_Settings_SlowSlider_Tooltip			= "The amount of time between updates for units far from the player."
 
-	locale.UI_Settings_MaxUnits_Text 				= "Max Units"
-	locale.UI_Settings_MaxUnits_Tooltip				= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
+	locale.UI_Settings_MaxUnitsText_Text 			= "Max Units"
+	locale.UI_Settings_MaxUnitsText_Tooltip			= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
 	locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
 	locale.UI_Settings_OffsetCheck_Tooltip	 		= "Offsets the lines so they do not overlay on top of your character."
 
@@ -606,8 +606,8 @@ function PerspectiveLocale:LoadLocalization()
 		locale.UI_Settings_FastSlider_Tooltip			= "Le délai entre les mises à jour aux unités qui sont près du joueur."
 		locale.UI_Settings_SlowSlider_Text 				= "Délai de mise à jour à longue portée"
 		locale.UI_Settings_SlowSlider_Tooltip			= "Le délai entre les mises à jour aux unités qui sont loin du joueur."
-		locale.UI_Settings_MaxUnits_Text 				= "Max d'unités"
-		locale.UI_Settings_MaxUnits_Tooltip				= "Le nombre maximum d'icones qui peuvent être dessinés en même temps à l'écran."
+		locale.UI_Settings_MaxUnitsText_Text 			= "Max d'unités"
+		locale.UI_Settings_MaxUnitsText_Tooltip			= "Le nombre maximum d'icones qui peuvent être dessinés en même temps à l'écran."
 		locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
 		locale.UI_Settings_OffsetCheck_Tooltip			= "Offsets the lines so they do not overlay on top of your character."
 

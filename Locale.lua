@@ -133,7 +133,7 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Module_WotW 								= "War of the Wilds"
 	locale.Module_Crimelords 						= "Crimelords of Whitevale"
 	locale.Module_Malgrave 							= "The Malgrave Trail"
-	locale.Module_Custome							= "Custom"
+	locale.Module_Custom							= "Custom"
 
 	locale.Unit_Custom								= "Custom"
 	-- Unit names (do not translate as these come from the game client)
@@ -288,6 +288,7 @@ function PerspectiveLocale:LoadLocalization()
 	locale.UI_Editor_DefaultButton_Tooltip 			= "Reset this category to the default settings."
 
 	-- UI Dialog Titles
+	locale.UI_Dialog_Options						= "Perspective Options"
 	locale.UI_Dialog_PTI_Header						= "Perspective Target Information"
 	locale.UI_Dialog_Export_Header					= "Perspective Settings Export"
 	locale.UI_Dialog_Import_Header					= "Perspective Settings Import"
@@ -299,19 +300,21 @@ function PerspectiveLocale:LoadLocalization()
 	-- UI Dialog Strings
 	locale.UI_Dialog_PTI_Error						= "Please select a target first."
 
-	-- UI Settings CheckButtons
+	-- UI Settings Page
 	locale.UI_Settings_DisableCheck_Text			= "Disable Perspective"
 	locale.UI_Settings_DisableCheck_Tooltip			= "Disabling Perspective turns it completely off but preserves all settings."
-	locale.UI_Settings_OffsetCheck_Text				= "Offset lines from character"
-	locale.UI_Settings_OffsetCheck_Tooltip			= "Offsets the lines so they do not overlay on top of your character."
 	locale.UI_Settings_DrawSlider_Text				= "Redraw Delay Time:"
-	locale.UI_Settings_DrawSlier_Tooltip 			= "The amount of time between screen redraws."
+	locale.UI_Settings_DrawSlider_Tooltip 			= "The amount of time between screen redraws."
 	locale.UI_Settings_FastSlider_Text 				= "Update delay at close range"
 	locale.UI_Settings_FastSlider_Tooltip			= "The amount of time between updates for units close to the player."
 	locale.UI_Settings_SlowSlider_Text 				= "Update delay at long range"
 	locale.UI_Settings_SlowSlider_Tooltip			= "The amount of time between updates for units far from the player."
-	locale.UI_Settings_MaxUnitsOnScreen_Text 		= "Max Total Units Onscreen"
-	locale.UI_Settings_MaxUnitsOnScreen_Tooltip		= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
+
+	locale.UI_Settings_MaxUnits_Text 				= "Max Units"
+	locale.UI_Settings_MaxUnits_Tooltip				= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
+	locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
+	locale.UI_Settings_OffsetCheck_Tooltip	 		= "Offsets the lines so they do not overlay on top of your character."
+
 
 	local cancel = Apollo.GetString(1);
 
@@ -375,21 +378,241 @@ function PerspectiveLocale:LoadLocalization()
 
 	elseif cancel == "Annuler" then 	
 
-		-- UI Settings CheckButtons
-		locale.UI_Settings_DisableCheck_Text		= "Désactiver Perspective"
-		locale.UI_Settings_DisableCheck_Tooltip		= "Désactiver Perspective suspend les fonctionnalités mais préserve toutes les options de configuration."
+		--Module titles
+		locale.Module_All 								= "Tout"
+		locale.Module_Misc 								= "Variés"
+		locale.Module_Player 							= "Joueurs"
+		locale.Module_NPC 								= "NPC"
+		locale.Module_Quest 							= "Quêtes"
+		locale.Module_Challenge 						= "Défis"
+		locale.Module_Harvest 							= "Harvest"
+		locale.Module_Travel 							= "Transport & Téléporteurs"
+		locale.Module_Town 								= "Villes"
+		locale.Module_Path								= "Vocation"
+		locale.Module_WotW 								= "War of the Wilds"
+		locale.Module_Crimelords 						= "Crimelords of Whitevale"
+		locale.Module_Malgrave 							= "The Malgrave Trail"
+		locale.Module_Custom							= "Personnalisé"
 
-		-- UI Settings Sliders
-		locale.UI_Settings_DrawSlider_Text			= "Délai minimal avant de redessiner"
-		locale.UI_Settings_DrawSlier_Tooltip 		= "Controle le délai minimal avant que les lignes et icones soient redessinnées. Délai minimal avant de redessiner"
-		locale.UI_Settings_FastSlider_Text 			= "Délai de mise à jour à courte portéee"
-		locale.UI_Settings_FastSlider_Tooltip		= "Le délai entre les mises à jour aux unités qui sont près du joueur."
-		locale.UI_Settings_SlowSlider_Text 			= "Délai de mise à jour à longue portée"
-		locale.UI_Settings_SlowSlider_Tooltip		= "Le délai entre les mises à jour aux unités qui sont loin du joueur."
+		-- Category Titles
+		locale.Category_Set_All 						= "Configurer Tout"
+		locale.Category_Custom_Unit 					= "Unités personnalisées"
 
-		-- UI Settings Textboxes
-		locale.UI_Settings_MaxUnitsOnScreen_Text 	= "Max d'unités à l'écran"
-		locale.UI_Settings_MaxUnitsOnScreen_Tooltip	= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
+		locale.Category_Misc_Target 					= "Cible"
+		locale.Category_Misc_Focus 						= "Focus"
+		locale.Category_Misc_Lore 						= "Lore"
+		locale.Category_Misc_Weapon_Subdue 				= "Arme échappée"
+
+		locale.Category_Player_Group 					= "Groupe"
+		locale.Category_Player_Raid 					= "Raid"
+		locale.Category_Player_Guild 					= "Guilde"
+		locale.Category_Player_Exile 					= "Exilés"
+		locale.Category_Player_Dominion 				= "Dominion"
+		locale.Category_Player_Friend 					= "Alliés"
+		locale.Category_Player_Rival					= "Rivaux"
+		locale.Category_Player_Main_Tank 				= "Tank principal"
+		locale.Category_Player_Main_Assist 				= "Assistant principal"
+		locale.Category_Player_Tank 					= "Tanks"
+		locale.Category_Player_Healer 					= "Soigneurs"
+		locale.Category_Player_DPS						= "DPS"
+
+		locale.Category_NPC_Friendly_Normal 			= "Allié Normal"
+		locale.Category_NPC_Friendly_Prime 				= "Allié Prime"
+		locale.Category_NPC_Friendly_Elite 				= "Allié Élite"
+		locale.Category_NPC_Neutral_Normal				= "Neutre Normal"
+		locale.Category_NPC_Neutral_Prime 				= "Neutre Prime"
+		locale.Category_NPC_Neutral_Elite 				= "Neutre Élite"
+		locale.Category_NPC_Hostile_Normal 				= "Hostile Normal"
+		locale.Category_NPC_Hostile_Prime 				= "Hostile Prime"
+		locale.Category_NPC_Hostile_Elite 				= "Hostile Élite"
+
+		locale.Category_Quest_Objective 				= "Objectif"
+		locale.Category_Quest_Interactable 				= "Interactif"
+		locale.Category_Quest_Start 					= "Début"
+		locale.Category_Quest_TalkTo 					= "Parler à"
+		locale.Category_Quest_Complete 					= "Compléter"
+		locale.Category_Quest_Location 					= "Lieu de Quête"
+		locale.Category_Event_Location 					= "Lieu d'Évenement"
+		locale.Category_Quest_Loot 						= "Butin de Quête"
+
+		locale.Category_Challenge_Location 				= "Lieu de Défi"
+		locale.Category_Challenge_Objective 			= "Objectif"
+
+		locale.Category_Harvest_Farmer 					= "Fermier"
+		locale.Category_Harvest_Mining 					= "Mineur"
+		locale.Category_Harvest_Relic_Hunter 			= "Chasseur de reliques"
+		locale.Category_Harvest_Survivalist 			= "Adepte de la survie"
+		locale.Category_Harvest_Food_Table 				= "Buffet"
+		locale.Category_Harvest_Butcher_Block 			= "Bloc de boucher"
+		locale.Category_Harvest_Tanning_Rack 			= "Atelier de tanneur"
+		locale.Category_Harvest_Harvestable 			= "Recueillable"
+
+		locale.Category_Travel_Taxi 					= "Taxi"
+		locale.Category_Travel_Portal 					= "Téléporteur"
+		locale.Category_Travel_Bind_Point 				= "Terminal de transmat"
+		locale.Category_Travel_Dungeon 					= "Donjon"
+		locale.Category_Town_Commodities_Exchange 		= "Brocanteur"
+		locale.Category_Town_Auction_House 				= "Commissaire-priseur (Encanteur)"
+		locale.Category_Town_Mailbox 					= "Boîte aux lettres"
+		locale.Category_Town_Vendor 					= "Marchand"
+		locale.Category_Town_Crafting_Station 			= "Station d'artisanat"
+		locale.Category_Town_Engraving_Station 			= "Poste de gravure"
+		locale.Category_Town_Tradeskill_Trainer 		= "Instructeur artisan"
+		locale.Category_Town_Appearance_Modifier 		= "Expert coloriste"
+		locale.Category_Town_Bank 						= "Banque"
+		locale.Category_Town_Guild_Bank 				= "Banque de guilde"
+		locale.Category_Town_Guild_Registrar 			= "Officier de guilde"
+		locale.Category_Town_City_Guard 				= "Garde"
+
+		locale.Category_Path_Mission_Location 			= "Lieu de mission"
+		locale.Category_Path_Scientist 					= "Scientifique"
+		locale.Category_Path_Scientist_Scans 			= "Analyse Scientifiques"
+		locale.Category_Path_Soldier 					= "Soldat"
+		locale.Category_Path_Settler 					= "Colon"
+		locale.Category_Path_Settler_Resources 			= "Ressources coloniales"
+		locale.Category_Path_Explorer 					= "Explorateur"
+
+		locale.Category_WotW_Enemy_Champion 			= "Champions"
+		locale.Category_WotW_Energy_Node 				= "Node d'énergie"
+		locale.Category_WotW_Moodie_Totem 				= "Totem Moodie"
+		locale.Category_WotW_Skeech_Totem 				= "Totem Skeech"
+
+		locale.Category_Crimelords_Police 				= "Police"
+
+		locale.Category_Malgrave_Water 					= "Eau"
+		locale.Category_Malgrave_Caravan_Member 		= "Membre de caravane"
+		locale.Category_Malgrave_Food 					= "Nourriture"
+		locale.Category_Malgrave_Feed 					= "Feed"
+		locale.Category_Malgrave_Enemy 					= "Enemis spéciaux"
+		locale.Category_Malgrave_Cactus_Fruit 			= "Fruits de cactus"
+		locale.Category_Malgrave_Medical_Grenade 		= "Grenade médicale"
+		locale.Category_Malgrave_Bug_Bomb 				= "Bombe à insecte"
+
+		-- Unit Display As Strings
+		locale.Unit_Travel_Thayd 						= "Vaisseau pour Thayd"
+		locale.Unit_Travel_Crimson_Badlands 			= "Vaisseau pour Terres maudites écarlates"
+		locale.Unit_Travel_Grimvault 					= "Vaisseau pour Mornegeôle"
+		locale.Unit_Travel_Farside 						= "Vaisseau pour Outre-horizon"
+		locale.Unit_Travel_Whitevale 					= "Vaisseau pour Valblanc"
+		locale.Unit_Travel_Northern_Wastes 				= "Vaisseau pour Septentrion Sauvage (?)"
+		locale.Unit_Travel_Wilderrun 					= "Vaisseau pour Sombreflore"
+		locale.Unit_Travel_Malgrave 					= "Vaisseau pour Maltombe"
+		locale.Unit_Travel_Ilium 						= "Vaisseau pour Ilium"
+
+		-- UI General Strings
+		locale.UI_Options_Tooltip_Action				= "Appuyez sur ENTRÉE pour enregistrer la valeur."
+
+		-- UI Options Buttons
+		locale.UI_Options_NewButton_Text 				= "Nouvelle catégorie"
+		locale.UI_Options_NewButton_Tooltip 			= "Crée une nouvelle catégorie."
+		locale.UI_Options_DefaultButton_Text 			= "RÉINITIALISER"
+		locale.UI_Options_DefaultButton_Tooltip 		= "Réinitialise TOUTES les configurations de Perspective à leurs valeurs par défaut."
+		locale.UI_Options_ExportButton_Text 			= "Exporter"
+		locale.UI_Options_ExportButton_Tooltip 			= "Exportez votre configuration actuelle."
+		locale.UI_Options_ImportButton_Text 			= "Importer"
+		locale.UI_Options_ImportButton_Tooltip 			= "Importer la configuration d'un autre personnage."
+		locale.UI_Options_CategoriesCheck_Text 			= "Catégories"
+		locale.UI_Options_SettingsCheck_Text 			= "Configuration"
+
+		-- UI Editor Check Buttons
+		locale.UI_Editor_DisableCheck_Text 				= "Désactiver"
+		locale.UI_Editor_DisableCheck_Tooltip 			= "Désactiver cette catégorie."
+		locale.UI_Editor_CombatDisableCheck_Text 		= "Cacher pendant le combat"
+		locale.UI_Editor_CombatDisableCheck_Tooltip 	= "Cacher cette catégorie pendant le combat."
+		locale.UI_Editor_OccludedDisableCheck_Text 		= "Cacher lorsqu'occulté"
+		locale.UI_Editor_OccludedDisableCheck_Tooltip 	= "Cacher les objets de cette catégorie lorsqu'elle est occultée (ex: derrière une montagne)."
+		locale.UI_Editor_ShowIconCheck_Text 			= "Afficher les icones"
+		locale.UI_Editor_ShowIconCheck_Tooltip 			= "Afficher les icones pour les objets de cette catégorie."
+		locale.UI_Editor_ShowNameCheck_Text 			= "Afficher les noms"
+		locale.UI_Editor_ShowNameCheck_Tooltip 			= "Afficher les noms pour les objets de cette catégorie."
+		locale.UI_Editor_ShowDistanceCheck_Text 		= "Afficher les distances"
+		locale.UI_Editor_ShowDistanceCheck_Tooltip 		= "Afficher les distances pour les objets de cette catégorie."
+		locale.UI_Editor_ShowLinesCheck_Text 			= "Afficher les lignes"
+		locale.UI_Editor_ShowLinesCheck_Tooltip 		= "Afficher les lignes pour les objets de cette catégorie."
+		locale.UI_Editor_ShowOutlineCheck_Text 			= "Afficher les contours de lignes"
+		locale.UI_Editor_ShowOutlineCheck_Tooltip 		= "Afficher les contours de lignes pour cette catégorie."
+		locale.UI_Editor_ShowOffScreenLineCheck_Text 	= "Afficher les lignes hors-écran"
+		locale.UI_Editor_ShowOffScreenLineCheck_Tooltip = "Afficher les lignes qui mènent à une destination hors-écran."
+		locale.UI_Editor_RangeFontCheck_Text 			= "Colorer le texte selon la distrance"
+		locale.UI_Editor_RangeFontCheck_Tooltip	 		= "Colorer le texte selon la distrance."
+		locale.UI_Editor_RangeIconCheck_Text 			= "Colorer l'icone selon la distance"
+		locale.UI_Editor_RangeIconCheck_Tooltip 		= "Colorer l'icone selon la distance."
+		locale.UI_Editor_RangeLineCheck_Text 			= "Colorer la ligne selon la distance"
+		locale.UI_Editor_RangeLineCheck_Tooltip 		= "Colorer la ligne selon la distance."
+
+		-- UI Editor Textboxes
+		locale.UI_Editor_ModuleText_Text				= "Module"
+		locale.UI_Editor_ModuleText_Tooltip 			= "Éditez le module de cette catégorie."
+		locale.UI_Editor_DisplayText_Text				= "Renommer"
+		locale.UI_Editor_DisplayText_Tooltip 			= "Afficher le nom suivant en lieu de nom d'unité."
+		locale.UI_Editor_IconText_Text					= "Icone"
+		locale.UI_Editor_IconText_Tooltip 				= "Choisissez l'icone à afficher pour les objets de cette catégorie."
+		locale.UI_Editor_IconHeightText_Text			= "Hauteur d'icone"
+		locale.UI_Editor_IconHeightText_Tooltip 		= "Détermine la hauteur des icones affichés pour les objets de cette catégorie."
+		locale.UI_Editor_IconWidthText_Text				= "Largeur d'icone"
+		locale.UI_Editor_IconWidthText_Tooltip 			= "Détermine la largeur des icones affichés pour les objets de cette catégorie."
+		locale.UI_Editor_MinDistanceText_Text			= "Distance min"
+		locale.UI_Editor_MinDistanceText_Tooltip 		= "Les objets en-deça de cette distance ne seront pas affichés."
+		locale.UI_Editor_MaxDistanceText_Text			= "Distance max"
+		locale.UI_Editor_MaxDistanceText_Tooltip 		= "Les objets au-delà de cette distance ne seront pas affichés."
+		locale.UI_Editor_ZDistanceText_Text				= "Distance Z"
+		locale.UI_Editor_ZDistanceText_Tooltip 			= "Les objets au-delà de cette distance sur l'axe Z (altitude) ne seront pas affichés."
+		locale.UI_Editor_LineWidthText_Text				= "Largeur de ligne"
+		locale.UI_Editor_LineWidthText_Tooltip 			= "Détermine la largeur des lignes qui seront dessignées."
+		locale.UI_Editor_MaxIconsText_Text				= "Limite d'icones"
+		locale.UI_Editor_MaxIconsText_Tooltip 			= "Nombre maximal d'icones à afficher pour cette catégorie."
+		locale.UI_Editor_MaxLinesText_Text				= "Limite de lignes"
+		locale.UI_Editor_MaxLinesText_Tooltip 			= "Nombre maximal de lignes à dessiner pour cette catégorie."
+		locale.UI_Editor_RangeLimitText_Text			= "Distance max"
+		locale.UI_Editor_RangeLimitText_Tooltip 		= "Détermine une distance maximale arbitraire, jusqu'à laquelle la couleur de distance sera utilisée."
+
+		-- UI Editor Color Buttons
+		locale.UI_Editor_FontColor_Text					= "Couleur du texte"
+		locale.UI_Editor_FontColor_Tooltip 				= "Ajuster la couleur du texte pour les objets de cette catégorie."
+		locale.UI_Editor_IconColor_Text					= "Couleur des icones"
+		locale.UI_Editor_IconColor_Tooltip 				= "Ajuster la couleur des icones pour les objets de cette catégorie."
+		locale.UI_Editor_LineColor_Text					= "Couleur des lignes"
+		locale.UI_Editor_LineColor_Tooltip 				= "Ajuster la couleur des lignes pour les objets de cette catégorie."
+		locale.UI_Editor_RangeColor_Text				= "Couleur de distance"
+		locale.UI_Editor_RangeColor_Tooltip 			= "Ajuster la couleur de distance pour les objets de cette catégorie."
+
+		-- UI Editor Buttons
+		locale.UI_Editor_BackButton_Text				= ""
+		locale.UI_Editor_BackButton_Tooltip 			= "Retour à liste des catégories."
+		locale.UI_Editor_DeleteButton_Text				= "Effacer"
+		locale.UI_Editor_DeleteButton_Tooltip 			= "Effacer cette catégorie."
+		locale.UI_Editor_DefaultButton_Text				= "Défaut"
+		locale.UI_Editor_DefaultButton_Tooltip 			= "Rénitialiser cette catégorie aux valeurs par défaut."
+
+		-- UI Dialog Titles
+		locale.UI_Dialog_Options						= "Perspective - Options"
+		locale.UI_Dialog_PTI_Header						= "Perspective - Information sur la cible"
+		locale.UI_Dialog_Export_Header					= "Perspective - Export de profil"
+		locale.UI_Dialog_Import_Header					= "Perspective - Import de profil"
+
+		-- UI Dialog Buttons
+		locale.UI_Dialog_PTI_Button_Text				= "Obtenir la cible courante"
+		locale.UI_Dialog_Close_Button_Text				= "Fermer"
+		
+		-- UI Dialog Strings
+		locale.UI_Dialog_PTI_Error						= "Veuillez d'abord sélectionner une cible."
+
+		-- UI Settings Page
+		locale.UI_Settings_DisableCheck_Text			= "Désactiver Perspective"
+		locale.UI_Settings_DisableCheck_Tooltip			= "Désactiver Perspective suspend les fonctionnalités mais préserve toutes les options de configuration."
+		locale.UI_Settings_DrawSlider_Text				= "Délai minimal avant de redessiner"
+		locale.UI_Settings_DrawSlider_Tooltip 			= "Controle le délai minimal avant que les lignes et icones soient redessinnées."
+		locale.UI_Settings_FastSlider_Text 				= "Délai de mise à jour à courte portéee"
+		locale.UI_Settings_FastSlider_Tooltip			= "Le délai entre les mises à jour aux unités qui sont près du joueur."
+		locale.UI_Settings_SlowSlider_Text 				= "Délai de mise à jour à longue portée"
+		locale.UI_Settings_SlowSlider_Tooltip			= "Le délai entre les mises à jour aux unités qui sont loin du joueur."
+		locale.UI_Settings_MaxUnits_Text 				= "Max d'unités"
+		locale.UI_Settings_MaxUnits_Tooltip				= "Le nombre maximum d'icones qui peuvent être dessinés en même temps à l'écran."
+		locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
+		locale.UI_Settings_OffsetCheck_Tooltip			= "Offsets the lines so they do not overlay on top of your character."
+
+--------------------------	
+--------------------------	
 
 		-- Unit names (do not translate as these come from the game client)
 		locale.Unit_Food_Table 						= "Buffet"

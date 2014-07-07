@@ -368,13 +368,6 @@ function PerspectiveOptions:LoadDefaults()
 						rangeColor = "ff00ff00",
 						iconWidth = 36,
 						showLines = false },
-					dead = {
-						title = L.Category_Player_Dead,
-						module = L.Module_Player,
-						icon = "PerspectiveSprites:Player-Dead",
-						iconHeight = 36,
-						iconWidth = 36,
-						iconColor = "ff808080" },
 					-- [[ PVP ]]
 					friendlyPvpStalker = {
 						title = L.Category_PVP_Friendly_Stalker,

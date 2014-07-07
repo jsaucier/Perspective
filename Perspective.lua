@@ -649,7 +649,7 @@ function Perspective:OnTimerDraw()
 		end
 
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
-		-- distance, closest to farthest.  This will ensure our farthers are drawn first and 
+		-- distance, closest to farthest.  This will ensure the farthest are drawn first and 
 		-- "behind" our closer pixies.
 		for i = #pixies, 1, -1 do
 			-- Get our next pixie
@@ -1821,14 +1821,10 @@ function Perspective:UpdatePlayer(ui, unit)
 	local player = GameLib.GetPlayerUnit()
 	
 	-- We don't care about ourselves, or invalid units
-	if unit:IsThePlayer() or not unit:IsValid() then return end
+	if unit:IsThePlayer() or not unit:IsValid() or not unit:IsDead() then return end
 
-	if unit:IsDead() then
-		ui.category = "dead"
-	else	
-		-- Check debuffs, then buffs
-		ui.category = self:UpdateSpellEffects(ui, unit)
-	end
+	-- Check debuffs, then buffs
+	ui.category = self:UpdateSpellEffects(ui, unit)
 	
 	if not ui.category then
 		if unit:IsPvpFlagged() then

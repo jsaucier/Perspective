@@ -1772,72 +1772,99 @@ function Perspective:UpdateChallengeUnits(challenge, active)
 	end
 end
 
-function Perspective:UpdatePlayer(ui, unit)
-	local function getRaidFlags(unit)
-		for i = 1, GroupLib.GetMemberCount(), 1 do
-			if unit == GroupLib.GetUnitForGroupMember(i) then
-				local member = GroupLib.GetGroupMember(i)
+function Perspective:GetClass(unit)
+	local classId = unit:GetClassId()
 
-				if member.bIsOnline then
-					if member.bMainTank and 
-						not Options.db.profile[Options.profile].categories.mainTank.disabled then
-						return "mainTank"
-					elseif	member.bMainAssist and
-						not Options.db.profile[Options.profile].categories.mainAssist.disabled then
-						return "mainAssist"
-					elseif member.bTank and 
-						not Options.db.profile[Options.profile].categories.tank.disabled then
-						return "tank"
-					elseif member.bHealer and 
-						not Options.db.profile[Options.profile].categories.healer.disabled then
-						return "healer"
-					elseif	member.bDPS and
-						not Options.db.profile[Options.profile].categories.dps.disabled then
-						return "dps"
-					elseif GroupLib.InRaid() then
-						return "raid"
-					else
-						return nil
-					end
+	for class, cId in pairs(GameLib.CodeEnumClass) do
+		if classId == cId then
+			return class
+		end
+	end
+end
+
+function Perspective:GetRaidType(unit)
+	for i = 1, GroupLib.GetMemberCount(), 1 do
+		if unit == GroupLib.GetUnitForGroupMember(i) then
+			local member = GroupLib.GetGroupMember(i)
+
+			if member.bIsOnline then
+				if member.bMainTank and 
+					not Options.db.profile[Options.profile].categories.mainTank.disabled then
+					return "mainTank"
+				elseif	member.bMainAssist and
+					not Options.db.profile[Options.profile].categories.mainAssist.disabled then
+					return "mainAssist"
+				elseif member.bTank and 
+					not Options.db.profile[Options.profile].categories.tank.disabled then
+					return "tank"
+				elseif member.bHealer and 
+					not Options.db.profile[Options.profile].categories.healer.disabled then
+					return "healer"
+				elseif	member.bDPS and
+					not Options.db.profile[Options.profile].categories.dps.disabled then
+					return "dps"
+				elseif GroupLib.InRaid() then
+					return "raid"
+				else
+					return nil
 				end
 			end
 		end
-
-		return nil
 	end
 
+	return nil
+end
+
+function Perspective:UpdatePlayer(ui, unit)
 
 	local player = GameLib.GetPlayerUnit()
 	
-	-- We don't care about ourselves
-	if unit:IsThePlayer() then return end
-	
-	-- Check to see if the unit is in our group
-	if 	unit:IsInYourGroup() then
-		local raidFlag = getRaidFlags(unit)
+	-- We don't care about ourselves, or invalid units
+	if unit:IsThePlayer() or not unit:IsValid() then return end
 
-		if raidFlag then
-			ui.category  = raidFlag
-		elseif not Options.db.profile[Options.profile].categories.group.disabled then
-			ui.category = "group"
+	if unit:IsDead() then
+		ui.category = "dead"
+	else	
+		-- Check debuffs, then buffs
+		ui.category = self:UpdateSpellEffects(ui, unit)
+	end
+	
+	if not ui.category then
+		if unit:IsPvpFlagged() then
+			local category = "friendlyPvp"
+
+			if unit:GetDispositionTo(self.Player) == 0 then
+				category = "hostilePvp"
+			end
+
+			ui.category = category .. self:GetClass(unit)
+		-- Check to see if the unit is in our group
+		elseif unit:IsInYourGroup() then
+			local raidType = self:GetRaidType(unit)
+
+			if raidType then
+				ui.category  = raidType
+			elseif not Options.db.profile[Options.profile].categories.group.disabled then
+				ui.category = "group"
+			end
+		-- Check to see if the unit is in our guild
+		elseif 	player and player:GetGuildName() and 
+				unit:GetGuildName() == player:GetGuildName() and
+				not Options.db.profile[Options.profile].categories.guild.disabled then
+			ui.category = "guild"
+		elseif unit:IsFriend() or unit:IsAccountFriend() and
+			not Options.db.profile[Options.profile].categories.friend.disabled then
+			ui.category = "friend"
+		elseif unit:IsRival() and
+			not Options.db.profile[Options.profile].categories.rival.disabled then
+			ui.category = "rival"
+		elseif unit:GetFaction() == 167 and
+			not Options.db.profile[Options.profile].categories.exile.disabled then
+			ui.category = "exile"
+		elseif unit:GetFaction() == 166 and
+			not Options.db.profile[Options.profile].categories.dominion.disabled then
+			ui.category = "dominion"
 		end
-	-- Check to see if the unit is in our guild
-	elseif 	player and player:GetGuildName() and 
-			unit:GetGuildName() == player:GetGuildName() and
-			not Options.db.profile[Options.profile].categories.guild.disabled then
-		ui.category = "guild"
-	elseif unit:IsFriend() or unit:IsAccountFriend() and
-		not Options.db.profile[Options.profile].categories.friend.disabled then
-		ui.category = "friend"
-	elseif unit:IsRival() and
-		not Options.db.profile[Options.profile].categories.rival.disabled then
-		ui.category = "rival"
-	elseif unit:GetFaction() == 167 and
-		not Options.db.profile[Options.profile].categories.exile.disabled then
-		ui.category = "exile"
-	elseif unit:GetFaction() == 166 and
-		not Options.db.profile[Options.profile].categories.dominion.disabled then
-		ui.category = "dominion"
 	end
 end
 

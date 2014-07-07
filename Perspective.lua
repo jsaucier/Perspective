@@ -1064,7 +1064,8 @@ function Perspective:UpdateUnit(ui, unit)
 				if unit:IsDead() then -- Clear dead units
 					-- Clear dead npc quest / challenge objectives, but not scientist scans as
 					-- well as harvest
-					if unit:GetType() == "Harvest" or
+					if unit:GetType() == "Player" or 
+						unit:GetType() == "Harvest" or
 						ui.category == "questObjective" or
 						ui.category == "challenge" then
 						-- Queue the unit to be recategorized.

@@ -1,4 +1,4 @@
---- GeminiAddon-1.0
+--- GeminiAddon-1.1
 -- Formerly DaiAddon
 -- Inspired by AceAddon
 -- Modules and packages embeds are based heavily on AceAddon's functionally, so credit goes their authors.
@@ -15,20 +15,20 @@
 -- General flow should be:
 -- OnInitialize -> OnEnable 
 
-local MAJOR, MINOR = "Gemini:Addon-1.1", 1
+local MAJOR, MINOR = "Gemini:Addon-1.1", 4
 local APkg = Apollo.GetPackage(MAJOR)
 if APkg and (APkg.nVersion or 0) >= MINOR then
 	return -- no upgrade is needed
 end
 local GeminiAddon = APkg and APkg.tPackage or {}
 
-
+-- Upvalues
 local error, type, tostring, select, pairs = error, type, tostring, select, pairs
 local setmetatable, getmetatable, xpcall = setmetatable, getmetatable, xpcall
 local assert, loadstring, rawset, next, unpack = assert, loadstring, rawset, next, unpack
 local tinsert, tremove, ostime = table.insert, table.remove, os.time
 
-
+-- Package tables
 GeminiAddon.Addons          = GeminiAddon.Addons or {}          -- addon collection
 GeminiAddon.AddonStatus     = GeminiAddon.AddonStatus or {}     -- status of addons
 GeminiAddon.Timers          = GeminiAddon.Timers or {}          -- Timers for OnEnable
@@ -128,10 +128,10 @@ local function NewAddonProto(strInitAddon, oAddonOrName, oNilOrName)
 	else
 		strAddonName = oAddonOrName
 	end
-	
+
 	oAddon = oAddon or {}
 	oAddon.Name = strAddonName
-	
+
 	-- use existing metatable if exists
 	local addonmeta = {}
 	local oldmeta = getmetatable(oAddon)
@@ -140,7 +140,7 @@ local function NewAddonProto(strInitAddon, oAddonOrName, oNilOrName)
 	end
 	addonmeta.__tostring = AddonToString
 	setmetatable(oAddon, addonmeta)
-	
+
 	-- setup addon skeleton
 	GeminiAddon.Addons[strAddonName] = oAddon
 	oAddon.Modules = {}
@@ -166,21 +166,21 @@ end
 -- @param strPkgName List of packages to embed into the addon - requires the packages to be registered with Apollo.RegisterPackage and for the packages to support embedding
 -- @usage
 -- -- Create a simple addon
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon("MyAddon", false)
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("MyAddon", false)
 -- 
 -- -- Create a simple addon with a configure button with custom text
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon("MyAddon", "Addon Options Button")
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("MyAddon", "Addon Options Button")
 -- 
 -- -- Create a simple addon with a configure button and a dependency on ChatLog / ChatLogEx
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon("MyAddon", true, { "ChatLog", "ChatLogEx" })
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("MyAddon", true, { "ChatLog", "ChatLogEx" })
 -- 
 -- -- Create an addon with a base object
 -- local tAddonBase = { config = { ... some default settings ... }, ... }
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon(tAddonBase, "MyAddon", false)
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon(tAddonBase, "MyAddon", false)
 -- 
 -- -- Create an addon with a base object with a dependency on ChatLog / ChatLogEx
 -- local tAddonBase = { config = { ... some default settings ... }, ... }
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon(tAddonBase, "MyAddon", false, { "ChatLog", "ChatLogEx" })
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon(tAddonBase, "MyAddon", false, { "ChatLog", "ChatLogEx" })
 function GeminiAddon:NewAddon(oAddonOrName, ...)
 	local oAddon, strAddonName
 	local oNilOrName = nil
@@ -200,7 +200,7 @@ function GeminiAddon:NewAddon(oAddonOrName, ...)
 	if self.Addons[strAddonName] then
 		error(("Usage: NewAddon([object, ] strAddonName, bOnConfigure[, tDependencies][, strPkgName, ...]): 'strAddonName' - Addon '%s' already registered in GeminiAddon."):format(strAddonName), 2)
 	end
-	
+
 	-- get configure state
 	local strConfigBtnName = select(i, ...)
 	i = i + 1
@@ -244,7 +244,7 @@ function GeminiAddon:NewAddon(oAddonOrName, ...)
 		-- Wait 0 seconds (hah?) this allows OnRestore to have occured
 		GeminiAddon.Timers[strName] = ApolloTimer.Create(0, false, "___OnDelayEnable",self)
 	end
-	
+
 	-- Register with Apollo
 	Apollo.RegisterAddon(oAddon, bConfigure, strConfigBtnName, tDependencies)
 	return oAddon
@@ -255,7 +255,7 @@ end
 -- @param strAddonName the addon name registered with GeminiAddon
 -- @param bSilent return nil if addon is not found instead of throwing an error
 -- @usage
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:GetAddon("MyAddon")
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:GetAddon("MyAddon")
 function GeminiAddon:GetAddon(strAddonName, bSilent)
 	if not bSilent and not self.Addons[strAddonName] then
 		error(("Usage: GetAddon(strAddonName): 'strAddonName' - Cannot find an GeminiAddon called '%s'."):format(tostring(strAddonName)), 2)
@@ -273,16 +273,16 @@ function GeminiAddon:EnableAddon(oAddon)
 	if type(oAddon) == "string" then 
 		oAddon = self:GetAddon(oAddon) 
 	end
-	
+
 	local strAddonName = AddonToString(oAddon)
-	
+
 	if self.AddonStatus[strAddonName] or not oAddon.EnabledState then
 		return false
 	end
-	
+
 	self.AddonStatus[strAddonName] = true
 	safecall(oAddon.OnEnable, oAddon)
-	
+
 	if self.AddonStatus[strAddonName] then
 		-- embed packages
 		local tEmbeds = self.Embeds[oAddon]
@@ -297,7 +297,7 @@ function GeminiAddon:EnableAddon(oAddon)
 		-- enable modules
 		local tModules = oAddon.OrderedModules
 		for i = 1, #tModules do
-			oAddon:EnableModule(tModules[i].ModuleName)
+			self:EnableAddon(tModules[i])
 		end
 	end
 	return self.AddonStatus[strAddonName]
@@ -314,7 +314,7 @@ function GeminiAddon:DisableAddon(oAddon)
 		return false
 	end
 
-	safecall( addon.OnDisable, oAddon )
+	safecall( oAddon.OnDisable, oAddon )
 
 	if self.AddonStatus[strAddonName] then
 		local tEmbeds = self.Embeds[oAddon]
@@ -343,7 +343,7 @@ end
 function GeminiAddon:InitializeAddon(oAddon)
 	local _, retVal = safecall(oAddon.OnInitialize, oAddon)
 	if retVal ~= nil then return retVal end
-	
+
 	local tEmbeds = self.Embeds[oAddon]
 	for i = 1, #tEmbeds do
 		local APkg = Apollo.GetPackage(tEmbeds[i])
@@ -423,7 +423,7 @@ function NewModule(self, strName, oPrototype, ...)
 	if type(strName) ~= "string" then error(("Usage: NewModule(strName, [oPrototype, [strPkgName, strPkgName, strPkgName, ...]): 'strName' - string expected got '%s'."):format(type(strName)), 2) end
 	if type(oPrototype) ~= "string" and type(oPrototype) ~= "table" and type(oPrototype) ~= "nil" then error(("Usage: NewModule(strName, [oPrototype, [strPkgName, strPkgName, strPkgName, ...]): 'oPrototype' - table (oPrototype), string (strPkgName) or nil expected got '%s'."):format(type(oPrototype)), 2) end
 	if self.Modules[strName] then error(("Usage: NewModule(strName, [oPrototype, [strPkgName, strPkgName, strPkgName, ...]): 'strName' - Module '%s' already exists."):format(strName), 2) end
-	
+
 	-- Go up the family tree to find the addon that started it all
 	local oCurrParent, oNextParent = self, self.Parent
 	while oNextParent do
@@ -437,7 +437,7 @@ function NewModule(self, strName, oPrototype, ...)
 	oModule:SetEnabledState(self.DefaultModuleState)
 	oModule.ModuleName = strName
 	oModule.Parent = self
-	
+
 	if type(oPrototype) == "string" then
 		GeminiAddon:EmbedPackages(oModule, oPrototype, ...)
 	else
@@ -449,13 +449,13 @@ function NewModule(self, strName, oPrototype, ...)
 		oPrototype = self.DefaultModulePrototype or nil
 		--self:_Log("Using Prototype type: " .. tostring(oPrototype))
 	end
-	
+
 	if type(oPrototype) == "table" then
 		local mt = getmetatable(oModule)
 		mt.__index = oPrototype
 		setmetatable(oModule, mt)
 	end
-	
+
 	safecall(self.OnModuleCreated, self, oModule)
 	self.Modules[strName] = oModule
 	tinsert(self.OrderedModules, oModule)
@@ -494,7 +494,7 @@ end
 -- @usage
 function Enable(self)
 	self:SetEnabledState(true)
-	
+
 	if not QueuedForInitialization(self) then
 		return GeminiAddon:EnableAddon(self)
 	end
@@ -545,7 +545,7 @@ end
 -- @param strPkgName List of Packages to embed into the addon
 -- @usage 
 -- -- Create the addon object
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon("MyAddon")
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("MyAddon")
 -- -- Configure default packages for modules
 -- MyAddon:SetDefaultModulePackages("MyEmbeddablePkg-1.0")
 -- -- Create a module
@@ -564,7 +564,7 @@ end
 -- @param state Default state for new modules, true for enabled, false for disabled
 -- @usage 
 -- -- Create the addon object
--- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.0").tPackage:NewAddon("MyAddon")
+-- local MyAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("MyAddon")
 -- -- Set the default state to "disabled"
 -- MyAddon:SetDefaultModuleState(false)
 -- -- Create a module and explicilty enable it

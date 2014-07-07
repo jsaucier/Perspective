@@ -450,6 +450,8 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
         local xOffset = 0
         local yOffset = 0
 
+        local drawLine
+
         if self.offsetLines then
 	        -- Get the length of the vector
 			local xDist = lPos.x - pPos.nX
@@ -466,51 +468,56 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 			-- TODO 
 
 			-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
-			if (lineOffsetFromCenter + 10 < vectorLength) then 
+			if (lineOffsetFromCenter + 25 < vectorLength) then 
 				-- Get the ratio of the line distance from the center of the screen to the vector length
 				local lengthRatio = lineOffsetFromCenter / vectorLength
 
 				-- Get the x and y offsets for the line starting point
 				xOffset = lengthRatio * xDist
 				yOffset = lengthRatio * yDist
+
+				drawLine = 1
 			end
 		end
 
-		-- Draw the background line to give the outline if required
-		if ui.showLineOutline then
-			local lineAlpha = string.sub(ui.cLineColor, 1, 2)
+		if (drawLine == 1) then 
+			-- Draw the background line to give the outline if required
+			if ui.showLineOutline then
+				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
 
+				self.Overlay:AddPixie({
+					bLine = true,
+					fWidth = ui.lineWidth + 2,
+					cr = lineAlpha .. "000000",
+					loc = {
+						fPoints = {0, 0, 0, 0},
+						nOffsets = {
+							lPos.x, 
+							lPos.y, 
+							pPos.nX + xOffset, 
+							pPos.nY + yOffset
+						}
+					}
+				})
+			end
+
+			-- Draw the actual line to the unit's vector
 			self.Overlay:AddPixie({
 				bLine = true,
-				fWidth = ui.lineWidth + 2,
-				cr = lineAlpha .. "000000",
+				fWidth = ui.lineWidth,
+				cr = ui.cLineColor,
 				loc = {
 					fPoints = {0, 0, 0, 0},
 					nOffsets = {
 						lPos.x, 
-						lPos.y, 
+						lPos.y,
 						pPos.nX + xOffset, 
-						pPos.nY + yOffset
+						pPos.nY + yOffset					
 					}
 				}
 			})
 		end
 
-		-- Draw the actual line to the unit's vector
-		self.Overlay:AddPixie({
-			bLine = true,
-			fWidth = ui.lineWidth,
-			cr = ui.cLineColor,
-			loc = {
-				fPoints = {0, 0, 0, 0},
-				nOffsets = {
-					lPos.x, 
-					lPos.y,
-					pPos.nX + xOffset, 
-					pPos.nY + yOffset					
-				}
-			}
-		})
 	end
 
 	-- Draw the icon and text if it needs to be drawn.

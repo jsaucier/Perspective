@@ -275,7 +275,7 @@ function PerspectiveOptions:LoadDefaults()
 						display = false,
 						font = "CRB_Pixel_O",
 						fontColor = "ffffffff",
-						icon = "IconSprites:Icon_Windows32_UI_CRB_InterfaceMenu_Map",
+						icon = "PerspectiveSprites:Pin",
 						iconColor = "ffffffff",
 						iconHeight = 48,
 						iconWidth = 48,
@@ -2046,7 +2046,7 @@ function PerspectiveOptions:TextBoxReturnSettings(handler, control)
 	Perspective:UpdateOptions() 
 end
 
-function PerspectiveOptions:TextBoxEscapeEditor(handler, control)
+function PerspectiveOptions:TextBoxEscapeSettings(handler, control)
 	-- Get the control's data
 	local data = control:GetData()
 

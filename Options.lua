@@ -248,12 +248,6 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Unit_Captain_Visia]					= { category = "instancePortal",	display = L.Unit_Travel_Whitevale },
 					[L.Unit_Captain_Zanaar]					= { category = "instancePortal",	display = L.Unit_Travel_Northern_Wastes },
 					[L.Unit_Servileia_Uticeia]				= { category = "instancePortal",	display = L.Unit_Travel_Ilium },
-					--[[[L.Unit_Empirius]						= { category = "wotwChampion" },
-					[L.Unit_Sagittaurus]					= { category = "wotwChampion" },
-					[L.Unit_Lectro]							= { category = "wotwChampion" },
-					[L.Unit_Krule]							= { category = "wotwChampion" },
-					[L.Unit_Zappo]							= { category = "wotwChampion" },
-					[L.Unit_Ignacio]						= { category = "wotwChampion" },]]
 					[L.Unit_Police_Patrolman]				= { category = "cowPolice" },
 					[L.Unit_Police_Constable]				= { category = "cowPolice" },
 					[L.Unit_Water]							= { category = "mtWater" },
@@ -1058,7 +1052,11 @@ function PerspectiveOptions:LoadControls()
 end
 
 function PerspectiveOptions:GetOptionValue(ui, option, category)
-	local category = category or ui.category or "default"
+	local category = category 
+	
+	if not category and ui then
+		category = ui.category or "default"
+	end
 
 	-- Get the category option value
 	if self.db.profile[self.profile].categories[category] and
@@ -1672,7 +1670,7 @@ function PerspectiveOptions:ButtonClickedOptionsNewButton(handler, control, butt
 
 	self:InitializeOptions()
 
-	self:EditorInitialize(L["Custom Unit"])
+	self:EditorInitialize(L.Unit_Custom)
 end
 
 function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)

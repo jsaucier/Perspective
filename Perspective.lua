@@ -165,6 +165,7 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("Group_Left",							"OnGroup_Left", self)
 	Apollo.RegisterEventHandler("Group_Join",							"OnGroup_Updated", self)
 	Apollo.RegisterEventHandler("Group_Updated",						"OnGroup_Updated", self)
+	Apollo.RegisterEventHandler("ChatZoneChange",						"OnChatZoneChange", self)
 end
 
 function Perspective:OnEnable()
@@ -202,6 +203,8 @@ function Perspective:Start()
 		self:SetTimers()
 	end
 
+	self:UpdateZoneSpellEffects()
+
 	Apollo.RegisterEventHandler("NextFrame", "OnNextFrame", self)
 end
 
@@ -214,6 +217,9 @@ function Perspective:Stop()
 
 	self.units.prioritized = {}
 	self.units.categorized = {}
+
+	self.buffs = nil
+	self.debuffs = nil
 
 	self.markers = {}
 	self.markersInitialized = false
@@ -450,9 +456,9 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
         local xOffset = 0
         local yOffset = 0
 
-        local drawLine
+        local drawLine = 1
 
-        if self.offsetLines then
+       	if self.offsetLines then
 	        -- Get the length of the vector
 			local xDist = lPos.x - pPos.nX
 			local yDist = lPos.y - pPos.nY
@@ -475,12 +481,12 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, deadzon
 				-- Get the x and y offsets for the line starting point
 				xOffset = lengthRatio * xDist
 				yOffset = lengthRatio * yDist
-
-				drawLine = 1
+			else
+				drawLine = 0
 			end
 		end
 
-		if (drawLine == 1) then 
+		if drawLine == 1 then 
 			-- Draw the background line to give the outline if required
 			if ui.showLineOutline then
 				local lineAlpha = string.sub(ui.cLineColor, 1, 2)
@@ -699,6 +705,21 @@ function Perspective:OnTimerSlow()
 				self:MarkersInit()
 			end
 
+		end
+
+		-- Check for new spell effects, this is gonna suck :(
+		for id, unit in pairs(self.units.all) do
+			-- Limit buffs to players for now
+			if unit:IsValid() and unit:GetType() == "Player" then
+				local ui = self:GetUnitInfo(unit)
+
+				local category = self:UpdateSpellEffects(ui, unit)
+
+				if category and category ~= ui.category then
+					-- Need to recategorize this unit
+					table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
+				end
+			end
 		end
 	end
 end
@@ -948,8 +969,89 @@ function Perspective:UpdateOptions(ui, full)
 	end
 end
 
--- Updates the unit to determine category, loads its setttings, and calculates its current distance
--- from the player.
+function Perspective:UpdateSpellEffects(ui, unit)
+	local tables = { 
+		{ name = "debuffs", ar = "arHarmful" },
+		{ name = "buffs", ar = "arBeneficial" } }
+
+	for index, tbl in pairs(tables) do
+		if self[tbl.name] then
+			for index, effect in pairs(unit:GetBuffs()[tbl.ar]) do
+				-- Spell effect name
+				local name = effect.splEffect:GetName()
+
+				local eff = self[tbl.name][name]
+
+				if eff then
+					local disposition = ""
+
+					if eff.disposition then
+						disposition = (unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 2) and "Friendly" or "Hostile"
+					end
+
+					-- Return the category for this spell effect.
+					return self[tbl.name][name].category .. disposition
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
+function Perspective:UpdateZoneSpellEffects()
+	if not GameLib.GetCurrentZoneMap() then return end
+
+	local zoneId = GameLib.GetCurrentZoneMap().id
+
+	-- Update our valid buffs and debuffs for the zone
+	local tables = { "buffs", "debuffs" }
+
+	for index, tbl in pairs(tables) do
+		-- Empty the table.
+		self[tbl] = {}
+
+		-- Determines if we found a buff or not.
+		local active = false
+
+		-- Make sure the category is enabled.
+		for name, options in pairs(Options.db.profile[Options.profile][tbl]) do
+			-- Zone id makes the buff's listed zone id.
+			if options.zone == zoneId then
+				-- Now determine if the category for the buff is enabled, otherwise no need to track it
+				local isEnabled = false
+
+				-- Check if this is a disposition based category
+				if options.disposition == true then
+					-- Check to make sure at least either the Hostile or Friendly category is enabled.
+					if not Options.db.profile[Options.profile].categories[options.category .. "Hostile"].disabled or
+						not Options.db.profile[Options.profile].categories[options.category .. "Friendly"].disabled then
+						isEnabled = true
+					end
+				else
+					-- Make sure the category is enabled.
+					if not Options.db.profile[Options.profile].categories[options.category].disabled then
+						isEnabled = true
+					end
+				end
+
+				if isEnabled == true then
+					-- Valid buff we need to be checking for.
+					self[tbl][name] = { category = options.category, disposition = options.disposition }
+				
+					-- Active table.
+					active = true
+				end
+			end
+		end
+
+		if not active then
+			self[tbl] = nil
+		end
+	end
+end
+
+-- Updates the unit to and calculates its current distance from the player.
 function Perspective:UpdateUnit(ui, unit)
 	local player = GameLib.GetPlayerUnit()
 
@@ -1402,7 +1504,11 @@ function Perspective:OnWorldChanged()
 	if self.loaded then
 		self:MarkersInit()
 	end
+
 	self.Player = nil
+
+	-- Update buffs / debuffs table
+	self:UpdateZoneSpellEffects()
 end
 
 function Perspective:OnQuestInit()
@@ -1525,6 +1631,11 @@ function Perspective:OnGroup_Updated()
 		-- Recategorize the units using the queue.
 		self:RecategorizeAllUnits(true)
 	end
+end
+
+function Perspective:OnChatZoneChange()
+	-- We have moved to a different zone
+	self:OnWorldChanged()
 end
 
 function Perspective:OnChallengeActivated(challenge)

@@ -1867,7 +1867,7 @@ function Perspective:UpdatePlayer(ui, unit)
 	local player = GameLib.GetPlayerUnit()
 	
 	-- We don't care about ourselves, or invalid units
-	if unit:IsThePlayer() or not unit:IsValid() or not unit:IsDead() then return end
+	if unit:IsThePlayer() or not unit:IsValid() or unit:IsDead() then return end
 
 	-- Check debuffs, then buffs
 	ui.category = self:UpdateSpellEffects(ui, unit)

@@ -18,6 +18,7 @@ local activationStates = {
 	{ state = "QuestNew", 				category = "questNew" },
 	{ state = "QuestNewRepeatable", 	category = "questNew" },
 	{ state = "QuestNewTradeskill",		category = "questNew" },
+	--{ state = "QuestTarget",			category = "questInteractable" },
 	{ state = "TalkTo", 				category = "questTalkTo" },
 	{ state = "Datacube", 				category = "lore" },
 	{ state = "ExplorerInterest", 		category = "explorer" },
@@ -790,7 +791,6 @@ function Perspective:UpdateUnitCategory(ui, unit)
 	if unit and unit:IsValid() then
 		-- Get the unit name
 		ui.name = unit:GetName()
-
 		-- Determines if the unit is busy
 		if not self:IsUnitBusy(unit) then
 			-- Targetted unit
@@ -806,8 +806,11 @@ function Perspective:UpdateUnitCategory(ui, unit)
 				-- target and focus.
 				ui.category = ui.name
 			elseif Options.db.profile[Options.profile].names[ui.name] then
-				ui.category = Options.db.profile[Options.profile].names[ui.name].category
-				ui.named = ui.name
+				local category = Options.db.profile[Options.profile].names[ui.name].category
+				if not Options.db.profile[Options.profile].categories[category].disabled then
+					ui.category = category
+					ui.named = ui.name
+				end
 			else
 				-- Updates the activation state for the unit and determines if it is busy, if it is
 				-- busy then we do not care for this unit at this time.
@@ -824,7 +827,8 @@ function Perspective:UpdateUnitCategory(ui, unit)
 					not Options:GetOptionValue(nil, "disabled", "questObjective") then 
 					if ui.hasActivation then
 						ui.category = "questInteractable"
-					else
+					elseif unit:GetType() ~= "Simple" or unit:GetType() ~= "SimpleCollidable" then
+						-- Simple and SimpleCollidable cant be objectives.
 						ui.category = "questObjective"
 					end
 				elseif ui.hasChallenge and 
@@ -1630,21 +1634,27 @@ function Perspective:OnUnitActivationTypeChanged(unit)
 	-- Get the unit info or create a new one
 	local ui = self:GetUnitInfo(unit)
 
-	self:UpdateUnitCategory(ui, unit)
+	-- Insert into queue to be recategorized
+	table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
+	--self:UpdateUnitCategory(ui, unit)
 end
 
 function Perspective:OnUnitNameChanged(unit)
 	local ui = self:GetUnitInfo(unit)
 
-	self:UpdateUnitCategory(ui, unit)
+	-- Insert into queue to be recategorized
+	table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
+	--self:UpdateUnitCategory(ui, unit)
 end
 
 function Perspective:OnUnitGroupChanged(unit)
 	if not Options.db.profile[Options.profile].categories.group.disabled then
 		local ui = self:GetUnitInfo(unit)
 
+	-- Insert into queue to be recategorized
+	table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
 		-- Recategorize the player.
-		self:UpdateUnitCategory(ui, unit)
+		--self:UpdateUnitCategory(ui, unit)
 	end
 end
 
@@ -1654,8 +1664,9 @@ function Perspective:OnGroup_MemberFlagsChanged(index, arg2, flags)
 	if unit and unit:IsValid() then
 		local ui = self:GetUnitInfo(unit)
 		
-		-- Recategorize the player.
-		self:UpdateUnitCategory(ui, unit)
+		-- Insert into queue to be recategorized
+		table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
+		--self:UpdateUnitCategory(ui, unit)
 	end
 end
 
@@ -1989,17 +2000,20 @@ function Perspective:UpdateActivationState(ui, unit)
 
 	local category
 
-	for _, __ in pairs(state) do
+	for _, s in pairs(state) do
 		if not ui.hasActivation then
-			-- This is an interactive object.
-			ui.hasActivation = true
-			break;
+			if s.bIsActive and s.bCanInteract then
+				-- This is an interactive object.
+				ui.hasActivation = true
+				break;
+			end
 		end
 	end
 
 	for k, v in pairs(activationStates) do
 		if state[v.state] and 
 			state[v.state].bIsActive and
+			state[v.state].bCanInteract and
 			not Options.db.profile[Options.profile].categories[v.category].disabled then
 
 			category = v.category
@@ -2067,6 +2081,9 @@ function Perspective:UpdateRewards(ui, unit)
 					isValid = false
 				-- The Ravenous Grove
 				elseif questId == 6762 and not act.Interact then
+					isValid = false
+				-- Ever Vigilant
+				elseif questId == 7007 and not act.Interact then
 					isValid = false
 				end
 			end

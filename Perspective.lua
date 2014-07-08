@@ -128,6 +128,7 @@ function Perspective:OnInitialize()
 	self.inRaid = false
 
 	-- Register our addon events	
+	Apollo.RegisterEventHandler("ResolutionChanged", 					"OnResolutionChanged", self)
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("ChangeWorld", 							"OnWorldChanged", self)	
@@ -168,6 +169,11 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("ChatZoneChange",						"OnChatZoneChange", self)
 end
 
+function Perspective:OnResolutionChanged()
+	self.DisplaySize = Apollo.GetDisplaySize()
+	self.MaxDottedLineDelta = self.DisplaySize.nWidth / 6
+end
+
 function Perspective:OnEnable()
 	-- Make sure the addon isn't disabled before starting.
 	if not Options.db.profile[Options.profile].settings.disabled then
@@ -180,6 +186,8 @@ function Perspective:OnEnable()
 	if Apollo.GetAddon("Rover") then
 		SendVarToRover("Perspective", self)
 	end
+
+	self:OnResolutionChanged()
 end
 
 function Perspective:Start()
@@ -425,22 +433,16 @@ function Perspective:GetLineOffsetFromCenter (yDist, vectorLength)
 	local angle = math.asin(yDist / vectorLength)
 
 	local Wide = 0
-	if (self.PlayerRaceId ~= nil) then 
-		local deadzoneRaceEntry = DeadzoneRaceLookup[self.PlayerRaceId]
-		if (deadzoneRaceEntry ~= nil) then Wide = deadzoneRaceEntry.Wide end
-	end
+	if self.PlayerRaceIsWide ~= nil then Wide = self.PlayerRaceIsWide end
 
 	for index, item in pairs(DeadzoneAnglesLookup) do
 		if (angle >= item.Rad and angle < item.NextRad) then
 			local DeltaRatio = (angle - item.Rad) / item.DeltaRad
-			local Offset
 			if (Wide == 1) then
-				Offset = item.WideLength + (item.DeltaWideLength * DeltaRatio)
+				return item.WideLength + (item.DeltaWideLength * DeltaRatio)
 			else
-				Offset = item.Length + (item.DeltaLength * DeltaRatio)
+				return item.Length + (item.DeltaLength * DeltaRatio)
 			end
-			-- Print (	"a:" .. angle .. ", " .. " | item.Rad: " .. item.Rad .. " | item.Length: " .. item.Length .. " | dRatio: " .. DeltaRatio .. " | Offset: " .. Offset)
-			return Offset
 		end
 	end
 
@@ -449,6 +451,8 @@ end
 
 
 function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedLine, deadzone)
+
+	local pixieLocPoints = { 0, 0, 0, 0 }
 
 	-- Draw the line first, if it needs to be drawn
 	if showLine then
@@ -473,11 +477,6 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 			-- Get line distance offset based on angle, scale for camera position 
 			local lineOffsetFromCenter = self:GetLineOffsetFromCenter(yDist, vectorLength)
 			if (deadzone ~= nil) then lineOffsetFromCenter = lineOffsetFromCenter * deadzone.scale end
-			-- Print (	"O:" .. math.floor(pPos.nX) .. ", " .. math.floor(pPos.nY) .. " | T: " .. math.floor(lPos.x) .. "," .. math.floor(lPos.y) .. " | D: " .. math.floor(xDist) .. "," .. math.floor(yDist) .. " | VL: " .. math.floor(vectorLength) )
-			-- Print (	"DZ.nameplateY: " .. math.floor(deadzone.nameplateY) .. ", DZ.feetY: " .. math.floor(deadzone.feetY) .. ", Height: " .. math.floor(deadzone.feetY - deadzone.nameplateY) .. ", DZ.scale : " .. deadzone.scale )
-
-			-- Add: Deadzone size scale from config (a float multiplier that changes lineOffsetFromCenter)
-			-- TODO 
 
 			-- Don't draw "outside-in" lines or if the result will be less than 10 pixels long
 			if (lineOffsetFromCenter + 25 < vectorLength) then 
@@ -494,22 +493,25 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 		if drawLine == 1 then 
 
-			local pixieLocPoints = { 0, 0, 0, 0 }
-
 			if dottedLine == true then 
-				-- Draw Dots, then! 
+			-- if true then 
+				-- Draw Dots! 
 				-- First dumb approach, and it seems to work OK:  
 				-- 		draw dot at start, 
 				--		then one extra dot at ~half (configurable) remaining distance (maybe with a max jump length)
 				--		until 20 pixels remain on either X or Y axis (really do NOT want to spam SQRT)
+
+				-- Remove this from here once this is a config entry. 
+				-- MUST be between 0.1 and 1.0. Really. If it's 0 or less, or >1, it will crash. 
+				-- (don't wanna validate it here 100 times, config UI should guarantee value! let config file hackers crash!)
+				-- SHOULD be between 0.33 and 0.66, sweet spot is 0.5
+				self.lineStep = 0.5
 
 				local drawX = pPos.nX + xOffset
 				local drawY = pPos.nY + yOffset
 				local targetX = lPos.x
 				local targetY = lPos.y
 				local deltaX, deltaY, deltaRatio
-				-- move that to some global place with change notification and account for render scale
-				local maxDelta = Apollo.GetDisplaySize().nWidth / 6 
 
 				while 1 do
 					-- Draw Dot 
@@ -517,83 +519,64 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 		 					strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
 		 					loc = { fPoints = pixieLocPoints, nOffsets = { drawX - 5, drawY - 5, drawX + 5, drawY + 5 } }
 		 				} )
-		 			-- Move half remaioning distance
+		 			-- How far do we still have to go? Stop if close enough 
 		 			deltaX = (targetX - drawX)
 		 			deltaY = (targetY - drawY)
-
 		 			if ( deltaX >= -20 and deltaX <= 20 and deltaY >= -20 and deltaY <= 20 ) then break end 
 
-		 			if ( math.abs(deltaX) > maxDelta ) then 
-		 				deltaRatio = maxDelta / math.abs(deltaX)
+		 			-- maxDelta is design to avoid too big a gap between dots on very long lines (especially going offscreen)
+		 			if (math.abs(deltaX) > self.MaxDottedLineDelta) then 
+		 				deltaRatio = self.MaxDottedLineDelta / math.abs(deltaX)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
-		 			if ( math.abs(deltaY) > maxDelta ) then 
-		 				deltaRatio = maxDelta / math.abs(deltaY)
+		 			if (math.abs(deltaY) > self.MaxDottedLineDelta) then 
+		 				deltaRatio = self.MaxDottedLineDelta / math.abs(deltaY)
 		 				deltaX = deltaX * deltaRatio
 		 				deltaY = deltaY * deltaRatio
 		 			end
 
-		 			drawX = drawX + deltaX * 0.5
-		 			drawY = drawY + deltaY * 0.5
-
+		 			-- Step up to the next dot 
+		 			drawX = drawX + deltaX * self.lineStep
+		 			drawY = drawY + deltaY * self.lineStep
 				end
 
-				-- Add option to show final dot? 
-				self.Overlay:AddPixie( {
-						strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
-						loc = { fPoints = pixieLocPoints, nOffsets = { targetX - 5, targetY - 5, targetX + 5, targetY + 5 } }
-					} )
+				-- Only draw final dot if not showing item name/icon
+				if not showItem then 
+					self.Overlay:AddPixie( {
+							strSprite = "PerspectiveSprites:small-circle", cr = ui.cLineColor, 
+							loc = { fPoints = pixieLocPoints, nOffsets = { targetX - 5, targetY - 5, targetX + 5, targetY + 5 } }
+						} )
+				end
 			else
 				-- Draw lines!
 				-- Draw the background line to give the outline if required
 				if ui.showLineOutline then
 					local lineAlpha = string.sub(ui.cLineColor, 1, 2)
 
-					self.Overlay:AddPixie({
-						bLine = true,
-						fWidth = ui.lineWidth + 2,
-						cr = lineAlpha .. "000000",
-						loc = {
-							fPoints = pixieLocPoints,
-							nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
-						}
-					})
+					self.Overlay:AddPixie( {
+							bLine = true, fWidth = ui.lineWidth + 2, cr = lineAlpha .. "000000",
+							loc = { fPoints = pixieLocPoints, nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset } }
+						})
 				end
 
 				-- Draw the actual line to the unit's vector
-				self.Overlay:AddPixie({
-					bLine = true,
-					fWidth = ui.lineWidth,
-					cr = ui.cLineColor,
-					loc = {
-						fPoints = pixieLocPoints,
-						nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset }
-					}
-				})
+				self.Overlay:AddPixie( {
+						bLine = true, fWidth = ui.lineWidth, cr = ui.cLineColor,
+						loc = { fPoints = pixieLocPoints, nOffsets = { lPos.x, lPos.y, pPos.nX + xOffset, pPos.nY + yOffset } }
+					} )
 			end
-
 		end
-
 	end
 
 	-- Draw the icon and text if it needs to be drawn.
 	if showItem then
 		-- Draw the icon first
 		if ui.showIcon then
-			self.Overlay:AddPixie({
-				strSprite = ui.icon,
-				cr = ui.cIconColor,
-				loc = {
-					fPoints = { 0, 0, 0, 0 },
-					nOffsets = {
-						uPos.nX - (ui.scaledWidth / 2), 
-						uPos.nY - (ui.scaledHeight / 2), 
-						uPos.nX + (ui.scaledWidth / 2),
-						uPos.nY + (ui.scaledHeight / 2)
-					}
-				}
-			})
+			self.Overlay:AddPixie( {
+					strSprite = ui.icon, cr = ui.cIconColor,
+					loc = { fPoints = pixieLocPoints, nOffsets = { uPos.nX - (ui.scaledWidth / 2),  uPos.nY - (ui.scaledHeight / 2),  uPos.nX + (ui.scaledWidth / 2), uPos.nY + (ui.scaledHeight / 2) } }
+				} )
 		end		
 		
 		-- Draw the text
@@ -606,24 +589,11 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 			text = (ui.showDistance and ui.distance >= ui.rangeLimit) and text .. " (" .. math.ceil(ui.distance) .. "m)" or text
 
-			self.Overlay:AddPixie({
-				strText = text,
-				strFont = ui.font,
-				crText = ui.cFontColor,
-				loc = {
-					fPoints = {0,0,0,0},
-					nOffsets = {
-						uPos.nX - 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 0, 
-						uPos.nX + 50, 
-						uPos.nY + (ui.scaledHeight / 2) + 100 
-					}
-				},
-				flagsText = {
-					DT_CENTER = true,
-					DT_WORDBREAK = true
-				}
-			})
+			self.Overlay:AddPixie( {
+					strText = text, strFont = ui.font, crText = ui.cFontColor,
+					loc = { fPoints = pixieLocPoints, nOffsets = { uPos.nX - 50, uPos.nY + (ui.scaledHeight / 2) + 0, uPos.nX + 50, uPos.nY + (ui.scaledHeight / 2) + 100 } },
+					flagsText = { DT_CENTER = true, DT_WORDBREAK = true }
+				} )
 		end
 	end
 end
@@ -639,19 +609,21 @@ function Perspective:OnTimerDraw()
 	-- Save player unit & Race Id
 	if (self.Player == nil) then 
 		local p = GameLib.GetPlayerUnit()
-		if (p:IsValid()) then 
-			self.Player = GameLib.GetPlayerUnit() 
-		end
+		if (p:IsValid()) then self.Player = p end
 	end
 	if (self.PlayerRaceId == nil) then 
 		if (self.Player ~= nil) then 
 			self.PlayerRaceId = self.Player:GetRaceId()
-
+			local deadzoneRaceEntry = DeadzoneRaceLookup[self.PlayerRaceId]
+			if (deadzoneRaceEntry ~= nil) then 
+				self.PlayerRaceIsWide = deadzoneRaceEntry.Wide 
+			else 
+				self.PlayerRaceIsWide = 0 
+			end
 		end
 	end
 
 	-- Get the player's current screen position
-	-- local pPos = GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit())
 	local pPos = GameLib.GetUnitScreenPosition(self.Player)
 
 	-- We want to make sure we can get the unit's screen position	

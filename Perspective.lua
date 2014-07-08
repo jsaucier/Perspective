@@ -2004,7 +2004,7 @@ function Perspective:UpdateActivationState(ui, unit)
 
 			if v.state == "Datacube" and 
 				PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist and 
-				string.find(unit:GetName(), "DATACUBE:") then
+				string.find(unit:GetName(), L.Unit_Datacube) then
 				category = "scientistScans"
 			end	
 

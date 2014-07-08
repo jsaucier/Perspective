@@ -952,7 +952,7 @@ function PerspectiveOptions:LoadDefaults()
 						title = L.Category_Path_Settler,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+						icon = "IconSprites:Icon_Windows_UI_CRB_Colonist",
 						lineColor = "ffc759ff",
 						maxLines = 1 },
 					settlerResources = {

@@ -672,9 +672,9 @@ function PerspectiveOptions:LoadDefaults()
 					questReward = {
 						title = L.Category_Quest_Complete,
 						module = L.Module_Quest,
-						icon = "IconSprites:Icon_Windows_UI_CRB_Checkmark",
-						iconHeight = 38,
-						iconWidth = 38,
+						icon = "PerspectiveOptions:Quest-TurnIn",
+						iconHeight = 36,
+						iconWidth = 36,
 						lineColor = "ff00ff00" },	
 					questLocation = {
 						title = L.Category_Quest_Location,
@@ -722,7 +722,7 @@ function PerspectiveOptions:LoadDefaults()
 					challenge = {
 						title = L.Category_Challenge_Objective,
 						module = L.Module_Challenge,
-						icon = "PerspectiveSprites:QuestObjective",
+						icon = "PerspectiveSprites:Quest-Objective",
 						lineColor = "ffff0000",
 						iconColor = "ffff0000" },
 					farmer = {
@@ -930,44 +930,56 @@ function PerspectiveOptions:LoadDefaults()
 						title = L.Category_Path_Scientist,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+						icon = "PerspectiveSprites:Path-Scientist",
 						lineColor = "ffc759ff",
 						showLines = false,
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					scientistScans = {
 						title = L.Category_Path_Scientist_Scans,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Scientist_Stretch",
+						icon = "PerspectiveSprites:Path-Scientist",
 						lineColor = "ffc759ff",
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					solider = {
 						title = L.Category_Path_Soldier,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Soldier_Stretch",
+						icon = "PerspectiveSprites:Path-Soldier",
 						lineColor = "ffc759ff",
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					settler = {
 						title = L.Category_Path_Settler,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "IconSprites:Icon_Windows_UI_CRB_Colonist",
+						icon = "PerspectiveSprites:Path-Settler",
 						lineColor = "ffc759ff",
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					settlerResources = {
 						title = L.Category_Path_Settler_Resources,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Settler_Stretch",
+						icon = "PerspectiveSprites:Path-Settler",
 						lineColor = "ffc759ff",
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					explorer = {
 						title = L.Category_Path_Explorer,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
-						icon = "CRB_PlayerPathSprites:spr_Path_Explorer_Stretch",
+						icon = "PerspectiveSprites:Path-Explorer",
 						lineColor = "ffc759ff",
+						iconHeight = 36,
+						iconWidth = 36,
 						maxLines = 1 },
 					wotwChampion = {
 						title = L.Category_WotW_Enemy_Champion,
@@ -1284,7 +1296,7 @@ function PerspectiveOptions:GetPathIcon()
 		path = "Soldier"
 	end
 
-	return "CRB_PlayerPathSPrites:spr_Path_" .. path .. "_Stretch"
+	return "PerspectiveSprites:Path-" .. path
 end
 
 function PerspectiveOptions:OnInterfaceMenuListHasLoaded()

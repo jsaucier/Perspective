@@ -1124,7 +1124,16 @@ function PerspectiveOptions:ShowTargetInfo()
 	local function deepPrint(key, value, indent)
 		local txt = ""
 
-		if type(value) == "table" then
+		-- Cheat the metatable, we only want buff name anyhow.
+		if key == "splEffect" then
+			txt = txt .. getIndent(indent) .. "name: " .. value:GetName() .. "\n"
+			txt = txt .. getIndent(indent) .. "id: " .. value:GetId()
+			--value = value:GetName()
+			--key = "strName"
+			return txt
+		end
+
+		if type(value) == "table" or type(value) == "metatable" then
 			txt = txt .. "\n" .. getIndent(indent) .. key .. ": {"
 			for k, v in pairs(value) do
 				txt = txt .. "\n" .. deepPrint(k, v, indent + 1)
@@ -1144,6 +1153,7 @@ function PerspectiveOptions:ShowTargetInfo()
 		local rewards = target:GetRewardInfo()
 		local state = target:GetActivationState()
 		local zone = GameLib.GetCurrentZoneMap()
+		local buffs = target:GetBuffs()
 
 		appendLine("Name: " .. target:GetName())
 		appendLine("ID: " .. target:GetId())
@@ -1189,6 +1199,22 @@ function PerspectiveOptions:ShowTargetInfo()
 			end
 		else
 			appendLine("ActivationState: nil")
+		end
+
+		if buffs then
+			local txt = ""
+			for k, v in pairs(buffs) do
+				txt = txt .. deepPrint(k, v, indent + 1)
+			end
+
+			if txt ~= "" then
+				appendLine("Buffs: {", true)
+				appendLine(txt .. " }")
+			else
+				appendLine("Buffs: {}")
+			end
+		else
+			appendLine("Buffs: nil")
 		end
 	else
 		text = L.UI_Dialog_PTI_Error

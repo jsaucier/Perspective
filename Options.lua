@@ -1840,8 +1840,9 @@ function PerspectiveOptions:ImportSettings()
 	-- Parse the dialog text.
 	local profile = JSON.decode(self.Dialog:FindChild("TextBox"):GetText())
 	
+	self.db.profile = {}
+
 	for k, v in pairs(profile) do
-		self.db.profile[k] = {}
 		self.db.profile[k] = v
 	end
 	-- Save the import to your profile.

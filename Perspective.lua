@@ -1879,9 +1879,16 @@ function Perspective:UpdatePlayer(ui, unit)
 				category = "hostilePvp"
 			end
 
-			ui.category = category .. self:GetClass(unit)
+			local cat = category .. self:GetClass(unit)
+			if not Options.db.profile[Options.profile].categories[cat].disabled then
+				ui.category = cat
+			end
+		end
+	end
+
+	if not ui.category then
 		-- Check to see if the unit is in our group
-		elseif unit:IsInYourGroup() then
+		if unit:IsInYourGroup() then
 			local raidType = self:GetRaidType(unit)
 
 			if raidType then

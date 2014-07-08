@@ -268,7 +268,13 @@ function Perspective:DestroyUnitInfo(unit)
 end
 
 function Perspective:OnNextFrame()
-	if not Options.db.profile[Options.profile].settings.disabled then 
+	if not Options.db.profile[Options.profile].settings.disabled then
+		-- Save player unit & Race Id
+		if (self.Player == nil) then 
+			local p = GameLib.GetPlayerUnit()
+			if (p:IsValid()) then self.Player = p end
+		end
+
 		self:UpdateTimers()
 	end
 end
@@ -606,11 +612,7 @@ function Perspective:OnTimerDraw()
 	-- This list will contain all the pixies we we'll need to draw.
 	local pixies = {}
 
-	-- Save player unit & Race Id
-	if (self.Player == nil) then 
-		local p = GameLib.GetPlayerUnit()
-		if (p:IsValid()) then self.Player = p end
-	end
+
 	if (self.PlayerRaceId == nil) then 
 		if (self.Player ~= nil) then 
 			self.PlayerRaceId = self.Player:GetRaceId()

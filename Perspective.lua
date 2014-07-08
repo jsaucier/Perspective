@@ -175,7 +175,6 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("FriendshipPostRemove",					"OnFriendshipChanged", self)
 	Apollo.RegisterEventHandler("FriendshipUpdate",						"OnFriendshipChanged", self)
 
-
 	-- Challenge specific fixes
 	challengeUnits = {
 		[L.Unit_Roan_Skull]						= { challenge = 576 },

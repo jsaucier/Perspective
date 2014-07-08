@@ -995,7 +995,7 @@ function PerspectiveOptions:LoadDefaults()
 						iconHeight = 36,
 						iconWidth = 36,
 						maxLines = 1 },
-					solider = {
+					soldier = {
 						title = L.Category_Path_Soldier,
 						module = L.Module_Path,
 						fontColor = "ffc759ff",
@@ -1878,11 +1878,11 @@ end
 
 function PerspectiveOptions:ImportSettings()
 	-- Parse the dialog text.
-	local profile = JSON.decode(self.Dialog:FindChild("TextBox"):GetText())
+	local profile, pos, err = JSON.decode(self.Dialog:FindChild("TextBox"):GetText())
 	
 	-- Fail to decode json.
 	if not profile then
-		Print("Failed to import settings.")
+		Print("Failed to import settings.  Error at pos: " .. pos .. " Error: " .. err)
 	 	return 
 	end
 

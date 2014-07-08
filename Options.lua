@@ -186,9 +186,6 @@ function PerspectiveOptions:LoadDefaults()
 					[L.Debuff_Moodie_Mask_Neutral]			= { category = "wtCarrier", disposition = true, zone = 69 },
 					[L.Debuff_Moodie_Mask_Dominion]			= { category = "wtCarrier", disposition = true, zone = 69 },
 					[L.Debuff_Moodie_Mask_Exile]			= { category = "wtCarrier", disposition = true, zone = 69 } },
-				challengeUnits 								= {
-					-- Challenge specific fixes
-					[L.Unit_Roan_Skull]						= { challenge = 576 } },
 				categories = {
 					default = {
 						disabled = false,

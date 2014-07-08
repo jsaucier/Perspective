@@ -4,6 +4,8 @@ require "Apollo"
 require "Quest"
 require "QuestLib"
 
+local MAX_QUEUE_SIZE = 10
+
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
 local Perspective = GeminiAddon:NewAddon("Perspective", false, {})
@@ -85,6 +87,8 @@ end
 
 local tick = 0
 local elapsed = 0
+
+
 
 function Perspective:OnInitialize()
 	-- Load our localization
@@ -201,6 +205,11 @@ function Perspective:OnEnable()
 	end
 
 	self:OnResolutionChanged()
+end
+
+function Perspective:Restart()
+	self:Stop()
+	self:Start()
 end
 
 function Perspective:Start()
@@ -321,7 +330,9 @@ end
 
 function Perspective:OnTimerQueue(elapsed)
 	if table.getn(self.units.queue) > 0 then
+
 		local count = 1
+
 		-- Iterrate backwards so we can remove them from the table as we go
 		for i = table.getn(self.units.queue), 1, -1 do
 			local update = self.units.queue[i]

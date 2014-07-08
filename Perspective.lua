@@ -833,19 +833,22 @@ function Perspective:UpdateUnitCategory(ui, unit)
 			if not ui.category or ui.category == "scientist" then
 				-- Determines if any rewards for this unit exist, such as quest objectvies, 
 				-- challenge objectives or scientist scan target.
-				if ui.hasQuest and 
-					not Options:GetOptionValue(nil, "disabled", "questObjective") then 
-
+				if ui.hasQuest then
 					local t = unit:GetType()
 
-					if ui.hasActivation then
+					if ui.hasActivation and 
+						not Options:GetOptionValue(nil, "disabled", "questInteractable") then
 						ui.category = "questInteractable"
 					elseif not ui.hasActivation and (t == "Simple" or t == "SimpleCollidable") then
 						-- do nothing
+						--Print("Do nothing: " .. unit:GetName())
 					else
-						--not ui.invalidQuestObjective then
-						-- Simple and SimpleCollidable cant be objectives.
-						ui.category = "questObjective"
+						if ui.hasSpell and
+							not Options:GetOptionValue(nil, "disabled", "questSpell") then
+							ui.category = "questSpell"
+						elseif not Options:GetOptionValue(nil, "disabled", "questObjective") then
+							ui.category = "questObjective"
+						end
 					end
 				elseif ui.hasChallenge and 
 					not Options:GetOptionValue(nil, "disabled", "challenge") then 

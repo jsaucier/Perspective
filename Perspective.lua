@@ -1515,7 +1515,7 @@ function Perspective:OnTargetUnitChanged(unit)
 		end
 
 		-- Ensure we actually have a target and didn't just untarget our current target.
-		if unit then
+		if unit and unit ~= GameLib.GetPlayerUnit() then
 			-- Get the ui for our current target, or create a new one.
 			local ui = self:GetUnitInfo(unit)
 

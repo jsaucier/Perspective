@@ -1943,9 +1943,11 @@ function Perspective:UpdateHarvest(ui, unit)
 end
 
 function Perspective:UpdatePickup(ui, unit)
-	if string.find(unit:GetName(), GameLib.GetPlayerUnit():GetName()) and
-		not Options.db.profile[Options.profile].categories.subdue.disabled then
-		ui.category = "subdue"
+	if unit and unit:IsValid() and self.Player then
+		if string.find(unit:GetName(), self.Player:GetName()) and
+			not Options.db.profile[Options.profile].categories.subdue.disabled then
+			ui.category = "subdue"
+		end
 	end
 end
 

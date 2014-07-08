@@ -1289,16 +1289,17 @@ function PerspectiveOptions:GetPathIcon()
 	local path
 
 	if PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer then
-		path = "Explorer"
+		path = "explorer"
 	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then
-		path = "Scientist"
+		path = "scientist"
 	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
-		path = "Settler"
+		path = "settler"
 	elseif PlayerPathLib.GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
-		path = "Soldier"
+		path = "soldier"
 	end
 
-	return "PerspectiveSprites:Path-" .. path
+	return self.db.profile[self.profile].categories[path].icon
+	--return "PerspectiveSprites:Path-" .. path
 end
 
 function PerspectiveOptions:OnInterfaceMenuListHasLoaded()

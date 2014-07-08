@@ -141,7 +141,7 @@ function PerspectiveOptions:OnSlashCommand(cmd, params)
 		local profile = string.sub(params, 9)
 		Print(profile)
 		self.db:CopyProfile(profile)
-		
+
 		self:InitializeOptions()
 
 		self.Editor:Show(false, true)
@@ -1893,7 +1893,7 @@ function PerspectiveOptions:ImportSettings()
 		self.db.profile[k] = v
 	end
 	-- Save the import to your profile.
-	self.db.profile = profile
+	--self.db.profile = profile
 
 	-- Do a full update on the uis
 	Perspective:UpdateOptions(nil, true)

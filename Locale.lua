@@ -185,6 +185,7 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Unit_Walatiki_Mask_Dominion				= "Dominion Moodie Mask"
 	locale.Unit_Walatiki_Mask_Exile					= "Exile Moodie Mask"
 	locale.Unit_Datacube							= "DATACUBE"
+	locale.Unit_Shipwrecked_Victim					= "Shipwrecked Victim"
 
 	-- Buffs, dont change
 	locale.Debuff_Moodie_Mask_Neutral				= "Neutral - Moodie Mask Carrier"
@@ -351,7 +352,8 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Category_Walatiki_Totem_Exile	 		= "Exile Totem"
 	locale.Category_Walatiki_Totem_Dominion 		= "Dominion Totem"
 
-	-- Not to be changed!
+	-- New Stuff as of 2014.7.8
+	locale.Category_Quest_Spell						= "Spell Objective"
 
 
 
@@ -403,6 +405,7 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Unit_Walatiki_Mask_Dominion			= "Dominion-Maske der Moodie"
 		locale.Unit_Walatiki_Mask_Exile				= "Moodiemaske der Verbannten"
 		locale.Unit_Datacube						= "DATENWÜRFEL:"
+		locale.Unit_Shipwrecked_Victim				= "Schiffbrüchiger"
 
 		-- Trade skill names (do not translate as these come from the game client)
 		locale.Tradeskill_Farmer 					= "Bauer"
@@ -703,6 +706,7 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Unit_Walatiki_Mask_Dominion			= "Masque moodie du Dominion"
 		locale.Unit_Walatiki_Mask_Exile				= "Masque moodie Exilé"
 		locale.Unit_Datacube						= "INFOCUBE"
+		locale.Unit_Shipwrecked_Victim				= "Victime naufragée"
 
 		-- Trade skill names (do not translate as these come from the game client)
 		locale.Tradeskill_Farmer 					= "Agriculture"
@@ -742,6 +746,9 @@ function PerspectiveLocale:LoadLocalization()
 		--locale.Category_Walatiki_Carrier_Hostile	= "Hostile Carrier"
 		--locale.Category_Walatiki_Totem_Exile	 	= "Exile Totem"
 		--locale.Category_Walatiki_Totem_Dominion 	= "Dominion Totem"
+
+		-- New Stuff as of 2014.7.8
+		--locale.Category_Quest_Spell				= "Spell Objective"
 
 	end
 

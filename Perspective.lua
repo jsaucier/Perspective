@@ -48,6 +48,13 @@ local activationStates = {
 	{ state = "Dungeon", 				category = "dungeon" },
 }
 
+-- Used to fix units that do not show up as challenges
+local challengeUnits = {
+	-- Challenge specific fixes
+	[L.Unit_Roan_Skull]						= { challenge = 576 },
+	[L.Unit_Shipwrecked_Victim]				= { challenge = 603 }
+}
+
 -- Lookup tables to save ourselves a lot of work and fake an oval dead zone around character
 local DeadzoneAnglesLookup = {
 	{ Deg = -90, Rad = -1.5707963267949, NextRad = -1.48352986419518, Length = 250, WideLength = 250, DeltaRad = 0.0872664625997164, DeltaLength = -5, DeltaWideLength = -3 }, 
@@ -2015,7 +2022,7 @@ function Perspective:UpdateActivationState(ui, unit)
 		end
 
 		if not ui.hasActivation then
-			if o.bIsActive and o.bCanInteract then
+			if o.bIsActive and (o.bCanInteract or o.bUsePlayerPath) then
 				-- This is an interactive object.
 				ui.hasActivation = true
 				break;
@@ -2143,6 +2150,7 @@ function Perspective:UpdateRewards(ui, unit)
 	ui.hasScan = false
 	ui.quests = {}
 	ui.challenges = {}
+	ui.hasSpell = false;
 
 	-- Gets the rewards (quest, challenge, scans) for the unit.
 	local ri = unit:GetRewardInfo()
@@ -2159,7 +2167,10 @@ function Perspective:UpdateRewards(ui, unit)
 				-- Get the quest id
 				local questId = ri[i].idQuest
 
-				if isValidQuestUnit(unit, questId, act) then
+				-- Spell objective
+				ui.hasSpell = (ri[i].splObjective ~= nil)
+
+				if ui.hasSpell or isValidQuestUnit(unit, questId, act) then
 					-- Add the quest id to the ui quest list
 					ui.quests[questId] = true
 
@@ -2189,8 +2200,8 @@ function Perspective:UpdateRewards(ui, unit)
 	-- No rewards, lets check for fixes.
 	if i == 0 then
 		-- Challenge fixes by name.
-		if Options.db.profile[Options.profile].challengeUnits[unit:GetName()] then
-			local challengeId = Options.db.profile[Options.profile].challengeUnits[unit:GetName()].challenge
+		if challengeUnits[unit:GetName()] then
+			local challengeId = challengeUnits[unit:GetName()].challenge
 
 			if self.challenges[challengeId] and isValidChallengeUnit(unit, challengeId) then
 				ui.hasChallenge = true

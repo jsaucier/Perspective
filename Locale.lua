@@ -179,6 +179,17 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Unit_Dustback_Gnasher 					= "Dustback Gnasher"				
 	locale.Unit_Dustback_Gnawer 					= "Dustback Gnawer"
 	locale.Unit_Roan_Skull 							= "Roan Skull"
+	locale.Unit_Walatiki_Totem_Dominion				= "Dominion Moodie Totem"
+	locale.Unit_Walatiki_Totem_Exile				= "Exile Moodie Totem"
+	locale.Unit_Walatiki_Mask 						= "Moodie Mask"
+	locale.Unit_Walatiki_Mask_Dominion				= "Dominion Moodie Mask"
+	locale.Unit_Walatiki_Mask_Exile					= "Exile Moodie Mask"
+	locale.Unit_Datacube							= "DATACUBE"
+
+	-- Buffs, dont change
+	locale.Debuff_Moodie_Mask_Neutral				= "Neutral - Moodie Mask Carrier"
+	locale.Debuff_Moodie_Mask_Dominion				= "Dominion Moodie Mask Carrier"
+	locale.Debuff_Moodie_Mask_Exile					= "Exile Moodie Mask Carrier"
 
 	-- Trade skill names (do not translate as these come from the game client)
 	locale.Tradeskill_Farmer 						= "Farmer"
@@ -341,15 +352,7 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Category_Walatiki_Totem_Dominion 		= "Dominion Totem"
 
 	-- Not to be changed!
-	locale.Unit_Walatiki_Totem_Dominion				= "Dominion Moodie Totem"
-	locale.Unit_Walatiki_Totem_Exile				= "Exile Moodie Totem"
 
-	locale.Unit_Walatiki_Mask 						= "Moodie Mask"
-	locale.Unit_Walatiki_Mask_Dominion				= "Dominion Moodie Mask"
-	locale.Unit_Walatiki_Mask_Exile					= "Exile Moodie Mask"
-
-	-- Buffs, dont change
-	locale.Debuff_Moodie_Mask						= "Neutral - Moodie Mask Carrier"
 
 
 	local cancel = Apollo.GetString(1);
@@ -394,6 +397,12 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Unit_Dustback_Gnasher				= "Staubrücken-Knirscher"				
 		locale.Unit_Dustback_Gnawer					= "Staubrücken-Kauer"
 		locale.Unit_Roan_Skull 						= "Roonschädel"
+		locale.Unit_Walatiki_Totem_Dominion			= "Dominion-Moodietotem"
+		locale.Unit_Walatiki_Totem_Exile			= "Verbannten-Moodie-Totem"
+		locale.Unit_Walatiki_Mask 					= "Maske der Moodie"
+		locale.Unit_Walatiki_Mask_Dominion			= "Dominion-Maske der Moodie"
+		locale.Unit_Walatiki_Mask_Exile				= "Moodiemaske der Verbannten"
+		locale.Unit_Datacube						= "DATENWÜRFEL:"
 
 		-- Trade skill names (do not translate as these come from the game client)
 		locale.Tradeskill_Farmer 					= "Bauer"
@@ -402,42 +411,16 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Tradeskill_Survivalist 				= "Überlebenskünstler"
 
 		-- Changes as of 2014.7.7
-		locale.Module_PVP							= "PVP"
-
-		locale.Category_PVP_Friendly_Engineer		= "Friendly Engineer"
-		locale.Category_PVP_Friendly_Warrior		= "Friendly Warrior"
-		locale.Category_PVP_Friendly_Stalker		= "Friendly Stalker"
-		locale.Category_PVP_Friendly_Medic			= "Friendly Medic"
-		locale.Category_PVP_Friendly_Spellslinger	= "Friendly Spellslinger"
-		locale.Category_PVP_Friendly_Esper			= "Friendly Esper"
-
-		locale.Category_PVP_Hostile_Engineer		= "Hostile Engineer"
-		locale.Category_PVP_Hostile_Warrior			= "Hostile Warrior"
-		locale.Category_PVP_Hostile_Stalker			= "Hostile Stalker"
-		locale.Category_PVP_Hostile_Medic			= "Hostile Medic"
-		locale.Category_PVP_Hostile_Spellslinger	= "Hostile Spellslinger"
-		locale.Category_PVP_Hostile_Esper			= "Hostile Esper"
-		
 		locale.Module_Walatiki						= "Walatiki-Tempel"
 
-		locale.Category_Walatiki_Mask				= "Mask"
-		locale.Category_Walatiki_Mask_Dominion		= "Dominion Mask"
-		locale.Category_Walatiki_Mask_Exile			= "Exile Mask"
-		locale.Category_Walatiki_Carrier_Friendly	= "Friendly Carrier"
-		locale.Category_Walatiki_Carrier_Hostile	= "Hostile Carrier"
-		locale.Category_Walatiki_Totem_Exile	 	= "Exile Totem"
-		locale.Category_Walatiki_Totem_Dominion 	= "Dominion Totem"
-
 		-- Not to be changed!
-		locale.Unit_Walatiki_Totem_Dominion			= "Totem moodie du Dominion"
-		locale.Unit_Walatiki_Totem_Exile			= "Totem moodie des Exilés"
 
-		locale.Unit_Walatiki_Mask 					= "Maske der Moodie"
-		locale.Unit_Walatiki_Mask_Dominion			= "Dominion-Maske der Moodie"
-		locale.Unit_Walatiki_Mask_Exile				= "Moodiemaske der Verbannten"
 
 		-- Buffs, dont change
-		locale.Debuff_Moodie_Mask					= "Neutral - Moodie Mask Carrier"
+		locale.Debuff_Moodie_Mask_Neutral			= "Neutral – Moodiemaskenträger"
+		locale.Debuff_Moodie_Mask_Dominion			= "Dominion-Moodiemasken-Träger"
+		locale.Debuff_Moodie_Mask_Exile				= "Exile-Moodiemasken-Träger"
+
 
 	elseif cancel == "Annuler" then 	
 
@@ -714,6 +697,12 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Unit_Dustback_Gnasher 				= "Croqueur ocredos"				
 		locale.Unit_Dustback_Gnawer 				= "Rongeur ocredos"
 		locale.Unit_Roan_Skull 						= "Crâne de Roan"
+		locale.Unit_Walatiki_Totem_Dominion			= "Totem moodie du Dominion"
+		locale.Unit_Walatiki_Totem_Exile			= "Totem moodie des Exilés"
+		locale.Unit_Walatiki_Mask 					= "Masque moodie"
+		locale.Unit_Walatiki_Mask_Dominion			= "Masque moodie du Dominion"
+		locale.Unit_Walatiki_Mask_Exile				= "Masque moodie Exilé"
+		locale.Unit_Datacube						= "INFOCUBE"
 
 		-- Trade skill names (do not translate as these come from the game client)
 		locale.Tradeskill_Farmer 					= "Agriculture"
@@ -721,44 +710,38 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Tradeskill_Relic_Hunter 				= "Chasseur de reliques"
 		locale.Tradeskill_Survivalist 				= "Adepte de la survie"
 
+		-- Buffs, dont change
+		locale.Debuff_Moodie_Mask_Neutral			= "Neutre - Porteur de masque moodie"
+		locale.Debuff_Moodie_Mask_Dominion			= "Porteur de masque moodie du Dominion"
+		locale.Debuff_Moodie_Mask_Exile				= "Porteur de masque moodie Exilé"
+
 		
 		-- Changes as of 2014.7.7
-		locale.Module_PVP							= "PVP"
+		--locale.Module_PVP							= "PVP"
 
-		locale.Category_PVP_Friendly_Engineer		= "Friendly Engineer"
-		locale.Category_PVP_Friendly_Warrior		= "Friendly Warrior"
-		locale.Category_PVP_Friendly_Stalker		= "Friendly Stalker"
-		locale.Category_PVP_Friendly_Medic			= "Friendly Medic"
-		locale.Category_PVP_Friendly_Spellslinger	= "Friendly Spellslinger"
-		locale.Category_PVP_Friendly_Esper			= "Friendly Esper"
+		--locale.Category_PVP_Friendly_Engineer		= "Friendly Engineer"
+		--locale.Category_PVP_Friendly_Warrior		= "Friendly Warrior"
+		--locale.Category_PVP_Friendly_Stalker		= "Friendly Stalker"
+		--locale.Category_PVP_Friendly_Medic			= "Friendly Medic"
+		--locale.Category_PVP_Friendly_Spellslinger	= "Friendly Spellslinger"
+		--locale.Category_PVP_Friendly_Esper			= "Friendly Esper"
 
-		locale.Category_PVP_Hostile_Engineer		= "Hostile Engineer"
-		locale.Category_PVP_Hostile_Warrior			= "Hostile Warrior"
-		locale.Category_PVP_Hostile_Stalker			= "Hostile Stalker"
-		locale.Category_PVP_Hostile_Medic			= "Hostile Medic"
-		locale.Category_PVP_Hostile_Spellslinger	= "Hostile Spellslinger"
-		locale.Category_PVP_Hostile_Esper			= "Hostile Esper"
+		--locale.Category_PVP_Hostile_Engineer		= "Hostile Engineer"
+		--locale.Category_PVP_Hostile_Warrior			= "Hostile Warrior"
+		--locale.Category_PVP_Hostile_Stalker			= "Hostile Stalker"
+		--locale.Category_PVP_Hostile_Medic			= "Hostile Medic"
+		--locale.Category_PVP_Hostile_Spellslinger	= "Hostile Spellslinger"
+		--locale.Category_PVP_Hostile_Esper			= "Hostile Esper"
 		
 		locale.Module_Walatiki						= "Temple de Walatiki"
 
-		locale.Category_Walatiki_Mask				= "Mask"
-		locale.Category_Walatiki_Mask_Dominion		= "Dominion Mask"
-		locale.Category_Walatiki_Mask_Exile			= "Exile Mask"
-		locale.Category_Walatiki_Carrier_Friendly	= "Friendly Carrier"
-		locale.Category_Walatiki_Carrier_Hostile	= "Hostile Carrier"
-		locale.Category_Walatiki_Totem_Exile	 	= "Exile Totem"
-		locale.Category_Walatiki_Totem_Dominion 	= "Dominion Totem"
-
-		-- Not to be changed!
-		locale.Unit_Walatiki_Totem_Dominion			= "Totem moodie du Dominion"
-		locale.Unit_Walatiki_Totem_Exile			= "Totem moodie des Exilés"
-
-		locale.Unit_Walatiki_Mask 					= "Masque moodie"
-		locale.Unit_Walatiki_Mask_Dominion			= "Masque moodie du Dominion"
-		locale.Unit_Walatiki_Mask_Exile				= "Totem moodie des Exilés"
-
-		-- Buffs, dont change
-		locale.Debuff_Moodie_Mask					= "Neutral - Moodie Mask Carrier"
+		--locale.Category_Walatiki_Mask				= "Neutral Mask"
+		--locale.Category_Walatiki_Mask_Dominion		= "Dominion Mask"
+		--locale.Category_Walatiki_Mask_Exile			= "Exile Mask"
+		--locale.Category_Walatiki_Carrier_Friendly	= "Friendly Carrier"
+		--locale.Category_Walatiki_Carrier_Hostile	= "Hostile Carrier"
+		--locale.Category_Walatiki_Totem_Exile	 	= "Exile Totem"
+		--locale.Category_Walatiki_Totem_Dominion 	= "Dominion Totem"
 
 	end
 

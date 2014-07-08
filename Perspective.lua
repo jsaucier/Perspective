@@ -49,11 +49,7 @@ local activationStates = {
 }
 
 -- Used to fix units that do not show up as challenges
-local challengeUnits = {
-	-- Challenge specific fixes
-	[L.Unit_Roan_Skull]						= { challenge = 576 },
-	[L.Unit_Shipwrecked_Victim]				= { challenge = 603 }
-}
+local challengeUnits = {}
 
 -- Lookup tables to save ourselves a lot of work and fake an oval dead zone around character
 local DeadzoneAnglesLookup = {
@@ -178,6 +174,13 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("FriendshipAdd",						"OnFriendshipChanged", self)
 	Apollo.RegisterEventHandler("FriendshipPostRemove",					"OnFriendshipChanged", self)
 	Apollo.RegisterEventHandler("FriendshipUpdate",						"OnFriendshipChanged", self)
+
+
+	-- Challenge specific fixes
+	challengeUnits = {
+		[L.Unit_Roan_Skull]						= { challenge = 576 },
+		[L.Unit_Shipwrecked_Victim]				= { challenge = 603 }
+	}
 end
 
 function Perspective:OnResolutionChanged()

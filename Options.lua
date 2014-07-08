@@ -114,9 +114,50 @@ function PerspectiveOptions:OnInitialize()
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
 
 	-- Register the slash command	
-	Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
+	--Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
 	Apollo.RegisterSlashCommand("pti", "ShowTargetInfo", self)
 	Apollo.RegisterSlashCommand("deadzone", "DeadzoneInfo", self)
+	Apollo.RegisterSlashCommand("perspective", "OnSlashCommand", self)
+end
+
+function PerspectiveOptions:OnSlashCommand(cmd, params)
+	local function print(str)
+		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Command, str, "")
+	end
+
+	p = string.lower(params)
+
+	if not p or p == "" then
+		print("Perspective")
+		print("To display the configuration window use:")
+		print("/perspective show")
+		print("To load a profile from another character use:")
+		print("/perspective profile Character - Server")
+		print("Example: Where Credit is the character and Avatus is the server.")
+		print("/perspective profile Credit - Avatus")
+	elseif p == "show" then
+		self:ShowOptions()
+	elseif string.sub(params, 1, 7) == "profile" then
+		local profile = string.sub(params, 9)
+		Print(profile)
+		self.db:CopyProfile(profile)
+		
+		self:InitializeOptions()
+
+		self.Editor:Show(false, true)
+		self.ModuleList:GetParent():Show(true, true)
+		self.CategoryList:GetParent():Show(true, true)
+
+		-- Update all the uis
+		Perspective:UpdateOptions(nil, true)
+
+		-- Restart Perspective
+		Perspective:Stop()
+		Perspective:Start()
+
+		-- Update the markers.
+		Perspective:MarkersInit()
+	end
 end
 
 function PerspectiveOptions:DeadzoneInfo()

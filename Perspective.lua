@@ -175,6 +175,9 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("Group_Join",							"OnGroup_Updated", self)
 	Apollo.RegisterEventHandler("Group_Updated",						"OnGroup_Updated", self)
 	Apollo.RegisterEventHandler("ChatZoneChange",						"OnChatZoneChange", self)
+	Apollo.RegisterEventHandler("FriendshipAdd",						"OnFriendshipChanged", self)
+	Apollo.RegisterEventHandler("FriendshipPostRemove",					"OnFriendshipChanged", self)
+	Apollo.RegisterEventHandler("FriendshipUpdate",						"OnFriendshipChanged", self)
 end
 
 function Perspective:OnResolutionChanged()
@@ -1708,6 +1711,10 @@ function Perspective:OnChatZoneChange()
 	self:OnWorldChanged()
 end
 
+function Perspective:OnFriendshipChanged(unit)
+	self:RecategorizePlayerUnits()
+end
+
 function Perspective:OnChallengeActivated(challenge)
 	self.challenges[challenge:GetId()] = true
 	self:MarkerChallengeUpdate(challenge)
@@ -1743,6 +1750,17 @@ function Perspective:OnPublicEventEnd(event)
 	-- Check for the GetName() function, it can cause an error if not found on the event.
 	if self.loaded and event["GetName"] then
 		self.markers["event" .. event:GetName()] = nil
+	end
+end
+
+function Perspective:RecategorizePlayerUnits()
+	for id, unit in pairs(self.units.all) do
+		-- We only want to update players
+		if unit:IsValid() and unit:GetType() == "Player" then
+			local ui = self:GetUnitInfo(unit)
+
+			table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
+		end
 	end
 end
 

@@ -1887,7 +1887,7 @@ end
 
 function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, button)
 	if button == 1 then
-		self.db:ResetDB()
+		self.db:ResetProfile()
 
 		self:InitializeOptions()
 

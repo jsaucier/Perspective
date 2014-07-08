@@ -337,8 +337,14 @@ end
 function Perspective:AddPixie(ui, pPos, pixies, items, lines)
 	local unit = self:GetUnitById(ui.id)
 
-	if unit then				
+	if unit then -- check for pvp visiblity?then				
 		local isOccluded = unit:IsOccluded()
+
+		if isOccluded and unit:IsPvpFlagged() and unit:GetDispositionTo(GameLib.GetPlayerUnit()) == 0 then
+			-- pvp hostile player, this will cause errors on drawing because we only know its last 
+			-- known location cause the line to go crazy off the screen
+			return
+		end
 
 		if not ui.disabled and 
 			ui.inRange and

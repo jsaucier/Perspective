@@ -1965,7 +1965,7 @@ function Perspective:UpdateLoot(ui, unit)
 		loot.eLootItemType and 
 		loot.eLootItemType == 6 and
 		not Options.db.profile[Options.profile].categories.questLoot.disabled then
-		category = "questLoot"
+		ui.category = "questLoot"
 	end
 end
 

@@ -654,6 +654,16 @@ function PerspectiveOptions:LoadDefaults()
 						limitBy = "category",
 						lineColor = "ffff8000",
 						iconColor = "ffff8000" },
+					questSpell = {
+						title = L.Category_Quest_Spell,
+						module = L.Module_Quest,
+						icon = "PerspectiveSprites:Quest-Objective",
+						max = 3,
+						limitBy = "category",
+						lineColor = "ffff8000",
+						iconHeight = 36,
+						iconWidth = 36,
+						iconColor = "ffff8000" },
 					questNew = {
 						title = L.Category_Quest_Start,
 						module = L.Module_Quest,
@@ -1166,6 +1176,11 @@ function PerspectiveOptions:ShowTargetInfo()
 			txt = txt .. getIndent(indent) .. "id: " .. value:GetId()
 			--value = value:GetName()
 			--key = "strName"
+			return txt
+		end
+
+		if key == "splObjective" and type(value) == "userdata" then
+			txt = txt .. getIndent(indent) .. "hasSpellObjective: true\n"
 			return txt
 		end
 

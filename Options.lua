@@ -698,7 +698,7 @@ function PerspectiveOptions:LoadDefaults()
 					questSpell = {
 						title = L.Category_Quest_Spell,
 						module = L.Module_Quest,
-						icon = "PerspectiveSprites:Quest-Objective",
+						icon = "PerspectiveSprites:Quest-Spell",
 						max = 3,
 						limitBy = "category",
 						lineColor = "ffff8000",

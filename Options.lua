@@ -116,7 +116,17 @@ function PerspectiveOptions:OnInitialize()
 	-- Register the slash command	
 	Apollo.RegisterSlashCommand("perspective", "ShowOptions", self)
 	Apollo.RegisterSlashCommand("pti", "ShowTargetInfo", self)
+	Apollo.RegisterSlashCommand("deadzone", "DeadzoneInfo", self)
 end
+
+function PerspectiveOptions:DeadzoneInfo()
+	Print("Deadzone:")
+	Print(Perspective.Player:GetOverheadAnchor().y)
+	Print(GameLib.GetUnitScreenPosition(Perspective.Player).nY)
+	Print(GameLib.GetPlayerUnit():GetOverheadAnchor().y)
+	Print(GameLib.GetUnitScreenPosition(GameLib.GetPlayerUnit()).nY)
+end
+
 
 function PerspectiveOptions:OnEnable()
 	if Apollo.GetAddon("Rover") then

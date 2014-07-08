@@ -1351,8 +1351,7 @@ function PerspectiveOptions:GetPathIcon()
 		path = "soldier"
 	end
 
-	return self.db.profile[self.profile].categories[path].icon
-	--return "PerspectiveSprites:Path-" .. path
+	return self:GetOptionValue(nil, "icon", path)
 end
 
 function PerspectiveOptions:OnInterfaceMenuListHasLoaded()

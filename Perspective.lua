@@ -825,9 +825,15 @@ function Perspective:UpdateUnitCategory(ui, unit)
 				-- challenge objectives or scientist scan target.
 				if ui.hasQuest and 
 					not Options:GetOptionValue(nil, "disabled", "questObjective") then 
+
+					local t = unit:GetType()
+
 					if ui.hasActivation then
 						ui.category = "questInteractable"
-					elseif unit:GetType() ~= "Simple" or unit:GetType() ~= "SimpleCollidable" then
+					elseif not ui.hasActivation and (t == "Simple" or t == "SimpleCollidable") then
+						-- do nothing
+					else
+						--not ui.invalidQuestObjective then
 						-- Simple and SimpleCollidable cant be objectives.
 						ui.category = "questObjective"
 					end
@@ -2000,9 +2006,16 @@ function Perspective:UpdateActivationState(ui, unit)
 
 	local category
 
-	for _, s in pairs(state) do
+	ui.hasActivation = nil
+	ui.invalidQuestObjective = nil
+
+	for s, o in pairs(state) do
+		if s == "QuestTarget" and (not o.bIsActive or not o.bCanInteract) then
+			ui.invalidQuestObjective = true
+		end
+
 		if not ui.hasActivation then
-			if s.bIsActive and s.bCanInteract then
+			if o.bIsActive and o.bCanInteract then
 				-- This is an interactive object.
 				ui.hasActivation = true
 				break;
@@ -2084,6 +2097,9 @@ function Perspective:UpdateRewards(ui, unit)
 					isValid = false
 				-- Ever Vigilant
 				elseif questId == 7007 and not act.Interact then
+					isValid = false
+				-- Knowledge is Everywhere
+				elseif questId == 7009 and not act.Interact then
 					isValid = false
 				end
 			end

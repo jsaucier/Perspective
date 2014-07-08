@@ -1925,7 +1925,7 @@ end
 
 function PerspectiveOptions:ButtonClickedOptionsExportButton(handler, control, button)
 	local profile = JSON.encode(self.db.profile)
-	self:ShowDialog(L.UI_Dialog_Export_Header, profile, true, true, L.UI_Options_ExportButton_Text , "CloseDialog")
+	self:ShowDialog(L.UI_Dialog_Export_Header, profile, true, true, L.UI_Dialog_Close_Button_Text , "CloseDialog")
 end
 
 function PerspectiveOptions:ButtonClickedEditorBackButton(handler, control, button)

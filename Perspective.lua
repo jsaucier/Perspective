@@ -764,10 +764,9 @@ function Perspective:OnTimerSlow()
 			-- Limit buffs to players for now
 			if unit:IsValid() and unit:GetType() == "Player" then
 				local ui = self:GetUnitInfo(unit)
-
 				local category = self:UpdateSpellEffects(ui, unit)
 
-				if category and category ~= ui.category then
+				if category ~= ui.category then
 					-- Need to recategorize this unit
 					table.insert(self.units.queue, { ui = ui, unit = unit, recategorize = true })
 				end
@@ -1067,7 +1066,7 @@ function Perspective:UpdateZoneSpellEffects()
 		local active = false
 
 		-- Make sure the category is enabled.
-		for name, options in pairs(Options.db.profile[Options.profile][tbl]) do
+		for id, options in pairs(Options.db.profile[Options.profile][tbl]) do
 			-- Zone id makes the buff's listed zone id.
 			if options.zone == zoneId then
 				-- Now determine if the category for the buff is enabled, otherwise no need to track it
@@ -1089,7 +1088,7 @@ function Perspective:UpdateZoneSpellEffects()
 
 				if isEnabled == true then
 					-- Valid buff we need to be checking for.
-					self[tbl][name] = { category = options.category, disposition = options.disposition }
+					self[tbl][id] = { category = options.category, disposition = options.disposition }
 				
 					-- Active table.
 					active = true
@@ -1167,6 +1166,26 @@ function Perspective:UpdateUnit(ui, unit)
 						-- Scale our icon based on the dimensions and scale factor.			  
 						ui.scaledWidth = ui.iconWidth * math.max(ui.scale, .5)
 						ui.scaledHeight = ui.iconHeight * math.max(ui.scale, .5)
+
+						--[[if ui.iconColorMode == "custom" then
+							ui.cIconColor = ui.iconColor
+						elseif ui.iconColorMode == "class" then
+							--Class color
+						elseif ui.iconColorMode == "disposition" then
+							-- Hardcoded for now, change later
+							local disposition = GameLib.GetDispositionTo(GameLib.GetPlayerUnit())
+							if disposition == 0 then
+								ui.cIconColor = "ffff0000"
+							elseif disposition == 1 then
+								ui.cIconColor = "ffffff00"
+							elseif disposition == 2 then
+								ui.cIconColor = "ff00ff00"
+							end
+						elseif ui.iconColorMode == "health" then
+							-- Health color
+						elseif ui.iconColorMode == "range" then
+							-- Range color
+						end]]
 
 						-- Calculate colors based on range
 						ui.cLineColor = (ui.inRangeLimit and ui.rangeLine) and ui.rangeColor or ui.lineColor

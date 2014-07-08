@@ -1887,7 +1887,7 @@ function PerspectiveOptions:ImportSettings()
 	 	return 
 	end
 
-	self.db.profile = {}
+	--self.db.profile = {}
 
 	for k, v in pairs(profile) do
 		self.db.profile[k] = v

@@ -260,7 +260,7 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Misc,
 						lineColor = "ffff8000",
 						iconColor = "ffffffff",
-						icon = "ClientSprites:Subdue-sword",
+						icon = "PerspectiveSprites:Subdue-sword",
 						lineWidth = 10,
 						iconHeight = 72,
 						iconWidth = 72 },

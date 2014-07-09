@@ -164,9 +164,9 @@ function Perspective:OnInitialize()
 	Apollo.RegisterEventHandler("PublicEventLocationRemoved", 			"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveLocationAdded", 	"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("PublicEventObjectiveLocationRemoved", 	"OnPublicEventUpdate", self)
-	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventEnd", self)
-	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventEnd", self)
-	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventEnd", self)
+	Apollo.RegisterEventHandler("PublicEventCleared", 					"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventEnd", 						"OnPublicEventUpdate", self)
+	Apollo.RegisterEventHandler("PublicEventLeave",						"OnPublicEventUpdate", self)
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitActivationTypeChanged", self)
 	Apollo.RegisterEventHandler("UnitNameChanged",						"OnUnitNameChanged", self)
 	Apollo.RegisterEventHandler("UnitGroupChanged",						"OnUnitGroupChanged", self)
@@ -990,7 +990,7 @@ function Perspective:UpdateOptions(ui, full)
 
 			-- Determines if this is a named unit with a set display as value.
 			ui.display = ui.named  and Options.db.profile[Options.profile].names[ui.name].display or ui.display
-
+			
 			-- Lets the adodn know we've loaded this ui.
 			ui.loaded = true	
 		else
@@ -1316,13 +1316,7 @@ function Perspective:MarkersInit()
 		end
 	end
 
-	local events = PublicEventsLib.GetActivePublicEventList()
-
-	if events then
-		for id, event in pairs(events) do
-			self:MarkerEventUpdate(event, id)
-		end
-	end
+	self:UpdateAllEvents()
 
 	local challenges = ChallengesLib.GetActiveChallengeList()
 
@@ -1368,24 +1362,32 @@ function Perspective:MarkerChallengeUpdate(challenge, remove)
 	end
 end
 
-function Perspective:MarkerEventUpdate(event)
-	local id = "event" .. event:GetName()
+function Perspective:UpdateAllEvents()
 
-	if event:IsActive() and table.getn(event:GetObjectives()) > 0 then
-		self.markers[id] = {
-			name = event:GetName(),
-			type = "event",
-			regions = {} }
+	local events = PublicEventsLib.GetActivePublicEventList()
 
-			-- Update the marker options
-			self:MarkerUpdateOptions(self.markers[id], "eventLocation")
+	if events then
+		for id, event in pairs(events) do
+			id = "event" .. id
+			if table.getn(event:GetObjectives()) > 0 then
+				self.markers[id] = {
+					name = event:GetName(),
+					type = "event",
+					regions = {} }
 
-		for index, objective in pairs(event:GetObjectives()) do
-			for index, region in pairs(objective:GetMapRegions()) do
-				self.markers[id].regions[index] = {
-					vector = Vector3.New(region.tIndicator.x, region.tIndicator.y, region.tIndicator.z)
-				}
-				self:MarkerUpdate(self.markers[id])
+				-- Update the marker options
+				self:MarkerUpdateOptions(self.markers[id], "eventLocation")
+
+				for _, objective in pairs(event:GetObjectives()) do
+					for index, loc in pairs(objective:GetLocations()) do
+						table.insert(self.markers[id].regions, {
+							vector = Vector3.New(loc.x, loc.y, loc.z) 
+						})
+					end
+					self:MarkersUpdate(self.markers[id])
+				end
+			else
+				self.markers[id] = nil
 			end
 		end
 	end
@@ -1477,7 +1479,7 @@ end
 
 -- Updates the marker information
 -- vector is the players current position vector.
-function Perspective:MarkerUpdate(marker, vector)
+function Perspective:MarkerUpdate(marker)
 	local player
 	local pos
 
@@ -1760,17 +1762,8 @@ function Perspective:OnChallengeRemoved(challenge)
 end
 
 function Perspective:OnPublicEventUpdate(event)
-	-- Check for the GetName() function, it can cause an error if not found on the event.
-	if self.loaded and event["GetName"] then
-		self:MarkerEventUpdate(event)
-	end
-end
-
-function Perspective:OnPublicEventEnd(event)
-	-- Check for the GetName() function, it can cause an error if not found on the event.
-	if self.loaded and event["GetName"] then
-		self.markers["event" .. event:GetName()] = nil
-	end
+	-- Update all events, seems like the event arg lacks all the data sometimes.
+	self:UpdateAllEvents()
 end
 
 function Perspective:RecategorizePlayerUnits()

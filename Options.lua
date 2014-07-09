@@ -1739,8 +1739,9 @@ function PerspectiveOptions:CategoryItemChecked(handler, control, button)
 		self.db.profile[self.profile].categories[category].disabled = not control:IsChecked()
 	end	
 
-	-- Update all the ui options.
-	Perspective:UpdateOptions(nil, true) 
+	--Perspective:Restart()
+	Perspective:UpdateOptions(nil, true)
+	Perspective:MarkersInit()
 end
 
 function PerspectiveOptions:EditorInitialize(category)

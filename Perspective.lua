@@ -894,7 +894,8 @@ function Perspective:UpdateUnitCategory(ui, unit)
 
 			-- If a category has still not been found for the unit, then determine its disposition
 			-- and difficulty and categorize it as such.
-			if not ui.category and unit:GetType() == "NonPlayer" and not unit:IsDead() then
+			if not ui.category and unit:GetType() == "NonPlayer" and not unit:IsDead() and 
+				not (unit:GetMouseOverType() == "Simple" or unit:GetMouseOverType() == "SimpleCollidable") then
 				local disposition = "friendly"
 				local difficulty = ""
 

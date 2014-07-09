@@ -698,7 +698,7 @@ function Perspective:OnTimerDraw()
 			deadzone.scale = (deadzone.feetY - deadzone.nameplateY) / 300 * deadzone.raceScale
 		end
 
-		if deadzone == nil then Print("dz nil") end
+		--if deadzone == nil then Print("dz nil") end
 
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
 		-- distance, closest to farthest.  This will ensure the farthest are drawn first and 

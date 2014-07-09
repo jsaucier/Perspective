@@ -222,12 +222,12 @@ function Perspective:Start()
 	Apollo.RemoveEventHandler("NextFrame", self)
 
 	if not Options.db.profile[Options.profile].settings.disabled then
-		if self.loaded then
-			-- Recreate all the units
-			for id, unit in pairs(self.units.all) do
-				self:OnUnitCreated(unit)
-			end
+		-- Recreate all the units
+		for id, unit in pairs(self.units.all) do
+			self:OnUnitCreated(unit)
 		end
+
+		self:MarkersInit()
 		
 		-- Load the timers
 		self:SetTimers()

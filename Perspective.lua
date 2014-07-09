@@ -2235,7 +2235,9 @@ function Perspective:UpdateRewards(ui, unit)
 					ui.hasChallenge = true
 				end
 			elseif type == "PublicEvent" then
-				ui.hasEvent = true
+				if not (unit:GetType() == "NonPlayer" and unit:IsDead() ) then
+					ui.hasEvent = true
+				end
 			elseif type == "Scientist" and 
 				ri[i].pmMission and
 				not ri[i].pmMission:IsComplete() then

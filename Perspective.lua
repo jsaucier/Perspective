@@ -1778,6 +1778,8 @@ end
 function Perspective:OnPublicEventUpdate(event)
 	-- Update all events, seems like the event arg lacks all the data sometimes.
 	self:UpdateAllEvents()
+
+	self:RecategorizeAllUnits(true)
 end
 
 function Perspective:RecategorizePlayerUnits()

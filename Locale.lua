@@ -355,6 +355,11 @@ function PerspectiveLocale:LoadLocalization()
 	-- New Stuff as of 2014.7.8
 	locale.Category_Quest_Spell						= "Spell Objective"
 
+	-- 2014.7.9
+	locale.Module_Event								= "Events"
+	locale.Category_Event_Location					= "Event Locations"
+	locale.Category_Event_Objective					= "Objective"
+	locale.Category_Event_Interactable 				= "Interactable"
 
 
 	local cancel = Apollo.GetString(1);

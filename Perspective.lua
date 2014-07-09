@@ -27,8 +27,8 @@ local activationStates = {
 	{ state = "ExplorerActivate", 		category = "explorer" },
 	{ state = "ExplorerDoor", 			category = "explorer" },
 	{ state = "SettlerActivate", 		category = "settler" },
-	{ state = "SoldierActivate", 		category = "solider" },
-	{ state = "SoldierKill", 			category = "solider" },
+	{ state = "SoldierActivate", 		category = "soldier" },
+	{ state = "SoldierKill", 			category = "soldier" },
 	{ state = "ScientistScannable", 	category = "scientist" },
 	{ state = "ScientistActivate", 		category = "scientist" },
 	{ state = "Public Event",			category = "questLoot" },
@@ -698,7 +698,7 @@ function Perspective:OnTimerDraw()
 			deadzone.scale = (deadzone.feetY - deadzone.nameplateY) / 300 * deadzone.raceScale
 		end
 
-		if deadzone == nil then Print("dz nil") end
+		--if deadzone == nil then Print("dz nil") end
 
 		-- Now, for the pixies, we'll draw them in reverse, because the lists were sorted by
 		-- distance, closest to farthest.  This will ensure the farthest are drawn first and 
@@ -894,7 +894,8 @@ function Perspective:UpdateUnitCategory(ui, unit)
 
 			-- If a category has still not been found for the unit, then determine its disposition
 			-- and difficulty and categorize it as such.
-			if not ui.category and unit:GetType() == "NonPlayer" and not unit:IsDead() then
+			if not ui.category and unit:GetType() == "NonPlayer" and not unit:IsDead() and 
+				not (unit:GetMouseOverType() == "Simple" or unit:GetMouseOverType() == "SimpleCollidable") then
 				local disposition = "friendly"
 				local difficulty = ""
 
@@ -2088,7 +2089,7 @@ function Perspective:UpdateActivationState(ui, unit)
 	if not category then
 		-- Get the player's path type
 		if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
-			path = "solider"
+			path = "soldier"
 		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
 			path = "settler"
 		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then

@@ -15,6 +15,7 @@ local Options
 local L = {}
 
 local activationStates = {
+	{ state = "Public Event",			category = "eventInteractable" },
 	{ state = "QuestReward", 			category = "questReward" },
 	{ state = "QuestNewMain", 			category = "questNew" },
 	{ state = "QuestNew", 				category = "questNew" },
@@ -31,7 +32,6 @@ local activationStates = {
 	{ state = "SoldierKill", 			category = "soldier" },
 	{ state = "ScientistScannable", 	category = "scientist" },
 	{ state = "ScientistActivate", 		category = "scientist" },
-	{ state = "Public Event",			category = "questLoot" },
 	{ state = "FlightPath", 			category = "flightPath" },
 	{ state = "InstancePortal", 		category = "instancePortal" },
 	{ state = "BindPoint", 				category = "bindPoint" },
@@ -864,6 +864,20 @@ function Perspective:UpdateUnitCategory(ui, unit)
 							ui.category = "questSpell"
 						elseif not Options:GetOptionValue(nil, "disabled", "questObjective") then
 							ui.category = "questObjective"
+						end
+					end
+				elseif ui.hasEvent then
+					local t = unit:GetType()
+
+					if ui.hasActivation and 
+						not Options:GetOptionValue(nil, "disabled", "eventInteractable") then
+						ui.category = "eventInteractable"
+					elseif not ui.hasActivation and (t == "Simple" or t == "SimpleCollidable") then
+						-- do nothing
+						--Print("Do nothing: " .. unit:GetName())
+					elseif not ui.hasActivation then
+						if not Options:GetOptionValue(nil, "disabled", "eventObjective") then
+							ui.category = "eventObjective"
 						end
 					end
 				elseif ui.hasChallenge and 
@@ -2178,6 +2192,7 @@ function Perspective:UpdateRewards(ui, unit)
 	-- Track the quests, challenges, and scans for the unit info.
 	ui.hasQuest = false
 	ui.hasChallenge = false
+	ui.hasEvent = false
 	ui.hasScan = false
 	ui.quests = {}
 	ui.challenges = {}
@@ -2219,6 +2234,8 @@ function Perspective:UpdateRewards(ui, unit)
 
 					ui.hasChallenge = true
 				end
+			elseif type == "PublicEvent" then
+				ui.hasEvent = true
 			elseif type == "Scientist" and 
 				ri[i].pmMission and
 				not ri[i].pmMission:IsComplete() then

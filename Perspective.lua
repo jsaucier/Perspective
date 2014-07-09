@@ -27,8 +27,8 @@ local activationStates = {
 	{ state = "ExplorerActivate", 		category = "explorer" },
 	{ state = "ExplorerDoor", 			category = "explorer" },
 	{ state = "SettlerActivate", 		category = "settler" },
-	{ state = "SoldierActivate", 		category = "solider" },
-	{ state = "SoldierKill", 			category = "solider" },
+	{ state = "SoldierActivate", 		category = "soldier" },
+	{ state = "SoldierKill", 			category = "soldier" },
 	{ state = "ScientistScannable", 	category = "scientist" },
 	{ state = "ScientistActivate", 		category = "scientist" },
 	{ state = "Public Event",			category = "questLoot" },
@@ -2088,7 +2088,7 @@ function Perspective:UpdateActivationState(ui, unit)
 	if not category then
 		-- Get the player's path type
 		if  PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Soldier then
-			path = "solider"
+			path = "soldier"
 		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler then
 			path = "settler"
 		elseif PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist then

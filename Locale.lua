@@ -199,15 +199,15 @@ function PerspectiveLocale:LoadLocalization()
 	locale.Tradeskill_Survivalist 					= "Survivalist"
 
 	-- Unit Display As Strings
-	locale.Unit_Travel_Thayd 						= "Ship to Thayd"
-	locale.Unit_Travel_Crimson_Badlands 			= "Ship to Crimson Badlands"
-	locale.Unit_Travel_Grimvault 					= "Ship to Grimvault"
-	locale.Unit_Travel_Farside 						= "Ship to Farside"
-	locale.Unit_Travel_Whitevale 					= "Ship to Whitevale"
-	locale.Unit_Travel_Northern_Wastes 				= "Ship to Northern Wastes"
-	locale.Unit_Travel_Wilderrun 					= "Ship to Wilderrun"
-	locale.Unit_Travel_Malgrave 					= "Ship to Malgrave"
-	locale.Unit_Travel_Ilium 						= "Ship to Ilium"
+	locale.Display_Travel_Thayd 						= "Ship to Thayd"
+	locale.Display_Travel_Crimson_Badlands 			= "Ship to Crimson Badlands"
+	locale.Display_Travel_Grimvault 					= "Ship to Grimvault"
+	locale.Display_Travel_Farside 						= "Ship to Farside"
+	locale.Display_Travel_Whitevale 					= "Ship to Whitevale"
+	locale.Display_Travel_Northern_Wastes 				= "Ship to Northern Wastes"
+	locale.Display_Travel_Wilderrun 					= "Ship to Wilderrun"
+	locale.Display_Travel_Malgrave 					= "Ship to Malgrave"
+	locale.Display_Travel_Ilium 						= "Ship to Ilium"
 
 	-- UI General Strings
 	locale.UI_Options_Tooltip_Action				= "Press enter to save your value."
@@ -538,15 +538,15 @@ function PerspectiveLocale:LoadLocalization()
 		locale.Category_Malgrave_Bug_Bomb 				= "Bombe à insecte"
 
 		-- Unit Display As Strings
-		locale.Unit_Travel_Thayd 						= "Vaisseau pour Thayd"
-		locale.Unit_Travel_Crimson_Badlands 			= "Vaisseau pour Terres maudites écarlates"
-		locale.Unit_Travel_Grimvault 					= "Vaisseau pour Mornegeôle"
-		locale.Unit_Travel_Farside 						= "Vaisseau pour Outre-horizon"
-		locale.Unit_Travel_Whitevale 					= "Vaisseau pour Valblanc"
-		locale.Unit_Travel_Northern_Wastes 				= "Vaisseau pour Septentrion Sauvage (?)"
-		locale.Unit_Travel_Wilderrun 					= "Vaisseau pour Sombreflore"
-		locale.Unit_Travel_Malgrave 					= "Vaisseau pour Maltombe"
-		locale.Unit_Travel_Ilium 						= "Vaisseau pour Ilium"
+		locale.Display_Travel_Thayd 						= "Vaisseau pour Thayd"
+		locale.Display_Travel_Crimson_Badlands 			= "Vaisseau pour Terres maudites écarlates"
+		locale.Display_Travel_Grimvault 					= "Vaisseau pour Mornegeôle"
+		locale.Display_Travel_Farside 						= "Vaisseau pour Outre-horizon"
+		locale.Display_Travel_Whitevale 					= "Vaisseau pour Valblanc"
+		locale.Display_Travel_Northern_Wastes 				= "Vaisseau pour Septentrion Sauvage (?)"
+		locale.Display_Travel_Wilderrun 					= "Vaisseau pour Sombreflore"
+		locale.Display_Travel_Malgrave 					= "Vaisseau pour Maltombe"
+		locale.Display_Travel_Ilium 						= "Vaisseau pour Ilium"
 
 		-- UI General Strings
 		locale.UI_Options_Tooltip_Action				= "Appuyez sur ENTRÉE pour enregistrer la valeur."

@@ -12,7 +12,7 @@ local Perspective = GeminiAddon:NewAddon("Perspective", false, {})
 
 local Options
 
-local L = {}
+--local L = {}
 
 local activationStates = {
 	{ state = "Public Event",			category = "eventInteractable" },
@@ -92,7 +92,7 @@ local elapsed = 0
 
 function Perspective:OnInitialize()
 	-- Load our localization
-	L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
+	--L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
 
 	Options = GeminiAddon:GetAddon("PerspectiveOptions")
 
@@ -181,8 +181,8 @@ function Perspective:OnInitialize()
 
 	-- Challenge specific fixes
 	challengeUnits = {
-		[L.Unit_Roan_Skull]						= { challenge = 576 },
-		[L.Unit_Shipwrecked_Victim]				= { challenge = 603 }
+		[self.L.Unit_Roan_Skull]						= { challenge = 576 },
+		[self.L.Unit_Shipwrecked_Victim]				= { challenge = 603 }
 	}
 end
 
@@ -1303,11 +1303,12 @@ function Perspective:MarkersDraw()
 	end
 end
 
+
 function Perspective:MarkersInit()
 	local _, __
 
 	-- Set the markers as no longer initialized
-	self.markersInitialized = false
+	--self.markersInitialized = false
 
 	-- Destroy any current makers
 	self.markers = {}
@@ -1344,6 +1345,7 @@ function Perspective:MarkersInit()
 	self.markersInitialized = true
 end
 
+
 function Perspective:MarkersUpdate(vector)
 	local _
 
@@ -1377,7 +1379,6 @@ function Perspective:MarkerChallengeUpdate(challenge, remove)
 end
 
 function Perspective:UpdateAllEvents()
-
 	local events = PublicEventsLib.GetActivePublicEventList()
 
 	if events then
@@ -1603,9 +1604,7 @@ function Perspective:OnAlternateTargetUnitChanged(unit)
 end
 
 function Perspective:OnWorldChanged()
-	if self.loaded then
-		self:MarkersInit()
-	end
+	self:MarkersInit()
 
 	self.Player = nil
 
@@ -1614,9 +1613,9 @@ function Perspective:OnWorldChanged()
 end
 
 function Perspective:OnQuestInit()
-	if self.loaded then
+	--if self.loaded then
 		self:MarkersInit()
-	end
+	--end
 end
 
 function Perspective:OnQuestTrackedChanged(quest)
@@ -1778,6 +1777,8 @@ end
 function Perspective:OnPublicEventUpdate(event)
 	-- Update all events, seems like the event arg lacks all the data sometimes.
 	self:UpdateAllEvents()
+
+	self:RecategorizeAllUnits(true)
 end
 
 function Perspective:RecategorizePlayerUnits()
@@ -1991,7 +1992,7 @@ function Perspective:UpdateNonPlayer(ui, unit)
 
 	-- War of the Wilds
 	if id == 1393 then
-		if (unit:GetFaction() == 170 or unit:GetFaction() == 900) and unit:GetName() ~= L.Unit_Maimbot_R4 then
+		if (unit:GetFaction() == 170 or unit:GetFaction() == 900) and unit:GetName() ~= self.L.Unit_Maimbot_R4 then
 			ui.category = "wotwChampion"
 		end
 	end	
@@ -2002,13 +2003,13 @@ function Perspective:UpdateHarvest(ui, unit)
 	local category
 	
 	if not unit:IsDead() then
-		if skill == L.Tradeskill_Farmer then
+		if skill == self.L.Tradeskill_Farmer then
 			category = "farmer"
-		elseif skill == L.Tradeskill_Mining then
+		elseif skill == self.L.Tradeskill_Mining then
 			category = "miner"
-		elseif skill == L.Tradeskill_Relic_Hunter then
+		elseif skill == self.L.Tradeskill_Relic_Hunter then
 			category = "relichunter"
-		elseif skill == L.Tradeskill_Survivalist then
+		elseif skill == self.L.Tradeskill_Survivalist then
 			category = "survivalist" 
 		end
 		
@@ -2085,7 +2086,7 @@ function Perspective:UpdateActivationState(ui, unit)
 
 			if v.state == "Datacube" and 
 				PlayerPathLib:GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist and 
-				string.find(unit:GetName(), L.Unit_Datacube) then
+				string.find(unit:GetName(), self.L.Unit_Datacube) then
 				category = "scientistScans"
 			end	
 
@@ -2235,7 +2236,9 @@ function Perspective:UpdateRewards(ui, unit)
 					ui.hasChallenge = true
 				end
 			elseif type == "PublicEvent" then
-				ui.hasEvent = true
+				if not (unit:GetType() == "NonPlayer" and unit:IsDead() ) then
+					ui.hasEvent = true
+				end
 			elseif type == "Scientist" and 
 				ri[i].pmMission and
 				not ri[i].pmMission:IsComplete() then

@@ -4,7 +4,7 @@
 
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", "Perspective")
+local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions")
 
 local Perspective
 
@@ -72,11 +72,13 @@ function PerspectiveOptions:OnInitialize()
 	self.profile = "default"
 
 	-- Load our localization
-	L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
+	--L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
 
 	JSON = Apollo.GetPackage("Lib:dkJSON-2.5").tPackage
 
 	Perspective = GeminiAddon:GetAddon("Perspective")
+
+	L = Perspective.L
 
 	-- Load our default values
 	local defaults = self:LoadDefaults()
@@ -1979,11 +1981,10 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 		Perspective:UpdateOptions(nil, true)
 
 		-- Restart Perspective
-		Perspective:Stop()
-		Perspective:Start()
+		Perspective:Restart()
 
 		-- Update the markers.
-		Perspective:MarkersInit()
+		--Perspective:MarkersInit()
 	end
 end
 

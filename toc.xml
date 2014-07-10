@@ -3,8 +3,8 @@
     <Script Name="Libs/GeminiAddon.lua"/>
     <Script Name="Libs/GeminiDB-1.0.lua"/>
     <Script Name="Libs/LibJSON/LibJSON-2.5.lua"/>
-    <Script Name="Options.lua"/>
-    <Script Name="Locale.lua"/>
     <Script Name="Perspective.lua"/>
+	<Script Name="Locale.lua"/>
+    <Script Name="Options.lua"/> 
     <Form Name="Perspective.xml"/>
 </Addon>

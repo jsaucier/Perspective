@@ -4,7 +4,7 @@
 
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
-local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", "Perspective")
+local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions")
 
 local Perspective
 
@@ -1979,11 +1979,10 @@ function PerspectiveOptions:ButtonClickedOptionsDefaultButton(handler, control, 
 		Perspective:UpdateOptions(nil, true)
 
 		-- Restart Perspective
-		Perspective:Stop()
-		Perspective:Start()
+		Perspective:Restart()
 
 		-- Update the markers.
-		Perspective:MarkersInit()
+		--Perspective:MarkersInit()
 	end
 end
 

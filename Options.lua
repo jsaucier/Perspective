@@ -777,8 +777,8 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Quest,
 						icon = "PerspectiveSprites:Quest-Loot",
 						showLines = false,
-						iconWidth = 28,
-						iconHeight = 28 },
+						iconWidth = 36,
+						iconHeight = 36 },
 					challengeLocation = {
 						title = L.Category_Challenge_Location,
 						iconColor = "ffff8000",

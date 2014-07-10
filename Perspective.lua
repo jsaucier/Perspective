@@ -1345,8 +1345,6 @@ function Perspective:MarkersInit()
 end
 
 function Perspective:MarkersUpdate(vector)
-	local _
-
 	-- Update all the episode markers
 	for _, marker in pairs(self.markers) do
 		self:MarkerUpdate(marker, vector)
@@ -1398,8 +1396,8 @@ function Perspective:UpdateAllEvents()
 							vector = Vector3.New(loc.x, loc.y, loc.z) 
 						})
 					end
-					self:MarkersUpdate(self.markers[id])
 				end
+				self:MarkerUpdate(self.markers[id])
 			else
 				self.markers[id] = nil
 			end

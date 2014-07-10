@@ -1,27 +1,6 @@
-
 require "Apollo"
 
-local PerspectiveLocale = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("PerspectiveLocale", false)
-
-function PerspectiveLocale:new(o)
-	o = o or {}
-	setmetatable(o, self)
-	self.__index = self 
-
-	return o
-end
-
-function PerspectiveLocale:OnInitialize()
-	self.locale = self:LoadLocalization()
-end
-
-function PerspectiveLocale:OnEnable()
-	if Apollo.GetAddon("Rover") then
-		SendVarToRover("PerspectiveLocale", self)
-	end
-end
-
-function PerspectiveLocale:LoadLocalization()
+local function LoadLocalization()
 	local locale = {}
 
 	-- Category Titles
@@ -665,8 +644,6 @@ function PerspectiveLocale:LoadLocalization()
 		locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
 		locale.UI_Settings_OffsetCheck_Tooltip			= "Offsets the lines so they do not overlay on top of your character."
 
---------------------------	
---------------------------	
 
 		-- Unit names (do not translate as these come from the game client)
 		locale.Unit_Food_Table 						= "Buffet"
@@ -759,3 +736,5 @@ function PerspectiveLocale:LoadLocalization()
 
 	return locale
 end
+
+Apollo.GetAddon("Perspective").L = LoadLocalization()

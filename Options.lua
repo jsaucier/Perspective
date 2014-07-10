@@ -72,11 +72,13 @@ function PerspectiveOptions:OnInitialize()
 	self.profile = "default"
 
 	-- Load our localization
-	L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
+	--L = GeminiAddon:GetAddon("PerspectiveLocale"):LoadLocalization()
 
 	JSON = Apollo.GetPackage("Lib:dkJSON-2.5").tPackage
 
 	Perspective = GeminiAddon:GetAddon("Perspective")
+
+	L = Perspective.L
 
 	-- Load our default values
 	local defaults = self:LoadDefaults()

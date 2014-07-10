@@ -796,7 +796,9 @@ function PerspectiveOptions:LoadDefaults()
 						module = L.Module_Challenge,
 						icon = "PerspectiveSprites:Quest-Objective",
 						lineColor = "ffff0000",
-						iconColor = "ffff0000" },
+						iconColor = "ffff0000",
+						iconWidth = 36,
+						iconHeight = 36 },
 					farmer = {
 						title = L.Category_Harvest_Farmer,
 						module = L.Module_Harvest,

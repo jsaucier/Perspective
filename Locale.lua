@@ -321,6 +321,8 @@ function PerspectiveLocale:LoadLocalization()
 	locale.UI_Settings_MaxUnitsText_Tooltip			= "The maximum limit of total icons to that are allowed to be drawn onscreen at once."
 	locale.UI_Settings_OffsetCheck_Text	 			= "Offset lines from character"
 	locale.UI_Settings_OffsetCheck_Tooltip	 		= "Offsets the lines so they do not overlay on top of your character."
+	locale.UI_Settings_DottedLinesCheck_Text		= "Dotted Lines"
+	locale.UI_Settings_DottedLinesCheck_Tooltip		= "Draw lines using dots."
 
 
 

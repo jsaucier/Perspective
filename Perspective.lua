@@ -214,6 +214,7 @@ end
 
 function Perspective:Start()
 	self.offsetLines = Options.db.profile[Options.profile].settings.offsetLines
+	self.dottedLines = Options.db.profile[Options.profile].settings.dottedLines
 	
 	-- Check to see if we are in a raid
 	self.inRaid = GroupLib.InRaid()
@@ -523,7 +524,7 @@ function Perspective:DrawPixie(ui, unit, uPos, pPos, showItem, showLine, dottedL
 
 		if drawLine == 1 then 
 
-			if dottedLine == true then 
+			if self.dottedLines == true then 
 			-- if true then 
 				-- Draw Dots! 
 				-- First dumb approach, and it seems to work OK:  

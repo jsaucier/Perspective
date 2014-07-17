@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Addon Author="Credit-Avatus(US)" APIVersion="8" Name="Perspective" Description="">
+<Addon Author="Credit-Avatus(US)" APIVersion="9" Name="Perspective" Description="">
     <Script Name="Libs/GeminiAddon.lua"/>
     <Script Name="Libs/GeminiDB-1.0.lua"/>
     <Script Name="Libs/LibJSON/LibJSON-2.5.lua"/>

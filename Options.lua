@@ -2,6 +2,27 @@
 		New Category
 ]]
 
+----------------------------------------------------------------------
+--- Upvalues
+----------------------------------------------------------------------
+local pairs, ipairs = pairs, ipairs
+local strlower, strsub, strformat = string.lower, string.sub, string.format
+local type, tostring, tonumber = type, tostring, tonumber
+local floor = math.floor
+local CColor = CColor
+
+local ColorPicker = ColorPicker
+
+--Wildstar APIs
+local Apollo, ChatSystemLib, XmlDoc = Apollo, ChatSystemLib, XmlDoc
+local GameLib, PlayerPathLib = GameLib, PlayerPathLib
+local Event_FireGenericEvent = Event_FireGenericEvent
+
+--GLOBALS: Print
+
+----------------------------------------------------------------------
+--- Local Variables
+----------------------------------------------------------------------
 local GeminiAddon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage
 
 local PerspectiveOptions = GeminiAddon:NewAddon("PerspectiveOptions", "Perspective")
@@ -60,14 +81,6 @@ local fonts = {
 
 local controls = {}
 
-function PerspectiveOptions:new(o)
-	o = o or {}
-	setmetatable(o, self)
-	self.__index = self 
-
-	return o
-end
-
 function PerspectiveOptions:OnInitialize()
 	self.profile = "default"
 
@@ -91,25 +104,25 @@ function PerspectiveOptions:OnInitialize()
 	self.xmlDoc = XmlDoc.CreateFromFile("Perspective.xml")
 
 	-- Dialog window
-    self.Dialog = Apollo.LoadForm(self.xmlDoc, "Dialog", nil, self)
-    self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "CloseDialog")
+	self.Dialog = Apollo.LoadForm(self.xmlDoc, "Dialog", nil, self)
+	self.Dialog:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "CloseDialog")
 
 	-- Options window
-    self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
-    
-    -- Options categories list
-    self.CategoryList = self.Options:FindChild("CategoryList"):FindChild("Categories")
-    
-    -- Options modules list
-    self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules")
+	self.Options = Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
 
-    -- Options category editor
-    self.Editor = self.Options:FindChild("Editor")
+	-- Options categories list
+	self.CategoryList = self.Options:FindChild("CategoryList"):FindChild("Categories")
 
-    -- Options settings
-    self.Settings = self.Options:FindChild("Settings")
+	-- Options modules list
+	self.ModuleList = self.Options:FindChild("CategoryList"):FindChild("Modules")
 
-    -- Register our addon with the interface menu.
+	-- Options category editor
+	self.Editor = self.Options:FindChild("Editor")
+
+	-- Options settings
+	self.Settings = self.Options:FindChild("Settings")
+
+	-- Register our addon with the interface menu.
 	Apollo.RegisterEventHandler("InterfaceMenuListHasLoaded", 		"OnInterfaceMenuListHasLoaded", self)
 	Apollo.RegisterEventHandler("InterfaceMenuClicked", 			"OnInterfaceMenuClicked", self)
 
@@ -125,7 +138,7 @@ function PerspectiveOptions:OnSlashCommand(cmd, params)
 		ChatSystemLib.PostOnChannel(ChatSystemLib.ChatChannel_Command, str, "")
 	end
 
-	p = string.lower(params)
+	local p = strlower(params)
 
 	if not p or p == "" then
 		print("Perspective")
@@ -137,8 +150,8 @@ function PerspectiveOptions:OnSlashCommand(cmd, params)
 		print("/perspective profile Credit - Avatus")
 	elseif p == "show" then
 		self:ShowOptions()
-	elseif string.sub(params, 1, 7) == "profile" then
-		local profile = string.sub(params, 9)
+	elseif strsub(params, 1, 7) == "profile" then
+		local profile = strsub(params, 9)
 		Print(profile)
 		self.db:CopyProfile(profile)
 
@@ -171,7 +184,7 @@ end
 
 function PerspectiveOptions:OnEnable()
 	if Apollo.GetAddon("Rover") then
-		SendVarToRover("PerspectiveOptions", self)
+		--SendVarToRover("PerspectiveOptions", self)
 	end
 end
 
@@ -1428,29 +1441,29 @@ function PerspectiveOptions:SetPixie(window, index, options)
 end
 
 function PerspectiveOptions:CColorToString(color)
-	return string.format("%02X%02X%02X%02X", 
-		math.floor(color.a * 255 + 0.5),
-		math.floor(color.r * 255 + 0.5), 
-		math.floor(color.g * 255 + 0.5), 
-		math.floor(color.b * 255 + 0.5))
+	return strformat("%02X%02X%02X%02X", 
+		floor(color.a * 255 + 0.5),
+		floor(color.r * 255 + 0.5), 
+		floor(color.g * 255 + 0.5), 
+		floor(color.b * 255 + 0.5))
 end
 
 function PerspectiveOptions:StringToCColor(str)
 	local r, g, b, a = 0, 0, 0, 0
 
 	-- Get the alpha values.
-	local alpha = string.sub(str, 1, 2)
+	local alpha = strsub(str, 1, 2)
 
 	-- Convert to hex
 	alpha = tonumber(alpha, 16)
 
-	str = string.sub(str, 3)
+	str = strsub(str, 3)
 
 	local val = tonumber(str, 16)
 
 	if val then
-		r = math.floor(val / 65536) 
-		g = math.floor(val / 256) % 256
+		r = floor(val / 65536) 
+		g = floor(val / 256) % 256
 		b = val % 256
 		a = alpha % 256
 	end
@@ -2324,7 +2337,7 @@ function PerspectiveOptions:TextBoxReturnSettings(handler, control)
 	-- Check to see if the textbox is expecting a number
 	if data.options.isNumber then
 		if not tonumber(val) then
-			val = self.db.profile[self.profile].settings[options.option]
+			val = self.db.profile[self.profile].settings[data.options.option]
 		else
 			val = tonumber(val)
 		end
@@ -2332,7 +2345,7 @@ function PerspectiveOptions:TextBoxReturnSettings(handler, control)
 
 	-- If the option is blank, load the default setting.
 	if val == "" then 
-		val = self.db.profile[self.profile].settings[options.option]
+		val = self.db.profile[self.profile].settings[data.options.option]
 	end
 
 	self.db.profile[self.profile].settings[data.options.option] = val	

@@ -1,15 +1,16 @@
 
 require "Apollo"
+----------------------------------------------------------------------
+--- Upvalues
+----------------------------------------------------------------------
 
+--Wildstar APIs
+local Apollo = Apollo
+
+----------------------------------------------------------------------
+--- Local Variables
+----------------------------------------------------------------------
 local PerspectiveLocale = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("PerspectiveLocale", false)
-
-function PerspectiveLocale:new(o)
-	o = o or {}
-	setmetatable(o, self)
-	self.__index = self 
-
-	return o
-end
 
 function PerspectiveLocale:OnInitialize()
 	self.locale = self:LoadLocalization()
@@ -17,7 +18,7 @@ end
 
 function PerspectiveLocale:OnEnable()
 	if Apollo.GetAddon("Rover") then
-		SendVarToRover("PerspectiveLocale", self)
+		--SendVarToRover("PerspectiveLocale", self)
 	end
 end
 
